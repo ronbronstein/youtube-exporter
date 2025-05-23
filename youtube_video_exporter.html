@@ -727,7 +727,7 @@
                             <button class="toggle-btn active" id="listViewBtn" onclick="switchView('list')">📋 List</button>
                             <button class="toggle-btn" id="gridViewBtn" onclick="switchView('grid')">🎬 Grid</button>
                         </div>
-                        <input type="text" id="titleFilter" class="filter-input" placeholder="Filter titles...">
+                        <input type="text" id="titleFilter" class="filter-input" placeholder="Search titles & descriptions...">
                     </div>
                 </div>
                 <div class="video-list" id="videoList"></div>
@@ -735,6 +735,22 @@
                     <button class="export-button" onclick="exportToCSV()">📥 Download CSV</button>
                     <button class="export-button secondary" onclick="exportTitles()">📝 Export Titles</button>
                     <button class="export-button" onclick="exportToMarkdown()">🤖 LLM Export (Markdown)</button>
+                </div>
+            </div>
+            
+            <!-- Advanced Search Panel -->
+            <div class="search-panel" style="background: var(--xp-gray-light); border: 2px inset var(--xp-button-face); border-radius: 6px; padding: 16px; margin-bottom: 12px; position: relative;">
+                <div style="position: absolute; top: -12px; left: 12px; background: var(--xp-gray-light); padding: 0 12px; font-size: 12px; font-weight: bold; color: var(--xp-text);">🔍 Topic Discovery</div>
+                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; margin-top: 8px;">
+                    <input type="text" id="topicSearch" placeholder="Enter keywords: AI, machine learning, tutorial (supports AND/OR logic)" style="padding: 8px 12px; border: 2px inset var(--xp-button-face); border-radius: 4px; background: white; color: var(--xp-text); font-size: 13px; font-family: 'Tahoma', sans-serif;">
+                    <select id="searchLogic" style="padding: 8px 12px; border: 2px inset var(--xp-button-face); border-radius: 4px; background: var(--xp-button-face); color: var(--xp-text); font-size: 12px; font-family: 'Tahoma', sans-serif;">
+                        <option value="OR">Any keyword (OR)</option>
+                        <option value="AND">All keywords (AND)</option>
+                    </select>
+                    <button onclick="performTopicSearch()" style="padding: 8px 16px; background: var(--xp-button-face); color: var(--xp-text); border: 2px outset var(--xp-button-face); border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; font-family: 'Tahoma', sans-serif;">🔍 Search</button>
+                </div>
+                <div style="margin-top: 12px; font-size: 11px; color: var(--xp-text-disabled);">
+                    <strong>Examples:</strong> "tutorial, guide" (OR) • "AI AND machine learning" • "react, vue, angular" (OR)
                 </div>
             </div>
         </div>
@@ -1055,6 +1071,9 @@
                 
                 // Create upload timeline chart
                 createUploadTimeline();
+                
+                // Add topic search presets after analysis
+                addTopicPresets();
                 
                 showSuccess(`Analyzed ${videosData.length} videos from channel`);
                 
@@ -1387,6 +1406,7 @@
             });
         }
         
+        // Enhanced filtering with title + description search
         function filterResults() {
             const filterText = document.getElementById('titleFilter').value.toLowerCase();
             
@@ -1395,11 +1415,66 @@
             } else {
                 filteredData = videosData.filter(video => 
                     video.title.toLowerCase().includes(filterText) ||
+                    video.description.toLowerCase().includes(filterText) ||
                     video.channelTitle.toLowerCase().includes(filterText)
                 );
             }
             
             displayVideos(filteredData);
+            updateSearchResults();
+        }
+        
+        // Powerful topic search with AND/OR logic
+        function performTopicSearch() {
+            const searchInput = document.getElementById('topicSearch').value.trim();
+            const logic = document.getElementById('searchLogic').value;
+            
+            if (!searchInput) {
+                filteredData = [...videosData];
+                displayVideos(filteredData);
+                updateSearchResults();
+                return;
+            }
+            
+            // Parse keywords - split by comma, "AND", or natural separators
+            let keywords = [];
+            if (searchInput.includes(',')) {
+                keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
+            } else if (searchInput.toLowerCase().includes(' and ')) {
+                keywords = searchInput.toLowerCase().split(' and ').map(k => k.trim());
+            } else {
+                keywords = searchInput.toLowerCase().split(/\s+/);
+            }
+            
+            filteredData = videosData.filter(video => {
+                const searchText = `${video.title} ${video.description}`.toLowerCase();
+                
+                if (logic === 'AND') {
+                    // ALL keywords must be found
+                    return keywords.every(keyword => searchText.includes(keyword));
+                } else {
+                    // ANY keyword found (OR logic)
+                    return keywords.some(keyword => searchText.includes(keyword));
+                }
+            });
+            
+            displayVideos(filteredData);
+            updateSearchResults();
+            
+            // Show search results summary
+            showSuccess(`Found ${filteredData.length} videos matching "${searchInput}" (${logic} logic)`);
+        }
+        
+        // Update search results count
+        function updateSearchResults() {
+            const resultsCount = document.getElementById('resultsCount');
+            if (filteredData.length !== videosData.length) {
+                resultsCount.textContent = `${filteredData.length} of ${videosData.length} videos (filtered)`;
+                resultsCount.style.color = 'var(--xp-blue-start)';
+            } else {
+                resultsCount.textContent = `${videosData.length} videos found`;
+                resultsCount.style.color = 'var(--xp-text)';
+            }
         }
         
         function exportToCSV() {
@@ -1535,10 +1610,14 @@
             loadApiKey();
         });
         
-        // Add Enter key support for channel input
+        // Add Enter key support for channel input and topic search
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                analyzeChannelComplete();
+                if (e.target.id === 'topicSearch') {
+                    performTopicSearch();
+                } else {
+                    analyzeChannelComplete();
+                }
             }
         });
         
@@ -1686,6 +1765,44 @@
             if (basicAnalysis) {
                 basicAnalysis.insertAdjacentHTML('afterend', advancedPanel);
             }
+        }
+        
+        // Add preset topic searches (common use cases)
+        function addTopicPresets() {
+            const presets = [
+                { name: 'Tutorial Content', query: 'tutorial, guide, how to, walkthrough', logic: 'OR' },
+                { name: 'AI & Machine Learning', query: 'AI, machine learning, artificial intelligence, ML', logic: 'OR' },
+                { name: 'Web Development', query: 'react, vue, angular, javascript, web development', logic: 'OR' },
+                { name: 'Reviews & Analysis', query: 'review, analysis, breakdown, opinion', logic: 'OR' },
+                { name: 'News & Updates', query: 'news, update, announcement, release', logic: 'OR' }
+            ];
+            
+            // Add preset buttons if we have results
+            if (videosData.length > 0) {
+                const searchPanel = document.querySelector('.search-panel');
+                const presetsDiv = document.createElement('div');
+                presetsDiv.innerHTML = `
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--xp-border-dark);">
+                        <div style="font-size: 11px; font-weight: bold; margin-bottom: 6px; color: var(--xp-text);">Quick Topic Searches:</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            ${presets.map(preset => `
+                                <button onclick="applyPreset('${preset.query}', '${preset.logic}')" 
+                                        style="padding: 4px 8px; font-size: 10px; background: var(--xp-gray-dark); color: var(--xp-text); border: 1px outset var(--xp-button-face); border-radius: 3px; cursor: pointer; font-family: 'Tahoma', sans-serif;">
+                                    ${preset.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                searchPanel.appendChild(presetsDiv);
+            }
+        }
+        
+        // Apply preset search
+        function applyPreset(query, logic) {
+            document.getElementById('topicSearch').value = query;
+            document.getElementById('searchLogic').value = logic;
+            performTopicSearch();
         }
     </script>
 </body>
