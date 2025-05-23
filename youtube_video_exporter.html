@@ -685,6 +685,36 @@
         
         <div class="main-section">
             <div class="control-panel">
+                <!-- API Key Security Panel -->
+                <div id="apiKeyPanel" style="background: #fffbf0; border: 2px inset var(--xp-button-face); border-radius: 4px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #f0ad4e; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="font-size: 16px;">🔐</span>
+                        <strong style="color: var(--xp-text); font-size: 14px;">YouTube API Key Required</strong>
+                        <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--xp-blue-start); text-decoration: underline; font-size: 12px; margin-left: auto;">Get Free API Key →</a>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 12px;">
+                        <label for="apiKeyInput">Your YouTube API Key</label>
+                        <input type="password" id="apiKeyInput" placeholder="AIza... (paste your YouTube Data API v3 key)" style="font-family: monospace;">
+                        <div style="margin-top: 6px; font-size: 11px; color: var(--xp-text-disabled);">
+                            <strong>Stored locally in your browser only</strong> • Not sent to our servers
+                        </div>
+                    </div>
+                    
+                    <details style="margin-top: 8px;">
+                        <summary style="cursor: pointer; font-size: 12px; color: var(--xp-blue-start); font-weight: bold;">🛡️ Security Setup (Important - Click to expand)</summary>
+                        <div style="margin-top: 8px; padding: 8px; background: white; border: 1px inset var(--xp-button-face); border-radius: 3px; font-size: 11px; line-height: 1.4;">
+                            <p style="margin: 0 0 8px 0;"><strong>After creating your API key, secure it:</strong></p>
+                            <ol style="margin: 0; padding-left: 16px;">
+                                <li><strong>Application restrictions:</strong> HTTP referrers → Add: <code style="background: #f0f0f0; padding: 1px 4px;">yourdomain.github.io/*</code></li>
+                                <li><strong>API restrictions:</strong> Restrict to "YouTube Data API v3" only</li>
+                                <li><strong>Quotas:</strong> Set daily limit 1,000-5,000 units (prevents overuse)</li>
+                            </ol>
+                            <p style="margin: 8px 0 0 0; color: var(--xp-text-disabled);"><strong>Note:</strong> Your key is visible in browser tools (not 100% secure). Restrict it properly for safety.</p>
+                        </div>
+                    </details>
+                </div>
+                
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="channelInput">Channel URL or Handle</label>
@@ -719,8 +749,8 @@
                             <option value="relevance">Most Relevant</option>
                         </select>
                     </div>
-                    </div>
-                
+                </div>
+            
                 <button class="analyze-button" onclick="analyzeChannelComplete()">🚀 Analyze Channel</button>
             </div>
             
@@ -797,6 +827,84 @@
         let youtubeApiKey = null; // Global API key variable
         let currentView = 'list'; // Track current view mode
         let currentSort = { column: null, direction: 'asc' }; // Track sorting state
+        let apiMode = null; // Track whether we're in 'local' or 'web' mode
+        
+        // Hybrid API key initialization - tries server first, falls back to client input
+        async function initializeApiKey() {
+            try {
+                debugLog('Attempting server-side API key loading...');
+                const response = await fetch('/api/key');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.apiKey) {
+                        // Local mode - server provided key
+                        youtubeApiKey = data.apiKey;
+                        apiMode = 'local';
+                        hideApiKeyPanel();
+                        debugLog('✅ Local mode: API key loaded from server');
+                        console.log('🏠 Local mode: Server API key loaded');
+                        return 'local';
+                    }
+                }
+            } catch (error) {
+                debugLog('Server not available, switching to web mode');
+            }
+            
+            // Web mode - client-side key input
+            apiMode = 'web';
+            showApiKeyPanel();
+            loadSavedClientKey();
+            debugLog('🌐 Web mode: Client-side API key required');
+            console.log('🌐 Web mode: Please enter your API key');
+            return 'web';
+        }
+        
+        // Show API key input panel (web mode)
+        function showApiKeyPanel() {
+            const panel = document.getElementById('apiKeyPanel');
+            if (panel) {
+                panel.style.display = 'block';
+            }
+        }
+        
+        // Hide API key input panel (local mode)
+        function hideApiKeyPanel() {
+            const panel = document.getElementById('apiKeyPanel');
+            if (panel) {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // Load saved client-side API key from localStorage
+        function loadSavedClientKey() {
+            try {
+                const savedKey = localStorage.getItem('youtubeApiKey');
+                if (savedKey && savedKey.startsWith('AIza')) {
+                    youtubeApiKey = savedKey;
+                    document.getElementById('apiKeyInput').value = savedKey;
+                    debugLog('✅ Client API key loaded from localStorage');
+                }
+            } catch (error) {
+                debugLog('Error loading saved API key', error);
+            }
+        }
+        
+        // Save API key to localStorage when user enters it (web mode only)
+        function saveApiKey() {
+            if (apiMode === 'local') return true; // Always valid in local mode
+            
+            const keyInput = document.getElementById('apiKeyInput');
+            const key = keyInput.value.trim();
+            
+            if (key && key.startsWith('AIza')) {
+                youtubeApiKey = key;
+                localStorage.setItem('youtubeApiKey', key);
+                debugLog('✅ Client API key saved to localStorage');
+                return true;
+            }
+            return false;
+        }
         
         // Saved searches functionality
         function initializeSavedSearches() {
@@ -1081,27 +1189,6 @@
             }, 100);
         }
         
-        // Load API key from server on page load
-        async function loadApiKey() {
-            try {
-                debugLog('Loading API key from server...');
-                const response = await fetch('/api/key');
-                const data = await response.json();
-                
-                if (data.apiKey) {
-                    youtubeApiKey = data.apiKey;
-                    debugLog('✅ YouTube API key loaded successfully');
-                    console.log('✅ YouTube API key loaded successfully');
-                } else {
-                    throw new Error('API key not found in response');
-                }
-            } catch (error) {
-                debugLog('❌ API key loading failed', error);
-                showError('Failed to load API key. Please check your .env file configuration.');
-                console.error('❌ API key loading failed:', error);
-            }
-        }
-        
         // New comprehensive channel analysis function - fixed to get ALL videos
         async function analyzeChannelComplete() {
             const channelInput = document.getElementById('channelInput').value.trim();
@@ -1109,8 +1196,13 @@
             const order = document.getElementById('channelOrder').value;
             const searchLogic = document.getElementById('searchLogic').value;
             
-            if (!youtubeApiKey) {
-                showError('API key not loaded. Please refresh the page.');
+            // Get API key from input field
+            if (!saveApiKey()) {
+                if (apiMode === 'web') {
+                    showError('Please enter a valid YouTube API key (starts with "AIza..."). Need one? Click "Get Free API Key" above.');
+                } else {
+                    showError('API key not available. Please check your configuration.');
+                }
                 return;
             }
             
@@ -1337,7 +1429,7 @@
                         
                         videosData = videosData.concat(batchVideos);
                     }
-                } catch (error) {
+            } catch (error) {
                     debugLog(`Batch processing error for batch starting at ${i}`, error);
                     // Continue with other batches
                 }
@@ -1442,7 +1534,7 @@
                 
                 if (!channelId) {
                     throw new Error('Could not extract channel ID');
-                }
+            }
             
             return channelId;
             } catch (error) {
@@ -1792,8 +1884,8 @@
         
         // Initialize with current date for date inputs and load API key
         document.addEventListener('DOMContentLoaded', function() {
-            // Load API key from server
-            loadApiKey();
+            // Initialize API key system (tries server first, falls back to client input)
+            initializeApiKey();
             
             // Initialize saved searches
             initializeSavedSearches();
