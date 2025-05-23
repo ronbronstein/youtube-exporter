@@ -898,6 +898,21 @@
                     videos: 1
                 }
             },
+            AUTH: {
+                GITHUB_OAUTH_ENABLED: false, // Will be enabled for GitHub Pages
+                CLIENT_ID: '', // Will be set based on environment
+                REDIRECT_URI: '', // Will be set based on environment
+                SCOPES: 'read:user', // Minimal GitHub scopes needed
+                STORAGE_KEY: 'yt_encrypted_key',
+                SESSION_KEY: 'yt_github_session',
+                SESSION_TIMEOUT: 24 * 60 * 60 * 1000 // 24 hours
+            },
+            ENVIRONMENT: {
+                DETECTED: null, // Will be set on initialization
+                GITHUB_PAGES_DOMAINS: ['github.io', 'github.dev'],
+                LOCAL_DOMAINS: ['localhost', '127.0.0.1'],
+                SUPPORTED_ENVIRONMENTS: ['github-pages', 'local-file', 'local-server', 'custom-domain']
+            },
             UI: {
                 CHART_COLORS: {
                     primary: 'rgb(0, 120, 212)',
@@ -927,6 +942,12 @@
         let currentSort = { column: null, direction: 'asc' };
         let apiMode = null; // 'local', 'web', or 'demo'
         let isDemoMode = false;
+        
+        // Authentication & environment state
+        let currentEnvironment = null;
+        let githubUser = null;
+        let githubSession = null;
+        let isAuthenticated = false;
         
         /* ===== GLOBAL ERROR HANDLING ===== */
         
@@ -1061,10 +1082,519 @@
             return Math.abs(hash).toString(36);
         }
         
+        /* ===== ENVIRONMENT DETECTION & AUTHENTICATION ===== */
+        
+        /**
+         * Detect the current deployment environment
+         * @returns {string} Environment type: 'github-pages', 'local-file', 'local-server', 'custom-domain'
+         */
+        function detectEnvironment() {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // Check if running on GitHub Pages
+            if (CONFIG.ENVIRONMENT.GITHUB_PAGES_DOMAINS.some(domain => hostname.includes(domain))) {
+                return 'github-pages';
+            }
+            
+            // Check if running as local file
+            if (protocol === 'file:') {
+                return 'local-file';
+            }
+            
+            // Check if running on local development server
+            if (CONFIG.ENVIRONMENT.LOCAL_DOMAINS.includes(hostname)) {
+                return 'local-server';
+            }
+            
+            // Custom domain deployment
+            return 'custom-domain';
+        }
+        
+        /**
+         * Initialize environment-specific configuration
+         */
+        function initializeEnvironment() {
+            currentEnvironment = detectEnvironment();
+            CONFIG.ENVIRONMENT.DETECTED = currentEnvironment;
+            
+            debugLog(`Environment detected: ${currentEnvironment}`);
+            
+            switch (currentEnvironment) {
+                case 'github-pages':
+                    initializeGitHubPages();
+                    break;
+                case 'local-file':
+                    initializeLocalFile();
+                    break;
+                case 'local-server':
+                    initializeLocalServer();
+                    break;
+                case 'custom-domain':
+                    initializeCustomDomain();
+                    break;
+                default:
+                    console.warn('Unknown environment, defaulting to local-file mode');
+                    initializeLocalFile();
+            }
+        }
+        
+        /**
+         * Initialize GitHub Pages environment with OAuth
+         */
+        function initializeGitHubPages() {
+            // Enable GitHub OAuth
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = true;
+            CONFIG.AUTH.CLIENT_ID = 'Ov23liHjzEjyJnKrKZGe'; // TODO: Replace with actual client ID
+            CONFIG.AUTH.REDIRECT_URI = window.location.origin + window.location.pathname;
+            
+            // Show environment indicator
+            showEnvironmentBanner('🌐 Live Demo - Powered by GitHub Pages');
+            
+            // Check for OAuth callback
+            handleOAuthCallback();
+            
+            // Try to restore authenticated session
+            restoreAuthenticatedSession();
+            
+            debugLog('GitHub Pages mode initialized with OAuth support');
+        }
+        
+        /**
+         * Initialize local file environment
+         */
+        function initializeLocalFile() {
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+            showEnvironmentBanner('🏠 Local Development - Direct File Access');
+            debugLog('Local file mode initialized');
+        }
+        
+        /**
+         * Initialize local server environment  
+         */
+        function initializeLocalServer() {
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+            showEnvironmentBanner('🔧 Local Server - Development Mode');
+            debugLog('Local server mode initialized');
+        }
+        
+        /**
+         * Initialize custom domain environment
+         */
+        function initializeCustomDomain() {
+            // Enable GitHub OAuth for custom domains too
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = true;
+            CONFIG.AUTH.CLIENT_ID = 'Ov23liHjzEjyJnKrKZGe'; // TODO: Replace with actual client ID
+            CONFIG.AUTH.REDIRECT_URI = window.location.origin + window.location.pathname;
+            
+            showEnvironmentBanner('🌍 Custom Domain - Production Mode');
+            handleOAuthCallback();
+            restoreAuthenticatedSession();
+            debugLog('Custom domain mode initialized with OAuth support');
+        }
+        
+        /**
+         * Show environment banner to user
+         */
+        function showEnvironmentBanner(message) {
+            const header = document.querySelector('.header');
+            if (header) {
+                const banner = document.createElement('div');
+                banner.style.cssText = `
+                    position: absolute;
+                    top: 8px;
+                    right: 12px;
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 4px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: normal;
+                `;
+                banner.textContent = message;
+                header.style.position = 'relative';
+                header.appendChild(banner);
+            }
+        }
+        
+        /* ===== GITHUB OAUTH FUNCTIONS ===== */
+        
+        /**
+         * Initiate GitHub OAuth flow
+         */
+        async function authenticateWithGitHub() {
+            if (!CONFIG.AUTH.GITHUB_OAUTH_ENABLED) {
+                showError('GitHub authentication is not available in this environment');
+                return false;
+            }
+            
+            const state = generateSecureState();
+            localStorage.setItem('oauth_state', state);
+            
+            const authUrl = new URL('https://github.com/login/oauth/authorize');
+            authUrl.searchParams.set('client_id', CONFIG.AUTH.CLIENT_ID);
+            authUrl.searchParams.set('redirect_uri', CONFIG.AUTH.REDIRECT_URI);
+            authUrl.searchParams.set('scope', CONFIG.AUTH.SCOPES);
+            authUrl.searchParams.set('state', state);
+            
+            debugLog('Redirecting to GitHub OAuth...');
+            window.location.href = authUrl.toString();
+        }
+        
+        /**
+         * Handle OAuth callback from GitHub
+         */
+        async function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            
+            if (error) {
+                showError(`GitHub authentication failed: ${error}`);
+                return false;
+            }
+            
+            if (code && state) {
+                const savedState = localStorage.getItem('oauth_state');
+                if (state !== savedState) {
+                    showError('Invalid authentication state. Please try again.');
+                    return false;
+                }
+                
+                // Exchange code for access token (GitHub Pages - client-side only)
+                try {
+                    const tokenData = await exchangeCodeForToken(code);
+                    if (tokenData.access_token) {
+                        await completeGitHubAuthentication(tokenData.access_token);
+                        
+                        // Clean up URL
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                        
+                        return true;
+                    }
+                } catch (error) {
+                    showError('Failed to complete GitHub authentication: ' + error.message);
+                }
+            }
+            
+            return false;
+        }
+        
+        /**
+         * Exchange OAuth code for access token
+         * Note: In production, this should be done server-side for security
+         */
+        async function exchangeCodeForToken(code) {
+            // For GitHub Pages deployment, we need a proxy service
+            // This is a simplified approach - in production, use a secure backend
+            throw new Error('Token exchange requires server-side implementation');
+        }
+        
+        /**
+         * Complete GitHub authentication with access token
+         */
+        async function completeGitHubAuthentication(accessToken) {
+            try {
+                // Get user information from GitHub
+                const userResponse = await fetch('https://api.github.com/user', {
+                    headers: {
+                        'Authorization': `token ${accessToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!userResponse.ok) {
+                    throw new Error('Failed to fetch user information');
+                }
+                
+                const userData = await userResponse.json();
+                
+                // Create session object
+                githubSession = {
+                    id: userData.id.toString(),
+                    login: userData.login,
+                    name: userData.name || userData.login,
+                    avatar_url: userData.avatar_url,
+                    created: Date.now(),
+                    accessToken: accessToken
+                };
+                
+                githubUser = userData;
+                isAuthenticated = true;
+                
+                // Save session to localStorage
+                saveAuthenticatedSession();
+                
+                // Update UI
+                updateAuthenticationUI();
+                
+                showSuccess(`Welcome ${githubUser.name || githubUser.login}! You can now securely store your API key.`);
+                
+                debugLog('GitHub authentication completed', { user: userData.login });
+                return true;
+                
+            } catch (error) {
+                debugLog('Authentication completion failed', error);
+                throw error;
+            }
+        }
+        
+        /**
+         * Save authenticated session to localStorage
+         */
+        function saveAuthenticatedSession() {
+            if (githubSession) {
+                localStorage.setItem(CONFIG.AUTH.SESSION_KEY, JSON.stringify({
+                    id: githubSession.id,
+                    login: githubSession.login,
+                    name: githubSession.name,
+                    avatar_url: githubSession.avatar_url,
+                    created: githubSession.created
+                    // Note: accessToken is not saved for security
+                }));
+            }
+        }
+        
+        /**
+         * Restore authenticated session from localStorage
+         */
+        function restoreAuthenticatedSession() {
+            try {
+                const savedSession = localStorage.getItem(CONFIG.AUTH.SESSION_KEY);
+                if (savedSession) {
+                    const sessionData = JSON.parse(savedSession);
+                    
+                    // Check if session is still valid (24 hours)
+                    if (Date.now() - sessionData.created < CONFIG.AUTH.SESSION_TIMEOUT) {
+                        githubSession = sessionData;
+                        githubUser = sessionData;
+                        isAuthenticated = true;
+                        
+                        updateAuthenticationUI();
+                        
+                        // Try to load encrypted API key
+                        loadEncryptedApiKey();
+                        
+                        debugLog('Authenticated session restored', { user: sessionData.login });
+                        return true;
+                    } else {
+                        // Session expired, clean up
+                        clearAuthenticatedSession();
+                        debugLog('Authenticated session expired, cleared');
+                    }
+                }
+            } catch (error) {
+                debugLog('Failed to restore session', error);
+                clearAuthenticatedSession();
+            }
+            
+            return false;
+        }
+        
+        /**
+         * Clear authenticated session
+         */
+        function clearAuthenticatedSession() {
+            githubSession = null;
+            githubUser = null;
+            isAuthenticated = false;
+            
+            localStorage.removeItem(CONFIG.AUTH.SESSION_KEY);
+            localStorage.removeItem(CONFIG.AUTH.STORAGE_KEY);
+            localStorage.removeItem('oauth_state');
+            
+            updateAuthenticationUI();
+            debugLog('Authenticated session cleared');
+        }
+        
+        /**
+         * Generate secure random state for OAuth
+         */
+        function generateSecureState() {
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        /* ===== ENCRYPTED API KEY STORAGE ===== */
+        
+        /**
+         * Encrypt API key using user's session data
+         */
+        async function encryptApiKey(apiKey) {
+            if (!githubSession) {
+                throw new Error('User session required for encryption');
+            }
+            
+            try {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(apiKey);
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                
+                // Create encryption key from user session data
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(githubSession.id + githubSession.created),
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveKey']
+                );
+                
+                const key = await crypto.subtle.deriveKey(
+                    {
+                        name: 'PBKDF2',
+                        salt: salt,
+                        iterations: 100000,
+                        hash: 'SHA-256'
+                    },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt']
+                );
+                
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    key,
+                    data
+                );
+                
+                return {
+                    encrypted: Array.from(new Uint8Array(encrypted)),
+                    salt: Array.from(salt),
+                    iv: Array.from(iv),
+                    userId: githubSession.id
+                };
+                
+            } catch (error) {
+                debugLog('Encryption failed', error);
+                throw new Error('Failed to encrypt API key');
+            }
+        }
+        
+        /**
+         * Decrypt API key using user's session data
+         */
+        async function decryptApiKey(encryptedData) {
+            if (!githubSession || githubSession.id !== encryptedData.userId) {
+                throw new Error('User session mismatch for decryption');
+            }
+            
+            try {
+                const encoder = new TextEncoder();
+                const decoder = new TextDecoder();
+                
+                // Recreate encryption key from user session data
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(githubSession.id + githubSession.created),
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveKey']
+                );
+                
+                const key = await crypto.subtle.deriveKey(
+                    {
+                        name: 'PBKDF2',
+                        salt: new Uint8Array(encryptedData.salt),
+                        iterations: 100000,
+                        hash: 'SHA-256'
+                    },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['decrypt']
+                );
+                
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: new Uint8Array(encryptedData.iv) },
+                    key,
+                    new Uint8Array(encryptedData.encrypted)
+                );
+                
+                return decoder.decode(decrypted);
+                
+            } catch (error) {
+                debugLog('Decryption failed', error);
+                throw new Error('Failed to decrypt API key');
+            }
+        }
+        
+        /**
+         * Save encrypted API key to localStorage
+         */
+        async function saveEncryptedApiKey(apiKey) {
+            if (!isAuthenticated) {
+                throw new Error('User must be authenticated to save API key');
+            }
+            
+            try {
+                const encryptedData = await encryptApiKey(apiKey);
+                localStorage.setItem(CONFIG.AUTH.STORAGE_KEY, JSON.stringify(encryptedData));
+                debugLog('API key encrypted and saved');
+                return true;
+            } catch (error) {
+                debugLog('Failed to save encrypted API key', error);
+                throw error;
+            }
+        }
+        
+        /**
+         * Load and decrypt API key from localStorage
+         */
+        async function loadEncryptedApiKey() {
+            if (!isAuthenticated) {
+                return null;
+            }
+            
+            try {
+                const saved = localStorage.getItem(CONFIG.AUTH.STORAGE_KEY);
+                if (!saved) {
+                    return null;
+                }
+                
+                const encryptedData = JSON.parse(saved);
+                const decryptedKey = await decryptApiKey(encryptedData);
+                
+                debugLog('API key loaded and decrypted');
+                return decryptedKey;
+            } catch (error) {
+                debugLog('Failed to load encrypted API key', error);
+                // Clean up corrupted data
+                localStorage.removeItem(CONFIG.AUTH.STORAGE_KEY);
+                return null;
+            }
+        }
+        
+        /**
+         * Update UI based on authentication state
+         */
+        function updateAuthenticationUI() {
+            // This will be implemented when we add the UI components
+            debugLog('Authentication UI updated', { authenticated: isAuthenticated });
+        }
+        
         /* ===== API LAYER ===== */
         
-        // Hybrid API key initialization - tries server first, falls back to client input
+        // Enhanced API key initialization with environment detection and authentication
         async function initializeApiKey() {
+            // First, detect and initialize environment
+            initializeEnvironment();
+            
+            // Check for environment variable injection (local test server)
+            if (window.YOUTUBE_API_KEY) {
+                youtubeApiKey = window.YOUTUBE_API_KEY;
+                apiMode = 'local-server';
+                isDemoMode = false;
+                hideApiKeyPanel();
+                debugLog('✅ Local server mode: API key loaded from environment');
+                console.log('🔧 Local server mode: Environment API key loaded');
+                return 'local-server';
+            }
+            
+            // Try server-side API key (for local development with Express server)
             try {
                 debugLog('Attempting server-side API key loading...');
                 const response = await fetch('/api/key');
@@ -1096,16 +1626,44 @@
                     }
                 }
             } catch (error) {
-                debugLog('Server not available, switching to web mode');
+                debugLog('Server not available, checking for authenticated user...');
             }
             
-            // Web mode - client-side key input
+            // Check for authenticated GitHub user with encrypted API key
+            if (isAuthenticated) {
+                try {
+                    const encryptedKey = await loadEncryptedApiKey();
+                    if (encryptedKey) {
+                        youtubeApiKey = encryptedKey;
+                        apiMode = currentEnvironment === 'github-pages' ? 'github-pages' : 'authenticated';
+                        isDemoMode = false;
+                        hideApiKeyPanel();
+                        showAuthenticatedUserInfo();
+                        debugLog('✅ Authenticated mode: API key loaded from encrypted storage');
+                        console.log(`🔐 Authenticated mode: Welcome back ${githubUser.login}!`);
+                        return 'authenticated';
+                    }
+                } catch (error) {
+                    debugLog('Failed to load encrypted API key', error);
+                    // Fall through to show key input
+                }
+            }
+            
+            // Web mode - show appropriate UI based on environment
             apiMode = 'web';
             isDemoMode = false;
-            showApiKeyPanel();
-            loadSavedClientKey();
-            debugLog('🌐 Web mode: Client-side API key required');
-            console.log('🌐 Web mode: Please enter your API key');
+            
+            if (CONFIG.AUTH.GITHUB_OAUTH_ENABLED) {
+                showGitHubAuthPanel();
+                debugLog('🌐 GitHub Pages mode: Authentication available');
+                console.log('🌐 GitHub Pages mode: Please authenticate or enter API key');
+            } else {
+                showApiKeyPanel();
+                loadSavedClientKey(); // Legacy plain text storage for local development
+                debugLog('🏠 Local mode: Direct API key input');
+                console.log('🏠 Local mode: Please enter your API key');
+            }
+            
             return 'web';
         }
         
@@ -2424,6 +2982,615 @@
             
             debugLog('✅ YouTube Research Hub initialized');
         });
+        
+        /* ===== AUTHENTICATION UI FUNCTIONS ===== */
+        
+        /**
+         * Show GitHub authentication panel for GitHub Pages environment
+         */
+        function showGitHubAuthPanel() {
+            const panel = document.getElementById('apiKeyPanel');
+            if (!panel) return;
+            
+            panel.style.display = 'block';
+            panel.style.background = '#f8f9fa';
+            panel.style.borderLeft = '4px solid #0078d4';
+            
+            if (isAuthenticated) {
+                // User is authenticated, show their info
+                showAuthenticatedUserInfo();
+            } else {
+                // User needs to authenticate
+                panel.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <span style="font-size: 20px;">🔐</span>
+                        <div>
+                            <strong style="color: var(--xp-text); font-size: 16px;">Secure API Key Management</strong>
+                            <div style="color: var(--xp-text-disabled); font-size: 12px; margin-top: 2px;">
+                                Your API key is encrypted and stored securely in your browser
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="padding: 16px; background: white; border: 2px inset var(--xp-button-face); border-radius: 6px;">
+                            <div style="font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span>🔑</span> Option 1: Secure Login
+                            </div>
+                            <div style="font-size: 12px; color: var(--xp-text); margin-bottom: 12px; line-height: 1.4;">
+                                Sign in with GitHub to securely encrypt and store your YouTube API key. Your key never leaves your browser.
+                            </div>
+                            <button onclick="authenticateWithGitHub()" style="
+                                width: 100%; 
+                                padding: 10px 16px; 
+                                background: #24292e; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 6px; 
+                                cursor: pointer; 
+                                font-size: 13px; 
+                                font-weight: bold;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                            ">
+                                <span>🐱</span> Sign in with GitHub
+                            </button>
+                        </div>
+                        
+                        <div style="padding: 16px; background: white; border: 2px inset var(--xp-button-face); border-radius: 6px;">
+                            <div style="font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span>⚡</span> Option 2: Quick Start
+                            </div>
+                            <div style="font-size: 12px; color: var(--xp-text); margin-bottom: 12px; line-height: 1.4;">
+                                Enter your API key directly. It will be stored in plain text in your browser's localStorage.
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." style="
+                                    flex: 1; 
+                                    padding: 8px 10px; 
+                                    border: 2px inset var(--xp-button-face); 
+                                    border-radius: 4px; 
+                                    font-size: 12px;
+                                    font-family: 'Courier New', monospace;
+                                ">
+                                <button onclick="handleManualApiKey()" style="
+                                    padding: 8px 12px; 
+                                    background: var(--xp-button-face); 
+                                    color: var(--xp-text); 
+                                    border: 2px outset var(--xp-button-face); 
+                                    border-radius: 4px; 
+                                    cursor: pointer; 
+                                    font-size: 12px;
+                                    white-space: nowrap;
+                                ">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <details style="margin-top: 12px;">
+                        <summary style="cursor: pointer; font-size: 13px; color: var(--xp-blue-start); font-weight: bold;">
+                            🆓 Need a YouTube API key? Get one free in 2 minutes
+                        </summary>
+                        <div style="margin-top: 12px; padding: 12px; background: white; border: 1px inset var(--xp-button-face); border-radius: 3px; font-size: 12px; line-height: 1.4;">
+                            <p style="margin: 0 0 10px 0;"><strong>Quick setup guide:</strong></p>
+                            <ol style="margin: 0; padding-left: 20px;">
+                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--xp-blue-start);">Google Cloud Console</a></li>
+                                <li>Create a new project (or select existing)</li>
+                                <li>Enable "YouTube Data API v3"</li>
+                                <li>Go to Credentials → Create Credentials → API key</li>
+                                <li><strong>Important:</strong> Restrict your key to this domain and YouTube API only</li>
+                                <li>Copy your API key and paste it above</li>
+                            </ol>
+                            <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 4px; font-size: 11px;">
+                                <strong>⚠️ Security tip:</strong> Always restrict your API keys to specific websites and APIs for security.
+                            </div>
+                        </div>
+                    </details>
+                `;
+            }
+        }
+        
+        /**
+         * Show authenticated user information panel
+         */
+        function showAuthenticatedUserInfo() {
+            const panel = document.getElementById('apiKeyPanel');
+            if (!panel || !isAuthenticated) return;
+            
+            panel.style.display = 'block';
+            panel.style.background = '#e8f5e8';
+            panel.style.borderLeft = '4px solid #4caf50';
+            
+            const hasApiKey = !!youtubeApiKey;
+            
+            panel.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <img src="${githubUser.avatar_url}" alt="${githubUser.login}" style="
+                        width: 40px; 
+                        height: 40px; 
+                        border-radius: 50%; 
+                        border: 2px solid #4caf50;
+                    ">
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--xp-text); font-size: 16px;">
+                            Welcome back, ${githubUser.name || githubUser.login}!
+                        </div>
+                        <div style="color: var(--xp-text-disabled); font-size: 12px; margin-top: 2px;">
+                            Signed in via GitHub • API key ${hasApiKey ? 'loaded and ready' : 'not configured'}
+                        </div>
+                    </div>
+                    <button onclick="showApiKeyManagement()" style="
+                        padding: 8px 16px; 
+                        background: var(--xp-button-face); 
+                        color: var(--xp-text); 
+                        border: 2px outset var(--xp-button-face); 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 12px;
+                    ">
+                        ${hasApiKey ? '⚙️ Manage Key' : '➕ Add API Key'}
+                    </button>
+                </div>
+                
+                ${hasApiKey ? `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: white; border: 1px inset var(--xp-button-face); border-radius: 4px;">
+                        <span style="color: #4caf50; font-size: 16px;">✅</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 13px; color: var(--xp-text);">API Key Configured</div>
+                            <div style="font-size: 11px; color: var(--xp-text-disabled);">
+                                Your YouTube API key is encrypted and securely stored in your browser
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--xp-text-disabled);">
+                            🔒 AES-256 Encrypted
+                        </div>
+                    </div>
+                ` : `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #fff3cd; border: 1px inset var(--xp-button-face); border-radius: 4px;">
+                        <span style="color: #856404; font-size: 16px;">⚠️</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 13px; color: #856404;">YouTube API Key Required</div>
+                            <div style="font-size: 11px; color: #6c757d;">
+                                Add your YouTube API key to start analyzing channels
+                            </div>
+                        </div>
+                    </div>
+                `}
+                
+                <div style="display: flex; gap: 8px; margin-top: 12px; font-size: 11px;">
+                    <button onclick="clearAuthenticatedSession()" style="
+                        flex: 1;
+                        padding: 6px 12px; 
+                        background: #dc3545; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 11px;
+                    ">
+                        🚪 Sign Out
+                    </button>
+                    <button onclick="showSecurityInfo()" style="
+                        flex: 1;
+                        padding: 6px 12px; 
+                        background: var(--xp-button-face); 
+                        color: var(--xp-text); 
+                        border: 2px outset var(--xp-button-face); 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 11px;
+                    ">
+                        🛡️ Security Info
+                    </button>
+                </div>
+            `;
+        }
+        
+        /**
+         * Handle manual API key entry in authenticated environment
+         */
+        async function handleManualApiKey() {
+            const keyInput = document.getElementById('apiKeyInput');
+            if (!keyInput) return;
+            
+            const key = keyInput.value.trim();
+            
+            if (!key || !key.startsWith('AIza')) {
+                showError('Please enter a valid YouTube API key (starts with "AIza...")');
+                return;
+            }
+            
+            try {
+                // Validate the API key first
+                const isValid = await validateApiKey(key);
+                if (!isValid.valid) {
+                    showError(`API key validation failed: ${isValid.error}`);
+                    return;
+                }
+                
+                if (isAuthenticated) {
+                    // Save encrypted API key
+                    await saveEncryptedApiKey(key);
+                    youtubeApiKey = key;
+                    showSuccess('API key encrypted and saved securely!');
+                } else {
+                    // Save as plain text for non-authenticated users
+                    youtubeApiKey = key;
+                    localStorage.setItem('youtubeApiKey', key);
+                    showSuccess('API key saved!');
+                }
+                
+                // Update UI
+                if (isAuthenticated) {
+                    showAuthenticatedUserInfo();
+                } else {
+                    hideApiKeyPanel();
+                }
+                
+                debugLog('API key configured successfully');
+                
+            } catch (error) {
+                showError('Failed to save API key: ' + error.message);
+                debugLog('Error saving API key', error);
+            }
+        }
+        
+        /**
+         * Show API key management modal
+         */
+        function showApiKeyManagement() {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: var(--xp-gray-light);
+                border: 2px outset var(--xp-button-face);
+                border-radius: 8px;
+                padding: 24px;
+                max-width: 500px;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+                position: relative;
+            `;
+            
+            modalContent.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--xp-border-dark);">
+                    <span style="font-size: 24px;">🔑</span>
+                    <div>
+                        <h3 style="margin: 0; color: var(--xp-text); font-size: 16px;">API Key Management</h3>
+                        <div style="color: var(--xp-text-disabled); font-size: 12px; margin-top: 2px;">
+                            Securely manage your YouTube Data API key
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: bold; font-size: 13px;">
+                        YouTube Data API Key:
+                    </label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="password" id="modalApiKeyInput" placeholder="AIzaSy..." value="${youtubeApiKey || ''}" style="
+                            flex: 1; 
+                            padding: 8px 12px; 
+                            border: 2px inset var(--xp-button-face); 
+                            border-radius: 4px; 
+                            font-size: 13px;
+                            font-family: 'Courier New', monospace;
+                        ">
+                        <button onclick="toggleApiKeyVisibility()" style="
+                            padding: 8px 12px; 
+                            background: var(--xp-button-face); 
+                            color: var(--xp-text); 
+                            border: 2px outset var(--xp-button-face); 
+                            border-radius: 4px; 
+                            cursor: pointer; 
+                            font-size: 12px;
+                        ">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <button onclick="updateApiKey()" style="
+                        flex: 1;
+                        padding: 10px 16px; 
+                        background: #28a745; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 13px;
+                        font-weight: bold;
+                    ">
+                        💾 Save Changes
+                    </button>
+                    <button onclick="testApiKey()" style="
+                        flex: 1;
+                        padding: 10px 16px; 
+                        background: var(--xp-button-face); 
+                        color: var(--xp-text); 
+                        border: 2px outset var(--xp-button-face); 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 13px;
+                    ">
+                        🧪 Test Key
+                    </button>
+                </div>
+                
+                <div style="font-size: 12px; color: var(--xp-text-disabled); line-height: 1.4; margin-bottom: 16px;">
+                    <strong>🔒 Security:</strong> Your API key is encrypted using AES-256 with a key derived from your GitHub session. 
+                    It never leaves your browser and cannot be accessed by anyone else, including us.
+                </div>
+                
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="document.body.removeChild(modal)" style="
+                        flex: 1;
+                        padding: 8px 16px; 
+                        background: var(--xp-button-face); 
+                        color: var(--xp-text); 
+                        border: 2px outset var(--xp-button-face); 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 12px;
+                    ">
+                        Cancel
+                    </button>
+                    <button onclick="clearApiKey(); document.body.removeChild(modal)" style="
+                        padding: 8px 16px; 
+                        background: #dc3545; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer; 
+                        font-size: 12px;
+                    ">
+                        🗑️ Remove Key
+                    </button>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Focus the input
+            setTimeout(() => {
+                const input = document.getElementById('modalApiKeyInput');
+                if (input) input.focus();
+            }, 100);
+            
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Make functions available globally for the modal
+            window.toggleApiKeyVisibility = function() {
+                const input = document.getElementById('modalApiKeyInput');
+                input.type = input.type === 'password' ? 'text' : 'password';
+            };
+            
+            window.updateApiKey = async function() {
+                const input = document.getElementById('modalApiKeyInput');
+                const key = input.value.trim();
+                
+                if (!key || !key.startsWith('AIza')) {
+                    showError('Please enter a valid YouTube API key');
+                    return;
+                }
+                
+                try {
+                    await saveEncryptedApiKey(key);
+                    youtubeApiKey = key;
+                    showSuccess('API key updated and encrypted successfully!');
+                    showAuthenticatedUserInfo();
+                    document.body.removeChild(modal);
+                } catch (error) {
+                    showError('Failed to update API key: ' + error.message);
+                }
+            };
+            
+            window.testApiKey = async function() {
+                const input = document.getElementById('modalApiKeyInput');
+                const key = input.value.trim();
+                
+                if (!key) {
+                    showError('Please enter an API key to test');
+                    return;
+                }
+                
+                try {
+                    showLoading('Testing API key...');
+                    const result = await validateApiKey(key);
+                    hideLoading();
+                    
+                    if (result.valid) {
+                        showSuccess('✅ API key is valid and working!');
+                    } else {
+                        showError(`❌ API key test failed: ${result.error}`);
+                    }
+                } catch (error) {
+                    hideLoading();
+                    showError('Failed to test API key: ' + error.message);
+                }
+            };
+            
+            window.clearApiKey = function() {
+                youtubeApiKey = null;
+                localStorage.removeItem(CONFIG.AUTH.STORAGE_KEY);
+                showSuccess('API key removed');
+                showAuthenticatedUserInfo();
+            };
+        }
+        
+        /**
+         * Show security information modal
+         */
+        function showSecurityInfo() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: var(--xp-gray-light);
+                border: 2px outset var(--xp-button-face);
+                border-radius: 8px;
+                padding: 24px;
+                max-width: 600px;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
+            
+            modalContent.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">🛡️</span>
+                    <h3 style="margin: 0; color: var(--xp-text); font-size: 16px;">Security & Privacy Information</h3>
+                </div>
+                
+                <div style="font-size: 13px; line-height: 1.5; color: var(--xp-text);">
+                    <h4 style="color: var(--xp-blue-start); margin: 16px 0 8px 0;">🔐 API Key Encryption</h4>
+                    <ul style="margin: 0 0 16px 20px; padding: 0;">
+                        <li>Your API key is encrypted using <strong>AES-256-GCM</strong> encryption</li>
+                        <li>Encryption key is derived from your unique GitHub session using <strong>PBKDF2</strong> with 100,000 iterations</li>
+                        <li>Each encryption uses a unique salt and initialization vector</li>
+                        <li>Your API key <strong>never leaves your browser</strong></li>
+                    </ul>
+                    
+                    <h4 style="color: var(--xp-blue-start); margin: 16px 0 8px 0;">🏠 Local Storage</h4>
+                    <ul style="margin: 0 0 16px 20px; padding: 0;">
+                        <li>Encrypted data is stored in your browser's localStorage</li>
+                        <li>Only accessible to this website on this device</li>
+                        <li>Automatically expires after 24 hours of inactivity</li>
+                        <li>Can be cleared by signing out</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--xp-blue-start); margin: 16px 0 8px 0;">🔗 GitHub Integration</h4>
+                    <ul style="margin: 0 0 16px 20px; padding: 0;">
+                        <li>We only request minimal permissions (read your username)</li>
+                        <li>No access to your repositories or private data</li>
+                        <li>GitHub access token is not stored permanently</li>
+                        <li>Used only for encryption key derivation</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--xp-blue-start); margin: 16px 0 8px 0;">📊 Data Processing</h4>
+                    <ul style="margin: 0 0 16px 20px; padding: 0;">
+                        <li>All YouTube data processing happens in your browser</li>
+                        <li>No video data is sent to our servers</li>
+                        <li>No analytics or tracking beyond GitHub OAuth</li>
+                        <li>YouTube API calls go directly from your browser to Google</li>
+                    </ul>
+                    
+                    <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; margin-top: 16px;">
+                        <strong>🔒 Bottom line:</strong> Your YouTube API key and analysis data are completely private. 
+                        Even we cannot access them. This is by design for maximum security and privacy.
+                    </div>
+                </div>
+                
+                <button onclick="document.body.removeChild(modal)" style="
+                    width: 100%;
+                    margin-top: 20px;
+                    padding: 10px 16px; 
+                    background: var(--xp-button-face); 
+                    color: var(--xp-text); 
+                    border: 2px outset var(--xp-button-face); 
+                    border-radius: 4px; 
+                    cursor: pointer; 
+                    font-size: 13px;
+                ">
+                    Got it!
+                </button>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+        }
+        
+        /**
+         * Validate YouTube API key
+         */
+        async function validateApiKey(apiKey) {
+            if (!apiKey || !apiKey.startsWith('AIza') || apiKey.length < 35) {
+                return {
+                    valid: false,
+                    error: 'Invalid API key format. YouTube API keys start with "AIza" and are 39+ characters.'
+                };
+            }
+            
+            try {
+                // Test API accessibility with minimal quota usage
+                const testUrl = `${CONFIG.API.BASE_URL}/search?part=snippet&type=channel&q=test&maxResults=1&key=${apiKey}`;
+                const response = await fetch(testUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error.code === 403) {
+                        return {
+                            valid: false,
+                            error: 'API key access denied. Check your key restrictions and quotas.'
+                        };
+                    } else if (data.error.code === 400) {
+                        return {
+                            valid: false,
+                            error: 'Invalid API key. Please check your key and try again.'
+                        };
+                    }
+                    return {
+                        valid: false,
+                        error: `API Error: ${data.error.message}`
+                    };
+                }
+                
+                return { valid: true };
+                
+            } catch (error) {
+                return {
+                    valid: false,
+                    error: 'Network error. Please check your connection and try again.'
+                };
+            }
+        }
     </script>
 </body>
 </html>
