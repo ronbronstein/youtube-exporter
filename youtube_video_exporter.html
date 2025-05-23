@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Content Research Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -300,6 +301,22 @@
             font-weight: bold;
             border: 1px solid var(--xp-border-dark);
             font-size: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .video-table th:hover {
+            background: #c0c0c0;
+        }
+        
+        .video-table th.sorted-asc::after {
+            content: ' ▲';
+            color: var(--xp-blue-start);
+        }
+        
+        .video-table th.sorted-desc::after {
+            content: ' ▼';
+            color: var(--xp-blue-start);
         }
         
         .video-table td {
@@ -581,6 +598,36 @@
             background: linear-gradient(to bottom, var(--xp-blue-start), var(--xp-blue-end));
         }
         
+        /* Chart Panel Styles */
+        .chart-panel {
+            background: var(--xp-gray-light);
+            border: 2px inset var(--xp-button-face);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .chart-panel::before {
+            content: attr(data-title);
+            position: absolute;
+            top: -12px;
+            left: 12px;
+            background: var(--xp-gray-light);
+            padding: 0 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--xp-text);
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 16px;
+            border: 1px inset var(--xp-button-face);
+            border-radius: 4px;
+            max-height: 400px;
+        }
+        
         @media (max-width: 768px) {
             .input-grid {
                 grid-template-columns: 1fr;
@@ -730,6 +777,167 @@
         let filteredData = [];
         let youtubeApiKey = null; // Global API key variable
         let currentView = 'list'; // Track current view mode
+        let currentSort = { column: null, direction: 'asc' }; // Track sorting state
+        
+        // Simple localStorage for analysis cache
+        function saveAnalysis(channelId, data) {
+            try {
+                const analysis = {
+                    channelId,
+                    data,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString()
+                };
+                localStorage.setItem(`analysis_${channelId}`, JSON.stringify(analysis));
+                debugLog('Analysis saved to localStorage', { channelId, videoCount: data.length });
+            } catch (error) {
+                debugLog('Failed to save analysis', error);
+            }
+        }
+        
+        function loadAnalysis(channelId) {
+            try {
+                const saved = localStorage.getItem(`analysis_${channelId}`);
+                if (saved) {
+                    const analysis = JSON.parse(saved);
+                    debugLog('Loaded analysis from cache', { channelId, age: Date.now() - analysis.timestamp });
+                    return analysis.data;
+                }
+            } catch (error) {
+                debugLog('Failed to load analysis', error);
+            }
+            return null;
+        }
+        
+        // Simple table sorting
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+            
+            // Update header indicators
+            document.querySelectorAll('.video-table th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            const header = document.querySelector(`th[data-column="${column}"]`);
+            if (header) {
+                header.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+            
+            // Sort the data
+            filteredData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                // Handle different data types
+                if (column === 'publishedDate') {
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
+                } else if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            displayVideos(filteredData);
+        }
+        
+        // Simple upload timeline chart
+        function createUploadTimeline() {
+            if (videosData.length === 0) return;
+            
+            // Group videos by month
+            const monthlyData = {};
+            videosData.forEach(video => {
+                const date = new Date(video.publishedDate);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+            });
+            
+            // Convert to chart data
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const labels = sortedMonths.map(month => {
+                const [year, monthNum] = month.split('-');
+                return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+            const data = sortedMonths.map(month => monthlyData[month]);
+            
+            // Create chart panel
+            const chartPanel = `
+                <div class="chart-panel" data-title="📈 Upload Frequency Timeline">
+                    <div class="chart-container">
+                        <canvas id="uploadChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after analysis panels
+            const results = document.getElementById('results');
+            const existingChart = document.querySelector('.chart-panel');
+            if (existingChart) {
+                existingChart.remove();
+            }
+            
+            const lastAnalysis = results.querySelector('.analysis-panel:last-of-type');
+            if (lastAnalysis) {
+                lastAnalysis.insertAdjacentHTML('afterend', chartPanel);
+            }
+            
+            // Create Chart.js chart with XP styling
+            const ctx = document.getElementById('uploadChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Videos Uploaded',
+                        data: data,
+                        borderColor: '#0078d4', // XP blue
+                        backgroundColor: 'rgba(0, 120, 212, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: { family: 'Tahoma', size: 11 },
+                                color: '#000000'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: { family: 'Tahoma', size: 10 },
+                                color: '#000000'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' }
+                        },
+                        x: {
+                            ticks: {
+                                font: { family: 'Tahoma', size: 10 },
+                                color: '#000000'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
         
         // Load API key from server on page load
         async function loadApiKey() {
@@ -828,11 +1036,18 @@
                 // Process video data in batches
                 await processVideoDataBatched(allVideos, youtubeApiKey);
                 
+                // Save analysis to cache
+                const channelForCache = channelInput.replace(/[^a-zA-Z0-9]/g, '_'); // Simple sanitization
+                saveAnalysis(channelForCache, videosData);
+                
                 // Generate content analysis
                 generateContentAnalysis();
                 
                 // Generate advanced insights
                 generateAdvancedAnalysis();
+                
+                // Create upload timeline chart
+                createUploadTimeline();
                 
                 showSuccess(`Analyzed ${videosData.length} videos from channel`);
                 
@@ -1093,13 +1308,13 @@
                     <table class="video-table">
                         <thead>
                             <tr>
-                                <th style="width: 40%;">Title</th>
-                                <th style="width: 15%;">Published</th>
-                                <th style="width: 10%;">Duration</th>
-                                <th style="width: 10%;">Views</th>
-                                <th style="width: 10%;">Likes</th>
-                                <th style="width: 10%;">Comments</th>
-                                <th style="width: 5%;">Engagement</th>
+                                <th data-column="title" onclick="sortTable('title')" style="width: 40%;">Title</th>
+                                <th data-column="publishedAt" onclick="sortTable('publishedDate')" style="width: 15%;">Published</th>
+                                <th data-column="duration" onclick="sortTable('duration')" style="width: 10%;">Duration</th>
+                                <th data-column="viewCount" onclick="sortTable('viewCount')" style="width: 10%;">Views</th>
+                                <th data-column="likeCount" onclick="sortTable('likeCount')" style="width: 10%;">Likes</th>
+                                <th data-column="commentCount" onclick="sortTable('commentCount')" style="width: 10%;">Comments</th>
+                                <th data-column="engagement" onclick="sortTable('engagementRate')" style="width: 5%;">Engagement</th>
                             </tr>
                         </thead>
                         <tbody id="videoTableBody">
@@ -1113,6 +1328,9 @@
             videos.forEach(video => {
                 const engagementRate = video.viewCount > 0 ? 
                     ((video.likeCount + video.commentCount) / video.viewCount * 100).toFixed(2) : '0.00';
+                
+                // Store engagement rate for sorting
+                video.engagementRate = parseFloat(engagementRate);
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
