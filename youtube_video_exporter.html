@@ -793,7 +793,44 @@
     </footer>
 
     <script>
-        // Global error handling and debugging
+        /* ===== CONFIGURATION SECTION ===== */
+        
+        // Global configuration constants
+        const CONFIG = {
+            API: {
+                BASE_URL: 'https://www.googleapis.com/youtube/v3',
+                BATCH_SIZE: 50,
+                QUOTA_COSTS: {
+                    search: 100,
+                    channel: 1,
+                    playlistItems: 1,
+                    videos: 1
+                }
+            },
+            UI: {
+                CHART_COLORS: {
+                    primary: 'rgb(0, 120, 212)',
+                    secondary: 'rgb(76, 175, 80)',
+                    background: 'rgba(0, 120, 212, 0.1)'
+                },
+                ANIMATION_DURATION: 400
+            },
+            STORAGE: {
+                MAX_SAVED_SEARCHES: 10,
+                CACHE_EXPIRY_HOURS: 24
+            }
+        };
+        
+        // Global state variables
+        let videosData = [];
+        let filteredData = [];
+        let youtubeApiKey = null;
+        let currentView = 'list';
+        let currentSort = { column: null, direction: 'asc' };
+        let apiMode = null; // 'local' or 'web'
+        
+        /* ===== GLOBAL ERROR HANDLING ===== */
+        
         window.addEventListener('error', function(e) {
             console.error('🚨 Global Error:', e.error);
             showError(`JavaScript Error: ${e.error.message}`);
@@ -803,6 +840,8 @@
             console.error('🚨 Unhandled Promise Rejection:', e.reason);
             showError(`Promise Error: ${e.reason}`);
         });
+        
+        /* ===== UTILITY FUNCTIONS ===== */
         
         // Debug function to log API responses
         function debugLog(message, data = null) {
@@ -822,12 +861,7 @@
             }
         }
         
-        let videosData = [];
-        let filteredData = [];
-        let youtubeApiKey = null; // Global API key variable
-        let currentView = 'list'; // Track current view mode
-        let currentSort = { column: null, direction: 'asc' }; // Track sorting state
-        let apiMode = null; // Track whether we're in 'local' or 'web' mode
+        /* ===== API LAYER ===== */
         
         // Hybrid API key initialization - tries server first, falls back to client input
         async function initializeApiKey() {
@@ -860,7 +894,321 @@
             return 'web';
         }
         
-        // Show API key input panel (web mode)
+        // Get channel ID from various input formats
+        async function getChannelId(channelInput, apiKey) {
+            let channelId = '';
+            
+            try {
+                if (channelInput.includes('youtube.com/channel/')) {
+                    const parts = channelInput.split('youtube.com/channel/');
+                    if (parts.length > 1) {
+                        channelId = parts[1].split('/')[0];
+                    }
+                } else if (channelInput.includes('youtube.com/@')) {
+                    const parts = channelInput.split('youtube.com/@');
+                    if (parts.length > 1) {
+                        const handle = parts[1].split('/')[0];
+                        channelId = await getChannelIdFromHandle(handle, apiKey);
+                    }
+                } else if (channelInput.startsWith('@')) {
+                    const handle = channelInput.substring(1);
+                    channelId = await getChannelIdFromHandle(handle, apiKey);
+                } else {
+                    channelId = await getChannelIdFromHandle(channelInput, apiKey);
+                }
+                
+                if (!channelId) {
+                    throw new Error('Could not extract channel ID');
+                }
+                
+                return channelId;
+            } catch (error) {
+                throw new Error(`Channel parsing failed: ${error.message}`);
+            }
+        }
+        
+        // Get channel ID from handle using YouTube API
+        async function getChannelIdFromHandle(handle, apiKey) {
+            try {
+                const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=id&forHandle=${handle}&key=${apiKey}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (data.items && data.items.length > 0) {
+                    return data.items[0].id;
+                }
+                
+                // Try search if forHandle doesn't work
+                const searchResponse = await fetch(`${CONFIG.API.BASE_URL}/search?part=snippet&type=channel&q=${handle}&key=${apiKey}&maxResults=1`);
+                const searchData = await searchResponse.json();
+                
+                if (searchData.error) {
+                    throw new Error(searchData.error.message);
+                }
+                
+                if (searchData.items && searchData.items.length > 0) {
+                    return searchData.items[0].id?.channelId || searchData.items[0].snippet?.channelId;
+                }
+                
+                throw new Error('Channel not found');
+            } catch (error) {
+                throw new Error(`Handle lookup failed: ${error.message}`);
+            }
+        }
+        
+        // Get channel data including uploads playlist ID
+        async function getChannelData(channelInput, apiKey) {
+            const channelId = await getChannelId(channelInput, apiKey);
+            
+            // Get channel details including uploads playlist
+            const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
+            if (!data.items || data.items.length === 0) {
+                throw new Error('Channel not found');
+            }
+            
+            const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
+            
+            return {
+                channelId,
+                uploadsPlaylistId
+            };
+        }
+        
+        // Get ALL videos from uploads playlist (comprehensive channel analysis)
+        async function getAllChannelVideos(uploadsPlaylistId, apiKey) {
+            let allVideos = [];
+            let nextPageToken = null;
+            let pageCount = 0;
+            const maxResults = CONFIG.API.BATCH_SIZE;
+            
+            do {
+                let playlistUrl = `${CONFIG.API.BASE_URL}/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
+                
+                if (nextPageToken) {
+                    playlistUrl += `&pageToken=${nextPageToken}`;
+                }
+                
+                debugLog(`Fetching uploads page ${pageCount + 1}`, { url: playlistUrl.replace(apiKey, 'HIDDEN') });
+                
+                const response = await fetch(playlistUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (data.items && data.items.length > 0) {
+                    // Convert playlist items to search-like format
+                    const videos = data.items.map(item => ({
+                        id: { videoId: item.snippet.resourceId.videoId },
+                        snippet: item.snippet
+                    }));
+                    allVideos = allVideos.concat(videos);
+                    debugLog(`Fetched ${data.items.length} videos, total: ${allVideos.length}`);
+                    
+                    // Update progress
+                    showLoading(`Fetching complete video library... Found ${allVideos.length} so far`);
+                }
+                
+                nextPageToken = data.nextPageToken;
+                pageCount++;
+                
+                // Safety limit to prevent infinite loops
+                if (pageCount >= 100) {
+                    debugLog('Reached maximum page limit (100 pages = ~5000 videos)');
+                    break;
+                }
+                
+            } while (nextPageToken);
+            
+            debugLog(`Total videos from uploads playlist: ${allVideos.length}`);
+            return allVideos;
+        }
+        
+        // Process videos in batches to handle large datasets efficiently
+        async function processVideoDataBatched(items, apiKey) {
+            if (!items || items.length === 0) {
+                throw new Error('No videos found');
+            }
+            
+            videosData = [];
+            const batchSize = CONFIG.API.BATCH_SIZE;
+            
+            for (let i = 0; i < items.length; i += batchSize) {
+                const batch = items.slice(i, i + batchSize);
+                const videoIds = batch.map(item => item.id?.videoId).filter(Boolean).join(',');
+                
+                if (!videoIds) continue;
+                
+                showLoading(`Processing video details... ${i + batch.length}/${items.length}`);
+                
+                try {
+                    const detailsResponse = await fetch(`${CONFIG.API.BASE_URL}/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`);
+                    const detailsData = await detailsResponse.json();
+                    
+                    if (detailsData.error) {
+                        throw new Error(detailsData.error.message);
+                    }
+                    
+                    if (detailsData.items) {
+                        const batchVideos = detailsData.items.map(video => ({
+                            title: video.snippet?.title || 'No title',
+                            description: (video.snippet?.description || '').substring(0, 150) + '...',
+                            fullDescription: video.snippet?.description || '',
+                            publishedAt: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt).toLocaleDateString() : 'Unknown',
+                            publishedDate: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt) : new Date(),
+                            channelTitle: video.snippet?.channelTitle || 'Unknown channel',
+                            viewCount: parseInt(video.statistics?.viewCount || 0),
+                            likeCount: parseInt(video.statistics?.likeCount || 0),
+                            commentCount: parseInt(video.statistics?.commentCount || 0),
+                            duration: formatDuration(video.contentDetails?.duration),
+                            videoId: video.id,
+                            url: `https://youtube.com/watch?v=${video.id}`,
+                            thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || '',
+                            tags: video.snippet?.tags || []
+                        }));
+                        
+                        videosData = videosData.concat(batchVideos);
+                    }
+                } catch (error) {
+                    debugLog(`Batch processing error for batch starting at ${i}`, error);
+                    // Continue with other batches
+                }
+                
+                // Small delay to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            filteredData = [...videosData];
+            displayVideos(filteredData);
+        }
+        
+        // Format YouTube duration format (PT1H2M3S) to readable format
+        function formatDuration(duration) {
+            // Handle null/undefined duration
+            if (!duration) {
+                return '0:00';
+            }
+            
+            // Handle edge cases like "P0D" (0 days) and "PT0S" (0 seconds)
+            if (duration === 'P0D' || duration === 'PT0S') {
+                return '0:00';
+            }
+            
+            const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+            
+            // Handle null regex match
+            if (!match) {
+                console.warn('Unusual duration format (non-critical):', duration);
+                return '0:00';
+            }
+            
+            const hours = parseInt(match[1]) || 0;
+            const minutes = parseInt(match[2]) || 0;
+            const seconds = parseInt(match[3]) || 0;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        /* ===== STORAGE & CACHING ===== */
+        
+        // Simple localStorage for analysis cache
+        function saveAnalysis(channelId, data) {
+            try {
+                const analysis = {
+                    channelId,
+                    data,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString()
+                };
+                localStorage.setItem(`analysis_${channelId}`, JSON.stringify(analysis));
+                debugLog('Analysis saved to localStorage', { channelId, videoCount: data.length });
+            } catch (error) {
+                debugLog('Failed to save analysis', error);
+            }
+        }
+        
+        function loadAnalysis(channelId) {
+            try {
+                const saved = localStorage.getItem(`analysis_${channelId}`);
+                if (saved) {
+                    const analysis = JSON.parse(saved);
+                    debugLog('Loaded analysis from cache', { channelId, age: Date.now() - analysis.timestamp });
+                    return analysis.data;
+                }
+            } catch (error) {
+                debugLog('Failed to load analysis', error);
+            }
+            return null;
+        }
+        
+        // Saved searches functionality
+        function getSavedSearches() {
+            try {
+                return JSON.parse(localStorage.getItem('youtubeSearches') || '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+        
+        function saveCurrentSearch() {
+            const saveSearchChecked = document.getElementById('saveSearch').checked;
+            if (!saveSearchChecked) return;
+            
+            const channelInput = document.getElementById('channelInput').value.trim();
+            const channelQuery = document.getElementById('channelQuery').value.trim();
+            const searchLogic = document.getElementById('searchLogic').value;
+            const order = document.getElementById('channelOrder').value;
+            const searchName = document.getElementById('searchName').value.trim();
+            
+            if (!channelInput) return;
+            
+            const search = {
+                id: Date.now(),
+                name: searchName || `${channelInput}${channelQuery ? ` (${channelQuery})` : ''}`,
+                channel: channelInput,
+                keywords: channelQuery,
+                logic: searchLogic,
+                order: order,
+                date: new Date().toLocaleDateString(),
+                videoCount: videosData.length
+            };
+            
+            const savedSearches = getSavedSearches();
+            savedSearches.unshift(search); // Add to beginning
+            
+            // Keep only last searches per config
+            if (savedSearches.length > CONFIG.STORAGE.MAX_SAVED_SEARCHES) {
+                savedSearches.splice(CONFIG.STORAGE.MAX_SAVED_SEARCHES);
+            }
+            
+            localStorage.setItem('youtubeSearches', JSON.stringify(savedSearches));
+            
+            // Reset save checkbox and hide name input
+            document.getElementById('saveSearch').checked = false;
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchName').style.display = 'none';
+            
+            loadSavedSearches();
+            showSuccess(`Search saved: "${search.name}"`);
+        }
+        
+        /* ===== UI COMPONENTS ===== */
+        
+        // Show/hide API key input panel
         function showApiKeyPanel() {
             const panel = document.getElementById('apiKeyPanel');
             if (panel) {
@@ -868,7 +1216,6 @@
             }
         }
         
-        // Hide API key input panel (local mode)
         function hideApiKeyPanel() {
             const panel = document.getElementById('apiKeyPanel');
             if (panel) {
@@ -906,7 +1253,7 @@
             return false;
         }
         
-        // Saved searches functionality
+        // Initialize saved searches functionality
         function initializeSavedSearches() {
             loadSavedSearches();
             
@@ -915,56 +1262,6 @@
                 const searchNameInput = document.getElementById('searchName');
                 searchNameInput.style.display = this.checked ? 'block' : 'none';
             });
-        }
-        
-        function saveCurrentSearch() {
-            const saveSearchChecked = document.getElementById('saveSearch').checked;
-            if (!saveSearchChecked) return;
-            
-            const channelInput = document.getElementById('channelInput').value.trim();
-            const channelQuery = document.getElementById('channelQuery').value.trim();
-            const searchLogic = document.getElementById('searchLogic').value;
-            const order = document.getElementById('channelOrder').value;
-            const searchName = document.getElementById('searchName').value.trim();
-            
-            if (!channelInput) return;
-            
-            const search = {
-                id: Date.now(),
-                name: searchName || `${channelInput}${channelQuery ? ` (${channelQuery})` : ''}`,
-                channel: channelInput,
-                keywords: channelQuery,
-                logic: searchLogic,
-                order: order,
-                date: new Date().toLocaleDateString(),
-                videoCount: videosData.length
-            };
-            
-            const savedSearches = getSavedSearches();
-            savedSearches.unshift(search); // Add to beginning
-            
-            // Keep only last 10 searches
-            if (savedSearches.length > 10) {
-                savedSearches.splice(10);
-            }
-            
-            localStorage.setItem('youtubeSearches', JSON.stringify(savedSearches));
-            
-            // Reset save checkbox and hide name input
-            document.getElementById('saveSearch').checked = false;
-            document.getElementById('searchName').value = '';
-            document.getElementById('searchName').style.display = 'none';
-            
-            loadSavedSearches();
-            showSuccess(`Search saved: "${search.name}"`);
-        }
-        
-        function getSavedSearches() {
-            try {
-                return JSON.parse(localStorage.getItem('youtubeSearches') || '[]');
-            } catch (error) {
-                return [];
-            }
         }
         
         function loadSavedSearches() {
@@ -1023,36 +1320,6 @@
             loadSavedSearches();
         }
         
-        // Simple localStorage for analysis cache
-        function saveAnalysis(channelId, data) {
-            try {
-                const analysis = {
-                    channelId,
-                    data,
-                    timestamp: Date.now(),
-                    date: new Date().toLocaleDateString()
-                };
-                localStorage.setItem(`analysis_${channelId}`, JSON.stringify(analysis));
-                debugLog('Analysis saved to localStorage', { channelId, videoCount: data.length });
-            } catch (error) {
-                debugLog('Failed to save analysis', error);
-            }
-        }
-        
-        function loadAnalysis(channelId) {
-            try {
-                const saved = localStorage.getItem(`analysis_${channelId}`);
-                if (saved) {
-                    const analysis = JSON.parse(saved);
-                    debugLog('Loaded analysis from cache', { channelId, age: Date.now() - analysis.timestamp });
-                    return analysis.data;
-                }
-            } catch (error) {
-                debugLog('Failed to load analysis', error);
-            }
-            return null;
-        }
-        
         // Simple table sorting
         function sortTable(column) {
             if (currentSort.column === column) {
@@ -1094,102 +1361,9 @@
             displayVideos(filteredData);
         }
         
-        // Simple upload timeline chart
-        function createUploadTimeline() {
-            if (videosData.length === 0) return;
-            
-            // Group videos by month
-            const monthlyData = {};
-            videosData.forEach(video => {
-                const date = new Date(video.publishedDate);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
-            });
-            
-            // Convert to chart data
-            const sortedMonths = Object.keys(monthlyData).sort();
-            const labels = sortedMonths.map(month => {
-                const [year, monthNum] = month.split('-');
-                return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            });
-            const data = sortedMonths.map(month => monthlyData[month]);
-            
-            // Create chart panel
-            const chartPanel = `
-                <div class="chart-panel" data-title="📈 Upload Frequency Timeline">
-                    <div class="chart-container">
-                        <canvas id="uploadChart" style="max-height: 300px;"></canvas>
-                    </div>
-                </div>
-            `;
-            
-            // Remove existing chart to prevent duplicates
-            const results = document.getElementById('results');
-            const existingChart = results.querySelector('.chart-panel');
-            if (existingChart) {
-                existingChart.remove();
-            }
-            
-            // Insert after advanced analysis panel
-            const advancedAnalysis = results.querySelector('.analysis-panel[data-title*="Advanced Content Insights"]');
-            if (advancedAnalysis) {
-                advancedAnalysis.insertAdjacentHTML('afterend', chartPanel);
-            }
-            
-            // Create Chart.js chart with XP styling - use setTimeout to ensure DOM is ready
-            setTimeout(() => {
-                const canvas = document.getElementById('uploadChart');
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Videos Uploaded',
-                                data: data,
-                                borderColor: '#0078d4', // XP blue
-                                backgroundColor: 'rgba(0, 120, 212, 0.1)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        font: { family: 'Tahoma', size: 11 },
-                                        color: '#000000'
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        font: { family: 'Tahoma', size: 10 },
-                                        color: '#000000'
-                                    },
-                                    grid: { color: 'rgba(0,0,0,0.1)' }
-                                },
-                                x: {
-                                    ticks: {
-                                        font: { family: 'Tahoma', size: 10 },
-                                        color: '#000000'
-                                    },
-                                    grid: { color: 'rgba(0,0,0,0.1)' }
-                                }
-                            }
-                        }
-                    });
-                }
-            }, 100);
-        }
+        /* ===== MAIN ANALYSIS WORKFLOW ===== */
         
-        // New comprehensive channel analysis function - fixed to get ALL videos
+        // Comprehensive channel analysis function - main entry point
         async function analyzeChannelComplete() {
             const channelInput = document.getElementById('channelInput').value.trim();
             const channelQuery = document.getElementById('channelQuery').value.trim();
@@ -1218,7 +1392,7 @@
                 const channelData = await getChannelData(channelInput, youtubeApiKey);
                 debugLog('Channel data resolved', channelData);
                 
-                // Get ALL videos using uploads playlist (the correct way)
+                // Get ALL videos using uploads playlist (comprehensive approach)
                 let allVideos = await getAllChannelVideos(channelData.uploadsPlaylistId, youtubeApiKey);
                 
                 debugLog(`Total videos collected: ${allVideos.length}`);
@@ -1258,86 +1432,11 @@
             }
         }
         
-        // Get channel data including uploads playlist ID
-        async function getChannelData(channelInput, apiKey) {
-            const channelId = await getChannelId(channelInput, apiKey);
-            
-            // Get channel details including uploads playlist
-            const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`);
-            const data = await response.json();
-            
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
-            
-            if (!data.items || data.items.length === 0) {
-                throw new Error('Channel not found');
-            }
-            
-            const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
-            
-            return {
-                channelId,
-                uploadsPlaylistId
-            };
-        }
-        
-        // Get ALL videos from uploads playlist (the correct method)
-        async function getAllChannelVideos(uploadsPlaylistId, apiKey) {
-            let allVideos = [];
-            let nextPageToken = null;
-            let pageCount = 0;
-            const maxResults = 50; // YouTube API limit
-            
-            do {
-                let playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
-                
-                if (nextPageToken) {
-                    playlistUrl += `&pageToken=${nextPageToken}`;
-                }
-                
-                debugLog(`Fetching uploads page ${pageCount + 1}`, { url: playlistUrl.replace(apiKey, 'HIDDEN') });
-                
-                const response = await fetch(playlistUrl);
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-                
-                if (data.items && data.items.length > 0) {
-                    // Convert playlist items to search-like format
-                    const videos = data.items.map(item => ({
-                        id: { videoId: item.snippet.resourceId.videoId },
-                        snippet: item.snippet
-                    }));
-                    allVideos = allVideos.concat(videos);
-                    debugLog(`Fetched ${data.items.length} videos, total: ${allVideos.length}`);
-                    
-                    // Update progress
-                    showLoading(`Fetching ALL videos... Found ${allVideos.length} so far`);
-                }
-                
-                nextPageToken = data.nextPageToken;
-                pageCount++;
-                
-                // Safety limit to prevent infinite loops
-                if (pageCount >= 100) {
-                    debugLog('Reached maximum page limit (100 pages = ~5000 videos)');
-                    break;
-                }
-                
-            } while (nextPageToken);
-            
-            debugLog(`Total videos from uploads playlist: ${allVideos.length}`);
-            return allVideos;
-        }
-        
         // Apply keyword filtering after getting all videos
         function applyKeywordFilter(query, logic) {
             if (!query) return;
             
-            // Parse keywords - fixed parsing logic
+            // Parse keywords - improved parsing logic
             let keywords = [];
             if (query.includes(',')) {
                 keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
@@ -1384,63 +1483,7 @@
             debugLog(`Keyword filter applied: ${originalCount} → ${videosData.length} videos`);
         }
         
-        // Process videos in batches to handle large datasets
-        async function processVideoDataBatched(items, apiKey) {
-            if (!items || items.length === 0) {
-                throw new Error('No videos found');
-            }
-            
-            videosData = [];
-            const batchSize = 50; // YouTube API limit
-            
-            for (let i = 0; i < items.length; i += batchSize) {
-                const batch = items.slice(i, i + batchSize);
-                const videoIds = batch.map(item => item.id?.videoId).filter(Boolean).join(',');
-                
-                if (!videoIds) continue;
-                
-                showLoading(`Processing video details... ${i + batch.length}/${items.length}`);
-                
-                try {
-                    const detailsResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`);
-                    const detailsData = await detailsResponse.json();
-                    
-                    if (detailsData.error) {
-                        throw new Error(detailsData.error.message);
-                    }
-                    
-                    if (detailsData.items) {
-                        const batchVideos = detailsData.items.map(video => ({
-                            title: video.snippet?.title || 'No title',
-                            description: (video.snippet?.description || '').substring(0, 150) + '...',
-                            fullDescription: video.snippet?.description || '',
-                            publishedAt: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt).toLocaleDateString() : 'Unknown',
-                            publishedDate: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt) : new Date(),
-                            channelTitle: video.snippet?.channelTitle || 'Unknown channel',
-                            viewCount: parseInt(video.statistics?.viewCount || 0),
-                            likeCount: parseInt(video.statistics?.likeCount || 0),
-                            commentCount: parseInt(video.statistics?.commentCount || 0),
-                            duration: formatDuration(video.contentDetails?.duration),
-                            videoId: video.id,
-                            url: `https://youtube.com/watch?v=${video.id}`,
-                            thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || '',
-                            tags: video.snippet?.tags || []
-                        }));
-                        
-                        videosData = videosData.concat(batchVideos);
-                    }
-            } catch (error) {
-                    debugLog(`Batch processing error for batch starting at ${i}`, error);
-                    // Continue with other batches
-                }
-                
-                // Small delay to be nice to the API
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            filteredData = [...videosData];
-            displayVideos(filteredData);
-        }
+        /* ===== ANALYTICS ENGINE ===== */
         
         // Generate content analysis insights
         function generateContentAnalysis() {
@@ -1510,540 +1553,99 @@
             results.insertAdjacentHTML('afterbegin', analysisPanel);
         }
         
-        async function getChannelId(channelInput, apiKey) {
-            let channelId = '';
-            
-            try {
-            if (channelInput.includes('youtube.com/channel/')) {
-                    const parts = channelInput.split('youtube.com/channel/');
-                    if (parts.length > 1) {
-                        channelId = parts[1].split('/')[0];
-                    }
-            } else if (channelInput.includes('youtube.com/@')) {
-                    const parts = channelInput.split('youtube.com/@');
-                    if (parts.length > 1) {
-                        const handle = parts[1].split('/')[0];
-                channelId = await getChannelIdFromHandle(handle, apiKey);
-                    }
-            } else if (channelInput.startsWith('@')) {
-                const handle = channelInput.substring(1);
-                channelId = await getChannelIdFromHandle(handle, apiKey);
-            } else {
-                channelId = await getChannelIdFromHandle(channelInput, apiKey);
-            }
-                
-                if (!channelId) {
-                    throw new Error('Could not extract channel ID');
-            }
-            
-            return channelId;
-            } catch (error) {
-                throw new Error(`Channel parsing failed: ${error.message}`);
-            }
-        }
-        
-        async function getChannelIdFromHandle(handle, apiKey) {
-            try {
-            const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${handle}&key=${apiKey}`);
-            const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-            
-            if (data.items && data.items.length > 0) {
-                return data.items[0].id;
-            }
-            
-            // Try search if forHandle doesn't work
-            const searchResponse = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${handle}&key=${apiKey}&maxResults=1`);
-            const searchData = await searchResponse.json();
-                
-                if (searchData.error) {
-                    throw new Error(searchData.error.message);
-                }
-            
-            if (searchData.items && searchData.items.length > 0) {
-                    return searchData.items[0].id?.channelId || searchData.items[0].snippet?.channelId;
-            }
-            
-            throw new Error('Channel not found');
-            } catch (error) {
-                throw new Error(`Handle lookup failed: ${error.message}`);
-            }
-        }
-        
-        function formatDuration(duration) {
-            // Handle null/undefined duration
-            if (!duration) {
-                return '0:00';
-            }
-            
-            // Handle "P0D" (0 days) and other edge cases
-            if (duration === 'P0D' || duration === 'PT0S') {
-                return '0:00';
-            }
-            
-            const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-            
-            // Handle null regex match
-            if (!match) {
-                console.warn('Unusual duration format (non-critical):', duration);
-                return '0:00';
-            }
-            
-            const hours = parseInt(match[1]) || 0;
-            const minutes = parseInt(match[2]) || 0;
-            const seconds = parseInt(match[3]) || 0;
-            
-            if (hours > 0) {
-                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-        
-        // View switching function
-        function switchView(viewType) {
-            currentView = viewType;
-            
-            // Update toggle buttons
-            document.getElementById('listViewBtn').classList.toggle('active', viewType === 'list');
-            document.getElementById('gridViewBtn').classList.toggle('active', viewType === 'grid');
-            
-            // Re-render videos with new view
-            if (filteredData.length > 0) {
-                displayVideos(filteredData);
-            }
-        }
-        
-        function displayVideos(videos) {
-            const videoList = document.getElementById('videoList');
-            const resultsCount = document.getElementById('resultsCount');
-            
-            resultsCount.textContent = `${videos.length} videos found`;
-            
-            if (currentView === 'list') {
-                displayListView(videos, videoList);
-            } else {
-                displayGridView(videos, videoList);
-            }
-            
-            document.getElementById('results').style.display = 'block';
-        }
-        
-        function displayListView(videos, container) {
-            // Create table structure
-            container.innerHTML = `
-                <div class="list-container">
-                    <table class="video-table">
-                        <thead>
-                            <tr>
-                                <th data-column="title" onclick="sortTable('title')" style="width: 40%;">Title</th>
-                                <th data-column="publishedAt" onclick="sortTable('publishedDate')" style="width: 15%;">Published</th>
-                                <th data-column="duration" onclick="sortTable('duration')" style="width: 10%;">Duration</th>
-                                <th data-column="viewCount" onclick="sortTable('viewCount')" style="width: 10%;">Views</th>
-                                <th data-column="likeCount" onclick="sortTable('likeCount')" style="width: 10%;">Likes</th>
-                                <th data-column="commentCount" onclick="sortTable('commentCount')" style="width: 10%;">Comments</th>
-                                <th data-column="engagement" onclick="sortTable('engagementRate')" style="width: 5%;">Engagement</th>
-                            </tr>
-                        </thead>
-                        <tbody id="videoTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            const tbody = document.getElementById('videoTableBody');
-            
-            videos.forEach(video => {
-                const engagementRate = video.viewCount > 0 ? 
-                    ((video.likeCount + video.commentCount) / video.viewCount * 100).toFixed(2) : '0.00';
-                
-                // Store engagement rate for sorting
-                video.engagementRate = parseFloat(engagementRate);
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="video-title-cell">
-                        <a href="${video.url}" target="_blank" class="video-title-link">${video.title}</a>
-                        <div class="video-meta-small">Channel: ${video.channelTitle}</div>
-                    </td>
-                    <td class="date-cell">${video.publishedAt}</td>
-                    <td class="date-cell">${video.duration}</td>
-                    <td class="stats-cell">${formatViewCount(video.viewCount)}</td>
-                    <td class="stats-cell">${video.likeCount.toLocaleString()}</td>
-                    <td class="stats-cell">${video.commentCount.toLocaleString()}</td>
-                    <td class="engagement-cell">${engagementRate}%</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-        
-        function displayGridView(videos, container) {
-            container.innerHTML = `<div class="video-grid" id="videoGrid"></div>`;
-            const grid = document.getElementById('videoGrid');
-            
-            videos.forEach(video => {
-                const engagementRate = video.viewCount > 0 ? 
-                    ((video.likeCount + video.commentCount) / video.viewCount * 100).toFixed(2) : '0.00';
-                
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail" loading="lazy">
-                    <div class="video-title">
-                        <a href="${video.url}" target="_blank" style="color: inherit; text-decoration: none;">${video.title}</a>
-                    </div>
-                    <div class="video-meta">
-                        <div><strong>Channel:</strong> ${video.channelTitle}</div>
-                        <div><strong>Published:</strong> ${video.publishedAt}</div>
-                        <div><strong>Duration:</strong> ${video.duration}</div>
-                        <div><strong>Engagement:</strong> ${engagementRate}%</div>
-                    </div>
-                    <div class="video-stats">
-                        <span>👁️ ${formatViewCount(video.viewCount)}</span>
-                        <span>👍 ${video.likeCount.toLocaleString()}</span>
-                        <span>💬 ${video.commentCount.toLocaleString()}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-        
-        // Enhanced filtering with title + description search
-        function filterResults() {
-            const filterText = document.getElementById('titleFilter').value.toLowerCase();
-            
-            if (!filterText) {
-                filteredData = [...videosData];
-            } else {
-                filteredData = videosData.filter(video => 
-                    video.title.toLowerCase().includes(filterText) ||
-                    video.description.toLowerCase().includes(filterText) ||
-                    video.channelTitle.toLowerCase().includes(filterText)
-                );
-            }
-            
-            displayVideos(filteredData);
-            updateSearchResults();
-        }
-        
-        // Update search results count
-        function updateSearchResults() {
-            const resultsCount = document.getElementById('resultsCount');
-            if (filteredData.length !== videosData.length) {
-                resultsCount.textContent = `${filteredData.length} of ${videosData.length} videos (filtered)`;
-                resultsCount.style.color = 'var(--xp-blue-start)';
-            } else {
-                resultsCount.textContent = `${videosData.length} videos found`;
-                resultsCount.style.color = 'var(--xp-text)';
-            }
-        }
-        
-        function exportToCSV() {
-            if (filteredData.length === 0) {
-                showError('No videos to export');
-                return;
-            }
-            
-            const headers = [
-                'Title', 'Channel', 'Published Date', 'Duration', 'Views', 
-                'Likes', 'Comments', 'URL', 'Description'
-            ];
-            
-            const csvContent = [
-                headers.join(','),
-                ...filteredData.map(video => [
-                    `"${video.title.replace(/"/g, '""')}"`,
-                    `"${video.channelTitle.replace(/"/g, '""')}"`,
-                    video.publishedAt,
-                    video.duration,
-                    video.viewCount,
-                    video.likeCount,
-                    video.commentCount,
-                    video.url,
-                    `"${video.description.replace(/"/g, '""')}"`
-                ].join(','))
-            ].join('\n');
-            
-            downloadFile(csvContent, `youtube_research_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
-            showSuccess('Research data exported successfully!');
-        }
-        
-        function exportTitles() {
-            if (filteredData.length === 0) {
-                showError('No videos to export');
-                return;
-            }
-            
-            const titlesContent = filteredData.map(video => video.title).join('\n');
-            downloadFile(titlesContent, `youtube_titles_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain');
-            showSuccess('Video titles exported successfully!');
-        }
-        
-        function exportToMarkdown() {
-            if (filteredData.length === 0) {
-                showError('No videos to export');
-                return;
-            }
-            
-            let markdown = `# YouTube Channel Analysis\n\n`;
-            markdown += `**Total Videos:** ${filteredData.length}\n`;
-            markdown += `**Export Date:** ${new Date().toLocaleDateString()}\n\n`;
-            
-            // Channel summary
-            const totalViews = filteredData.reduce((sum, video) => sum + video.viewCount, 0);
-            const avgViews = Math.round(totalViews / filteredData.length);
-            const topVideo = filteredData.reduce((max, video) => video.viewCount > max.viewCount ? video : max);
-            
-            markdown += `## Channel Summary\n\n`;
-            markdown += `- **Average Views:** ${formatViewCount(avgViews)}\n`;
-            markdown += `- **Total Views:** ${formatViewCount(totalViews)}\n`;
-            markdown += `- **Top Video:** ${topVideo.title} (${formatViewCount(topVideo.viewCount)} views)\n\n`;
-            
-            // Video list
-            markdown += `## Video List\n\n`;
-            
-            filteredData.forEach((video, index) => {
-                const engagementRate = video.viewCount > 0 ? 
-                    ((video.likeCount + video.commentCount) / video.viewCount * 100).toFixed(2) : '0.00';
-                
-                markdown += `### ${index + 1}. ${video.title}\n\n`;
-                markdown += `- **URL:** ${video.url}\n`;
-                markdown += `- **Published:** ${video.publishedAt}\n`;
-                markdown += `- **Duration:** ${video.duration}\n`;
-                markdown += `- **Views:** ${formatViewCount(video.viewCount)}\n`;
-                markdown += `- **Likes:** ${video.likeCount.toLocaleString()}\n`;
-                markdown += `- **Comments:** ${video.commentCount.toLocaleString()}\n`;
-                markdown += `- **Engagement Rate:** ${engagementRate}%\n\n`;
-            });
-            
-            downloadFile(markdown, `youtube_analysis_${new Date().toISOString().split('T')[0]}.md`, 'text/markdown');
-            showSuccess('LLM-ready markdown exported successfully!');
-        }
-        
-        function downloadFile(content, filename, contentType) {
-            const blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        function showLoading(message) {
-            document.getElementById('loading').style.display = 'block';
-            document.querySelector('.loading-text').textContent = message;
-            document.getElementById('results').style.display = 'none';
-            clearMessages();
-        }
-        
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-        
-        function showError(message) {
-            clearMessages();
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'message error';
-            errorDiv.textContent = message;
-            
-            // Find the correct container
-            const container = document.querySelector('.main-section') || document.querySelector('.app-container');
-            if (container) {
-                container.appendChild(errorDiv);
-            } else {
-                console.error('Could not find container for error message:', message);
-            }
-            hideLoading();
-        }
-        
-        function showSuccess(message) {
-            clearMessages();
-            const successDiv = document.createElement('div');
-            successDiv.className = 'message success';
-            successDiv.textContent = message;
-            
-            // Find the correct container
-            const container = document.querySelector('.main-section') || document.querySelector('.app-container');
-            if (container) {
-                container.appendChild(successDiv);
-            } else {
-                console.log('Success:', message);
-            }
-        }
-        
-        function clearMessages() {
-            const messages = document.querySelectorAll('.message');
-            messages.forEach(msg => msg.remove());
-        }
-        
-        // Initialize with current date for date inputs and load API key
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize API key system (tries server first, falls back to client input)
-            initializeApiKey();
-            
-            // Initialize saved searches
-            initializeSavedSearches();
-        });
-        
-        // Add Enter key support for channel input and topic search
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (e.target.id === 'channelInput' || e.target.id === 'channelQuery') {
-                    analyzeChannelComplete();
-                }
-            }
-        });
-        
-        // Real-time title filtering
-        document.getElementById('titleFilter').addEventListener('input', function() {
-            clearTimeout(this.filterTimeout);
-            this.filterTimeout = setTimeout(filterResults, 300);
-        });
-        
-        // Advanced content research functions
-        function analyzeTitlePatterns() {
+        // Timeline chart generation
+        function createUploadTimeline() {
             if (videosData.length === 0) return;
             
-            // Find common words in high-performing videos (top 20% by views)
-            const sortedByViews = [...videosData].sort((a, b) => b.viewCount - a.viewCount);
-            const topPerformers = sortedByViews.slice(0, Math.ceil(videosData.length * 0.2));
-            
-            // Extract words from titles
-            const wordCounts = {};
-            const titlePatterns = {
-                hasNumbers: 0,
-                hasQuestions: 0,
-                hasCaps: 0,
-                avgLength: 0
-            };
-            
-            topPerformers.forEach(video => {
-                const title = video.title.toLowerCase();
-                
-                // Pattern analysis
-                if (/\d+/.test(title)) titlePatterns.hasNumbers++;
-                if (title.includes('?')) titlePatterns.hasQuestions++;
-                if (/[A-Z]{2,}/.test(video.title)) titlePatterns.hasCaps++;
-                titlePatterns.avgLength += video.title.length;
-                
-                // Word frequency
-                const words = title.split(/\W+/).filter(word => word.length > 3);
-                words.forEach(word => {
-                    wordCounts[word] = (wordCounts[word] || 0) + 1;
-                });
-            });
-            
-            titlePatterns.avgLength = Math.round(titlePatterns.avgLength / topPerformers.length);
-            
-            // Get top words
-            const topWords = Object.entries(wordCounts)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 10)
-                .map(([word]) => word);
-            
-            return {
-                patterns: titlePatterns,
-                topWords: topWords,
-                totalAnalyzed: topPerformers.length
-            };
-        }
-        
-        function identifyViralContent() {
-            if (videosData.length === 0) return [];
-            
-            const avgViews = videosData.reduce((sum, video) => sum + video.viewCount, 0) / videosData.length;
-            const threshold = avgViews * 3; // 3x above average
-            
-            return videosData
-                .filter(video => video.viewCount > threshold)
-                .sort((a, b) => b.viewCount - a.viewCount)
-                .slice(0, 5);
-        }
-        
-        function analyzeUploadSchedule() {
-            if (videosData.length === 0) return {};
-            
-            const dayStats = {};
-            const hourStats = {};
-            
+            // Group videos by month
+            const monthlyData = {};
             videosData.forEach(video => {
                 const date = new Date(video.publishedDate);
-                const day = date.toLocaleDateString('en-US', { weekday: 'long' });
-                const hour = date.getHours();
-                
-                dayStats[day] = (dayStats[day] || 0) + 1;
-                hourStats[hour] = (hourStats[hour] || 0) + 1;
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
             });
             
-            const bestDay = Object.entries(dayStats).sort(([,a], [,b]) => b - a)[0];
-            const bestHour = Object.entries(hourStats).sort(([,a], [,b]) => b - a)[0];
+            // Convert to chart data
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const labels = sortedMonths.map(month => {
+                const [year, monthNum] = month.split('-');
+                return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+            const data = sortedMonths.map(month => monthlyData[month]);
             
-            return {
-                bestDay: bestDay ? bestDay[0] : 'Unknown',
-                bestHour: bestHour ? `${bestHour[0]}:00` : 'Unknown',
-                dayStats,
-                hourStats
-            };
-        }
-        
-        function generateAdvancedAnalysis() {
-            if (videosData.length === 0) return;
-            
-            const titleAnalysis = analyzeTitlePatterns();
-            const viralContent = identifyViralContent();
-            const scheduleAnalysis = analyzeUploadSchedule();
-            
-            const advancedPanel = `
-                <div class="analysis-panel" data-title="🎯 Advanced Content Insights">
-                    <h3>🎯 Advanced Content Insights</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
-                        <div>
-                            <h4 style="color: var(--xp-blue-start); margin-bottom: 12px;">📝 Title Patterns (Top 20%)</h4>
-                            <p><strong>Common Success Words:</strong> ${titleAnalysis.topWords.join(', ')}</p>
-                            <p><strong>Avg Title Length:</strong> ${titleAnalysis.patterns.avgLength} characters</p>
-                            <p><strong>Use Numbers:</strong> ${Math.round(titleAnalysis.patterns.hasNumbers / titleAnalysis.totalAnalyzed * 100)}%</p>
-                            <p><strong>Use Questions:</strong> ${Math.round(titleAnalysis.patterns.hasQuestions / titleAnalysis.totalAnalyzed * 100)}%</p>
-                        </div>
-                        
-                        <div>
-                            <h4 style="color: var(--xp-blue-start); margin-bottom: 12px;">📅 Upload Patterns</h4>
-                            <p><strong>Best Day:</strong> ${scheduleAnalysis.bestDay}</p>
-                            <p><strong>Best Hour:</strong> ${scheduleAnalysis.bestHour}</p>
-                            <p><strong>Total Videos Analyzed:</strong> ${videosData.length}</p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <h4 style="color: var(--xp-blue-start); margin-bottom: 12px;">🚀 Viral Content (3x+ Avg Views)</h4>
-                        <div style="max-height: 150px; overflow-y: auto; border: 1px inset var(--xp-button-face); background: white; padding: 8px;">
-                            ${viralContent.length > 0 ? viralContent.map(video => `
-                                <div style="border-bottom: 1px solid var(--xp-border-dark); padding: 8px 0;">
-                                    <strong>${formatViewCount(video.viewCount)} views:</strong> 
-                                    <a href="${video.url}" target="_blank" style="color: var(--xp-blue-start);">${video.title.substring(0, 60)}...</a>
-                                </div>
-                            `).join('') : '<p style="text-align: center; color: var(--xp-text-disabled); margin: 16px 0;">No viral content detected (need more data)</p>'}
-                        </div>
+            // Create chart panel
+            const chartPanel = `
+                <div class="chart-panel" data-title="📈 Upload Frequency Timeline">
+                    <div class="chart-container">
+                        <canvas id="uploadChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             `;
             
-            // Remove ALL existing advanced analysis panels to prevent duplicates
+            // Remove existing chart to prevent duplicates
             const results = document.getElementById('results');
-            const existingAdvanced = results.querySelectorAll('.analysis-panel[data-title*="Advanced Content Insights"]');
-            existingAdvanced.forEach(panel => panel.remove());
-            
-            // Insert after the basic analysis panel
-            const basicAnalysis = results.querySelector('.analysis-panel[data-title*="Content Analysis"]');
-            if (basicAnalysis) {
-                basicAnalysis.insertAdjacentHTML('afterend', advancedPanel);
+            const existingChart = results.querySelector('.chart-panel');
+            if (existingChart) {
+                existingChart.remove();
             }
+            
+            // Insert after advanced analysis panel
+            const advancedAnalysis = results.querySelector('.analysis-panel[data-title*="Advanced Content Insights"]');
+            if (advancedAnalysis) {
+                advancedAnalysis.insertAdjacentHTML('afterend', chartPanel);
+            }
+            
+            // Create Chart.js chart with XP styling - use setTimeout to ensure DOM is ready
+            setTimeout(() => {
+                const canvas = document.getElementById('uploadChart');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Videos Uploaded',
+                                data: data,
+                                borderColor: CONFIG.UI.CHART_COLORS.primary,
+                                backgroundColor: CONFIG.UI.CHART_COLORS.background,
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        font: { family: 'Tahoma', size: 11 },
+                                        color: '#000000'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        font: { family: 'Tahoma', size: 10 },
+                                        color: '#000000'
+                                    },
+                                    grid: { color: 'rgba(0,0,0,0.1)' }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: { family: 'Tahoma', size: 10 },
+                                        color: '#000000'
+                                    },
+                                    grid: { color: 'rgba(0,0,0,0.1)' }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
         }
     </script>
 </body>

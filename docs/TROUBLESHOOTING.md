@@ -47,14 +47,14 @@ Common issues and solutions for YouTube Channel Research Hub.
 - Increase quota limits (paid Google Cloud account)
 
 ### Quota Implications for Large Channels
-| Channel Size | Quota Cost | Daily Limit |
-|--------------|------------|-------------|
-| 50 videos    | ~2 units   | 5000+ channels |
-| 500 videos   | ~11 units  | 900+ channels |
-| 2000 videos  | ~41 units  | 240+ channels |
-| 5000 videos  | ~101 units | 99+ channels |
+YouTube Research Hub is designed to efficiently handle channels of any size:
 
-**Strategy**: Analyze large channels (1000+ videos) sparingly to preserve quota.
+- **Small channels (< 100 videos)**: ~2-5 quota units
+- **Medium channels (100-1000 videos)**: ~5-25 quota units  
+- **Large channels (1000-5000 videos)**: ~25-100 quota units
+- **Very large channels (5000+ videos)**: ~100+ quota units
+
+**Strategy**: The tool automatically batches requests and provides progress feedback. Most users can analyze multiple large channels per day within the free 10,000 unit daily limit.
 
 ## 🚫 Channel Issues
 
@@ -122,9 +122,9 @@ Common issues and solutions for YouTube Channel Research Hub.
 ### Incorrect Video Counts
 **Problem**: Results don't match channel's displayed video count  
 **Explanation**: 
-- YouTube's public count includes Shorts, Lives, unlisted videos
-- Our tool only counts public regular videos in uploads playlist
-- This is normal and expected behavior
+- YouTube's public count includes Shorts, Lives, premieres, and unlisted videos
+- Our tool analyzes public regular videos from the uploads playlist
+- This difference is normal and expected - we show only publicly accessible content
 
 ### Missing Recent Videos
 **Problem**: Latest videos don't appear  

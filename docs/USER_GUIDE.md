@@ -94,11 +94,11 @@ Channel ID directly   → UC_x5XG1OV2P6uZZ5FSM9Ttw
 ```
 
 **What you get:**
-- Complete video inventory (all videos, not just recent)
-- Upload patterns and optimal timing
-- Viral content detection (3x+ average views)
-- Title pattern analysis from top performers
-- Engagement metrics and trends
+- Complete video inventory from the channel
+- Upload patterns and optimal timing analysis
+- Viral content detection (videos performing 3x+ above average views)
+- Title pattern analysis from top performing content
+- Engagement metrics and trending insights
 
 ### Keyword Filtering
 
