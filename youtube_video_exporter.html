@@ -1950,6 +1950,480 @@
                 }
             }, 100);
         }
+        
+        // Generate advanced content analysis insights
+        function generateAdvancedAnalysis() {
+            if (videosData.length === 0) return;
+            
+            const viralVideos = identifyViralContent();
+            const titlePatterns = analyzeTitlePatterns();
+            const uploadSchedule = analyzeUploadSchedule();
+            
+            const advancedPanel = `
+                <div class="analysis-panel" data-title="🔬 Advanced Content Insights">
+                    <h3>🔬 Advanced Content Insights</h3>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color: var(--xp-blue-start); margin-bottom: 8px;">🚀 Viral Content (3x+ avg performance)</h4>
+                        <div style="background: white; padding: 12px; border: 1px inset var(--xp-button-face); border-radius: 4px; font-size: 12px;">
+                            ${viralVideos.length > 0 ? 
+                                viralVideos.map(v => `• <strong>${v.title}</strong> (${formatViewCount(v.viewCount)} views)`).join('<br>') :
+                                'No viral content detected (3x+ average performance)'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color: var(--xp-blue-start); margin-bottom: 8px;">📝 Title Patterns</h4>
+                        <div style="background: white; padding: 12px; border: 1px inset var(--xp-button-face); border-radius: 4px; font-size: 12px;">
+                            • Average title length: <strong>${titlePatterns.avgLength} characters</strong><br>
+                            • Common words: <strong>${titlePatterns.commonWords.join(', ')}</strong><br>
+                            • Question titles: <strong>${titlePatterns.questionPercent}%</strong>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--xp-blue-start); margin-bottom: 8px;">⏰ Upload Schedule</h4>
+                        <div style="background: white; padding: 12px; border: 1px inset var(--xp-button-face); border-radius: 4px; font-size: 12px;">
+                            • Best performing day: <strong>${uploadSchedule.bestDay}</strong><br>
+                            • Most active day: <strong>${uploadSchedule.mostActiveDay}</strong><br>
+                            • Upload consistency: <strong>${uploadSchedule.consistency}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after basic analysis panel
+            const results = document.getElementById('results');
+            const basicAnalysis = results.querySelector('.analysis-panel');
+            if (basicAnalysis) {
+                basicAnalysis.insertAdjacentHTML('afterend', advancedPanel);
+            }
+        }
+        
+        // Identify viral content (3x+ average performance)
+        function identifyViralContent() {
+            if (videosData.length === 0) return [];
+            
+            const avgViews = videosData.reduce((sum, v) => sum + v.viewCount, 0) / videosData.length;
+            const viralThreshold = avgViews * 3;
+            
+            return videosData
+                .filter(video => video.viewCount >= viralThreshold)
+                .sort((a, b) => b.viewCount - a.viewCount)
+                .slice(0, 5); // Top 5 viral videos
+        }
+        
+        // Analyze title patterns for insights
+        function analyzeTitlePatterns() {
+            if (videosData.length === 0) return { avgLength: 0, commonWords: [], questionPercent: 0 };
+            
+            const titles = videosData.map(v => v.title);
+            const avgLength = Math.round(titles.reduce((sum, title) => sum + title.length, 0) / titles.length);
+            
+            // Find common words (excluding common stop words)
+            const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should'];
+            const allWords = titles.join(' ').toLowerCase()
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter(word => word.length > 2 && !stopWords.includes(word));
+            
+            const wordCounts = {};
+            allWords.forEach(word => {
+                wordCounts[word] = (wordCounts[word] || 0) + 1;
+            });
+            
+            const commonWords = Object.entries(wordCounts)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5)
+                .map(([word]) => word);
+            
+            // Calculate question percentage
+            const questionTitles = titles.filter(title => title.includes('?')).length;
+            const questionPercent = Math.round((questionTitles / titles.length) * 100);
+            
+            return { avgLength, commonWords, questionPercent };
+        }
+        
+        // Analyze upload schedule for optimal timing
+        function analyzeUploadSchedule() {
+            if (videosData.length === 0) return { bestDay: 'Unknown', mostActiveDay: 'Unknown', consistency: 'Unknown' };
+            
+            const dayViews = {};
+            const dayCounts = {};
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            videosData.forEach(video => {
+                const day = dayNames[video.publishedDate.getDay()];
+                dayViews[day] = (dayViews[day] || 0) + video.viewCount;
+                dayCounts[day] = (dayCounts[day] || 0) + 1;
+            });
+            
+            // Best performing day (highest average views)
+            let bestDay = 'Monday';
+            let bestAvgViews = 0;
+            Object.keys(dayViews).forEach(day => {
+                const avgViews = dayViews[day] / dayCounts[day];
+                if (avgViews > bestAvgViews) {
+                    bestAvgViews = avgViews;
+                    bestDay = day;
+                }
+            });
+            
+            // Most active day (most uploads)
+            const mostActiveDay = Object.entries(dayCounts)
+                .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Monday';
+            
+            // Upload consistency
+            const uploadDays = Object.keys(dayCounts).length;
+            const consistency = uploadDays >= 5 ? 'High' : uploadDays >= 3 ? 'Medium' : 'Low';
+            
+            return { bestDay, mostActiveDay, consistency };
+        }
+        
+        /* ===== MESSAGE & LOADING FUNCTIONS ===== */
+        
+        // Show loading spinner with message
+        function showLoading(message = 'Loading...') {
+            const loading = document.getElementById('loading');
+            const loadingText = loading.querySelector('.loading-text');
+            
+            if (loadingText) {
+                loadingText.textContent = message;
+            }
+            
+            loading.style.display = 'block';
+            
+            // Hide results while loading
+            const results = document.getElementById('results');
+            if (results) {
+                results.style.display = 'none';
+            }
+            
+            debugLog(`🔄 Loading: ${message}`);
+        }
+        
+        // Hide loading spinner
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'none';
+            
+            // Show results
+            const results = document.getElementById('results');
+            if (results && videosData.length > 0) {
+                results.style.display = 'block';
+            }
+            
+            debugLog('✅ Loading hidden');
+        }
+        
+        // Show error message
+        function showError(message) {
+            clearMessages();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message error';
+            errorDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+            
+            const mainSection = document.querySelector('.main-section');
+            const controlPanel = document.querySelector('.control-panel');
+            controlPanel.insertAdjacentElement('afterend', errorDiv);
+            
+            debugLog(`❌ Error: ${message}`);
+            console.error('YouTube Tool Error:', message);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 10000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            clearMessages();
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'message success';
+            successDiv.innerHTML = `<strong>Success:</strong> ${message}`;
+            
+            const mainSection = document.querySelector('.main-section');
+            const controlPanel = document.querySelector('.control-panel');
+            controlPanel.insertAdjacentElement('afterend', successDiv);
+            
+            debugLog(`✅ Success: ${message}`);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // Clear all message panels
+        function clearMessages() {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(msg => msg.remove());
+        }
+        
+        /* ===== DISPLAY & VIEW FUNCTIONS ===== */
+        
+        // Main video rendering dispatcher
+        function displayVideos(videos) {
+            if (!videos || videos.length === 0) {
+                document.getElementById('results').style.display = 'none';
+                return;
+            }
+            
+            updateSearchResults(videos.length);
+            
+            if (currentView === 'grid') {
+                displayGridView(videos);
+            } else {
+                displayListView(videos);
+            }
+            
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        // Switch between list and grid views
+        function switchView(view) {
+            currentView = view;
+            
+            // Update button states
+            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+            document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+            
+            // Re-render with current data
+            displayVideos(filteredData);
+        }
+        
+        // Display videos in sortable table format
+        function displayListView(videos) {
+            const container = document.getElementById('videoList');
+            container.className = 'video-list';
+            
+            if (videos.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--xp-text-disabled);">No videos found matching your criteria.</div>';
+                return;
+            }
+            
+            const tableHTML = `
+                <div class="list-container">
+                    <table class="video-table">
+                        <thead>
+                            <tr>
+                                <th data-column="title" onclick="sortTable('title')">Title</th>
+                                <th data-column="publishedDate" onclick="sortTable('publishedDate')">Date</th>
+                                <th data-column="viewCount" onclick="sortTable('viewCount')">Views</th>
+                                <th data-column="likeCount" onclick="sortTable('likeCount')">Likes</th>
+                                <th data-column="commentCount" onclick="sortTable('commentCount')">Comments</th>
+                                <th data-column="duration">Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${videos.map(video => `
+                                <tr>
+                                    <td class="video-title-cell">
+                                        <a href="${video.url}" target="_blank" class="video-title-link">${video.title}</a>
+                                        <div class="video-meta-small">${video.description}</div>
+                                    </td>
+                                    <td class="date-cell">${video.publishedAt}</td>
+                                    <td class="stats-cell">${formatViewCount(video.viewCount)}</td>
+                                    <td class="stats-cell">${formatViewCount(video.likeCount)}</td>
+                                    <td class="stats-cell">${formatViewCount(video.commentCount)}</td>
+                                    <td class="date-cell">${video.duration}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = tableHTML;
+        }
+        
+        // Display videos in grid card format
+        function displayGridView(videos) {
+            const container = document.getElementById('videoList');
+            container.className = 'video-grid';
+            
+            if (videos.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--xp-text-disabled);">No videos found matching your criteria.</div>';
+                return;
+            }
+            
+            const cardsHTML = videos.map(video => `
+                <div class="video-card">
+                    <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail" loading="lazy">
+                    <div class="video-title">${video.title}</div>
+                    <div class="video-meta">
+                        <div>📅 ${video.publishedAt}</div>
+                        <div>⏱️ ${video.duration}</div>
+                        <div>👀 ${formatViewCount(video.viewCount)}</div>
+                        <div>👍 ${formatViewCount(video.likeCount)}</div>
+                    </div>
+                    <div class="video-stats">
+                        <span>💬 ${formatViewCount(video.commentCount)}</span>
+                        <a href="${video.url}" target="_blank" style="color: var(--xp-blue-start); text-decoration: none; font-weight: bold;">▶️ Watch</a>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = cardsHTML;
+        }
+        
+        // Real-time search filtering
+        function filterResults() {
+            const query = document.getElementById('titleFilter').value.toLowerCase();
+            
+            if (!query) {
+                filteredData = [...videosData];
+            } else {
+                filteredData = videosData.filter(video => 
+                    video.title.toLowerCase().includes(query) ||
+                    video.description.toLowerCase().includes(query) ||
+                    video.fullDescription?.toLowerCase().includes(query)
+                );
+            }
+            
+            displayVideos(filteredData);
+        }
+        
+        // Update results count display
+        function updateSearchResults(count) {
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = `${count.toLocaleString()} videos found`;
+            }
+        }
+        
+        /* ===== EXPORT FUNCTIONS ===== */
+        
+        // Export complete dataset to CSV
+        function exportToCSV() {
+            if (!videosData || videosData.length === 0) {
+                showError('No data to export');
+                return;
+            }
+            
+            const headers = ['Title', 'URL', 'Published Date', 'Views', 'Likes', 'Comments', 'Duration', 'Description'];
+            const csvData = [
+                headers,
+                ...videosData.map(video => [
+                    `"${video.title.replace(/"/g, '""')}"`,
+                    video.url,
+                    video.publishedAt,
+                    video.viewCount,
+                    video.likeCount,
+                    video.commentCount,
+                    video.duration,
+                    `"${(video.fullDescription || video.description).replace(/"/g, '""')}"`
+                ])
+            ];
+            
+            const csvContent = csvData.map(row => row.join(',')).join('\n');
+            downloadFile(csvContent, `youtube-analysis-${Date.now()}.csv`, 'text/csv');
+            showSuccess(`Exported ${videosData.length} videos to CSV`);
+        }
+        
+        // Export titles only as text
+        function exportTitles() {
+            if (!videosData || videosData.length === 0) {
+                showError('No data to export');
+                return;
+            }
+            
+            const titlesText = videosData.map(video => video.title).join('\n');
+            downloadFile(titlesText, `youtube-titles-${Date.now()}.txt`, 'text/plain');
+            showSuccess(`Exported ${videosData.length} video titles`);
+        }
+        
+        // Export structured data for LLM analysis
+        function exportToMarkdown() {
+            if (!videosData || videosData.length === 0) {
+                showError('No data to export');
+                return;
+            }
+            
+            const channelName = videosData[0]?.channelTitle || 'Unknown Channel';
+            const totalViews = videosData.reduce((sum, v) => sum + v.viewCount, 0);
+            const avgViews = Math.round(totalViews / videosData.length);
+            
+            let markdown = `# YouTube Channel Analysis: ${channelName}\n\n`;
+            markdown += `## 📊 Summary Statistics\n`;
+            markdown += `- **Total Videos**: ${videosData.length.toLocaleString()}\n`;
+            markdown += `- **Total Views**: ${formatViewCount(totalViews)}\n`;
+            markdown += `- **Average Views**: ${formatViewCount(avgViews)}\n`;
+            markdown += `- **Analysis Date**: ${new Date().toLocaleDateString()}\n\n`;
+            
+            markdown += `## 🎥 Video List\n\n`;
+            videosData.forEach((video, index) => {
+                markdown += `### ${index + 1}. ${video.title}\n`;
+                markdown += `- **URL**: ${video.url}\n`;
+                markdown += `- **Published**: ${video.publishedAt}\n`;
+                markdown += `- **Views**: ${formatViewCount(video.viewCount)}\n`;
+                markdown += `- **Engagement**: ${formatViewCount(video.likeCount)} likes, ${formatViewCount(video.commentCount)} comments\n`;
+                markdown += `- **Duration**: ${video.duration}\n`;
+                if (video.description) {
+                    markdown += `- **Description**: ${video.description}\n`;
+                }
+                markdown += `\n`;
+            });
+            
+            downloadFile(markdown, `youtube-analysis-${channelName}-${Date.now()}.md`, 'text/markdown');
+            showSuccess(`Exported ${videosData.length} videos as LLM-ready Markdown`);
+        }
+        
+        // Helper function to download files
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        /* ===== EVENT HANDLERS & INITIALIZATION ===== */
+        
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('🚀 YouTube Research Hub initializing...');
+            
+            // Initialize API key detection
+            initializeApiKey();
+            
+            // Initialize saved searches
+            initializeSavedSearches();
+            
+            // Set up real-time filtering
+            const titleFilter = document.getElementById('titleFilter');
+            if (titleFilter) {
+                let filterTimeout;
+                titleFilter.addEventListener('input', function() {
+                    clearTimeout(filterTimeout);
+                    filterTimeout = setTimeout(filterResults, 300); // Debounce
+                });
+            }
+            
+            // Keyboard support
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const activeElement = document.activeElement;
+                    if (activeElement.id === 'channelInput' || activeElement.id === 'channelQuery') {
+                        analyzeChannelComplete();
+                    }
+                }
+            });
+            
+            debugLog('✅ YouTube Research Hub initialized');
+        });
     </script>
 </body>
 </html>
