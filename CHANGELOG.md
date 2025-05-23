@@ -5,6 +5,42 @@ All notable changes to YouTube Channel Research Hub will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-12-19
+
+### 🚀 Major Video Fetching Overhaul
+
+This release fixes the core issue where channels weren't showing their complete video inventories, plus streamlines the user experience with integrated topic discovery.
+
+### ✨ Added
+- **Complete Channel Analysis**: Now fetches ALL videos using YouTube's uploads playlist method
+- **Integrated Topic Discovery**: Keyword filtering built directly into main channel analysis
+- **Simplified Workflow**: Removed separate topic search panel for cleaner UX
+- **Enhanced Documentation**: Moved developer guide to `docs/` folder with comprehensive updates
+
+### 🔧 Fixed
+- **Critical Fix**: Channel analysis now returns true video counts instead of search API limitations
+  - Example: @chainlink now shows 380+ videos instead of just 14
+  - Uses uploads playlist method (correct approach) instead of search API
+- **Data Accuracy**: All channels now provide complete video inventories for accurate analysis
+- **API Efficiency**: Optimized to always fetch comprehensive data without redundant options
+
+### 🎨 Improved
+- **Streamlined UI**: Removed "Video Scope" selector - always fetches all videos for consistency
+- **Better UX Flow**: Keywords filter now works on complete dataset after fetching all videos
+- **Enhanced Help Text**: Clearer examples and instructions for keyword filtering
+
+### 🗂️ Project Structure
+- **Documentation**: Created `docs/` folder for organized project documentation
+- **Developer Guide**: Completely rewritten to reflect current architecture and capabilities
+- **Code Cleanup**: Removed redundant functions for recent-only video fetching
+
+### 📊 Analytics Improvements
+- **Accurate Metrics**: All statistics now based on complete channel data
+- **Better Filtering**: Client-side keyword filtering after comprehensive data collection
+- **Reliable Insights**: Viral detection and pattern analysis now work with full datasets
+
+---
+
 ## [1.0.0] - 2024-12-19
 
 ### 🎉 Initial Release - Stable Version

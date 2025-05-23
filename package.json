@@ -1,7 +1,7 @@
 {
   "name": "youtube-research-hub",
-  "version": "1.0.0",
-  "description": "Retro Windows XP meets cutting-edge YouTube analytics - Comprehensive channel analysis tool with nostalgic design",
+  "version": "1.1.0",
+  "description": "Comprehensive YouTube channel analysis tool with Windows XP nostalgia and cutting-edge analytics",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
