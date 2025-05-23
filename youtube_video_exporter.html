@@ -691,8 +691,18 @@
                         <input type="text" id="channelInput" placeholder="@channelname, youtube.com/@channel, or channel URL">
                     </div>
                     <div class="input-group">
-                        <label for="channelQuery">Filter by Keywords</label>
-                        <input type="text" id="channelQuery" placeholder="Optional: filter videos containing specific words">
+                        <label for="channelQuery">Filter by Keywords (Optional)</label>
+                        <input type="text" id="channelQuery" placeholder="Filter videos: tutorial, AI, security (supports AND/OR logic)">
+                        <div style="margin-top: 4px; font-size: 10px; color: var(--xp-text-disabled);">
+                            <strong>Examples:</strong> "tutorial, guide" (OR) • "AI AND security" • Leave empty for all videos
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="searchLogic">Filter Logic</label>
+                        <select id="searchLogic">
+                            <option value="OR">Any keyword (OR)</option>
+                            <option value="AND">All keywords (AND)</option>
+                        </select>
                     </div>
                     <div class="input-group">
                         <label for="channelOrder">Sort Order</label>
@@ -702,16 +712,9 @@
                             <option value="relevance">Most Relevant</option>
                         </select>
                     </div>
-                    <div class="input-group">
-                        <label for="fetchAll">Video Scope</label>
-                        <select id="fetchAll">
-                            <option value="false">Recent Videos (Fast)</option>
-                            <option value="true">ALL Channel Videos (Comprehensive)</option>
-                        </select>
-                    </div>
                 </div>
                 
-                <button class="analyze-button" onclick="analyzeChannelComplete()">🚀 Analyze Channel</button>
+                <button class="analyze-button" onclick="analyzeChannelComplete()">🚀 Analyze Channel (All Videos)</button>
             </div>
             
             <div class="loading" id="loading">
@@ -735,22 +738,6 @@
                     <button class="export-button" onclick="exportToCSV()">📥 Download CSV</button>
                     <button class="export-button secondary" onclick="exportTitles()">📝 Export Titles</button>
                     <button class="export-button" onclick="exportToMarkdown()">🤖 LLM Export (Markdown)</button>
-                </div>
-            </div>
-            
-            <!-- Advanced Search Panel -->
-            <div class="search-panel" style="background: var(--xp-gray-light); border: 2px inset var(--xp-button-face); border-radius: 6px; padding: 16px; margin-bottom: 12px; position: relative;">
-                <div style="position: absolute; top: -12px; left: 12px; background: var(--xp-gray-light); padding: 0 12px; font-size: 12px; font-weight: bold; color: var(--xp-text);">🔍 Topic Discovery</div>
-                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; margin-top: 8px;">
-                    <input type="text" id="topicSearch" placeholder="Enter keywords: AI, machine learning, tutorial (supports AND/OR logic)" style="padding: 8px 12px; border: 2px inset var(--xp-button-face); border-radius: 4px; background: white; color: var(--xp-text); font-size: 13px; font-family: 'Tahoma', sans-serif;">
-                    <select id="searchLogic" style="padding: 8px 12px; border: 2px inset var(--xp-button-face); border-radius: 4px; background: var(--xp-button-face); color: var(--xp-text); font-size: 12px; font-family: 'Tahoma', sans-serif;">
-                        <option value="OR">Any keyword (OR)</option>
-                        <option value="AND">All keywords (AND)</option>
-                    </select>
-                    <button onclick="performTopicSearch()" style="padding: 8px 16px; background: var(--xp-button-face); color: var(--xp-text); border: 2px outset var(--xp-button-face); border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; font-family: 'Tahoma', sans-serif;">🔍 Search</button>
-                </div>
-                <div style="margin-top: 12px; font-size: 11px; color: var(--xp-text-disabled);">
-                    <strong>Examples:</strong> "tutorial, guide" (OR) • "AI AND machine learning" • "react, vue, angular" (OR)
                 </div>
             </div>
         </div>
@@ -983,12 +970,12 @@
             }
         }
         
-        // New comprehensive channel analysis function
+        // New comprehensive channel analysis function - fixed to get ALL videos
         async function analyzeChannelComplete() {
             const channelInput = document.getElementById('channelInput').value.trim();
             const channelQuery = document.getElementById('channelQuery').value.trim();
             const order = document.getElementById('channelOrder').value;
-            const fetchAll = document.getElementById('fetchAll').value === 'true';
+            const searchLogic = document.getElementById('searchLogic').value;
             
             if (!youtubeApiKey) {
                 showError('API key not loaded. Please refresh the page.');
@@ -1000,64 +987,26 @@
                 return;
             }
             
-            showLoading(`Analyzing channel content${fetchAll ? ' (fetching ALL videos)' : ''}...`);
+            showLoading(`Analyzing channel content...`);
             
             try {
-                // Get channel ID
-                const channelId = await getChannelId(channelInput, youtubeApiKey);
-                debugLog('Channel ID resolved', channelId);
+                // Get channel ID and uploads playlist ID
+                const channelData = await getChannelData(channelInput, youtubeApiKey);
+                debugLog('Channel data resolved', channelData);
                 
-                // Fetch videos with pagination if needed
-                let allVideos = [];
-                let nextPageToken = null;
-                let pageCount = 0;
-                const maxResults = fetchAll ? 50 : 50; // Always use max per request
-                
-                do {
-                    let searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&maxResults=${maxResults}&order=${order}&key=${youtubeApiKey}`;
-                    
-                    if (channelQuery) {
-                        searchUrl += `&q=${encodeURIComponent(channelQuery)}`;
-                    }
-                    
-                    if (nextPageToken) {
-                        searchUrl += `&pageToken=${nextPageToken}`;
-                    }
-                    
-                    debugLog(`Fetching page ${pageCount + 1}`, { url: searchUrl.replace(youtubeApiKey, 'HIDDEN') });
-                    
-                    const response = await fetch(searchUrl);
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error.message);
-                    }
-                    
-                    if (data.items && data.items.length > 0) {
-                        allVideos = allVideos.concat(data.items);
-                        debugLog(`Fetched ${data.items.length} videos, total: ${allVideos.length}`);
-                        
-                        // Update progress
-                        showLoading(`Fetching videos... Found ${allVideos.length} so far`);
-                    }
-                    
-                    nextPageToken = data.nextPageToken;
-                    pageCount++;
-                    
-                    // Limit to prevent infinite loops or hitting quotas too hard
-                    if (!fetchAll && pageCount >= 1) break;
-                    if (fetchAll && pageCount >= 20) {
-                        debugLog('Reached maximum page limit (20 pages = ~1000 videos)');
-                        break;
-                    }
-                    
-                } while (nextPageToken && fetchAll);
+                // Get ALL videos using uploads playlist (the correct way)
+                let allVideos = await getAllChannelVideos(channelData.uploadsPlaylistId, youtubeApiKey);
                 
                 debugLog(`Total videos collected: ${allVideos.length}`);
                 showLoading('Processing video details...');
                 
                 // Process video data in batches
                 await processVideoDataBatched(allVideos, youtubeApiKey);
+                
+                // Apply keyword filtering if specified
+                if (channelQuery) {
+                    applyKeywordFilter(channelQuery, searchLogic);
+                }
                 
                 // Save analysis to cache
                 const channelForCache = channelInput.replace(/[^a-zA-Z0-9]/g, '_'); // Simple sanitization
@@ -1072,10 +1021,7 @@
                 // Create upload timeline chart
                 createUploadTimeline();
                 
-                // Add topic search presets after analysis
-                addTopicPresets();
-                
-                showSuccess(`Analyzed ${videosData.length} videos from channel`);
+                showSuccess(`Analyzed ${videosData.length} videos from channel${channelQuery ? ` (filtered by "${channelQuery}")` : ''}`);
                 
             } catch (error) {
                 debugLog('Channel analysis error', error);
@@ -1083,6 +1029,113 @@
             } finally {
                 hideLoading();
             }
+        }
+        
+        // Get channel data including uploads playlist ID
+        async function getChannelData(channelInput, apiKey) {
+            const channelId = await getChannelId(channelInput, apiKey);
+            
+            // Get channel details including uploads playlist
+            const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
+            if (!data.items || data.items.length === 0) {
+                throw new Error('Channel not found');
+            }
+            
+            const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
+            
+            return {
+                channelId,
+                uploadsPlaylistId
+            };
+        }
+        
+        // Get ALL videos from uploads playlist (the correct method)
+        async function getAllChannelVideos(uploadsPlaylistId, apiKey) {
+            let allVideos = [];
+            let nextPageToken = null;
+            let pageCount = 0;
+            const maxResults = 50; // YouTube API limit
+            
+            do {
+                let playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
+                
+                if (nextPageToken) {
+                    playlistUrl += `&pageToken=${nextPageToken}`;
+                }
+                
+                debugLog(`Fetching uploads page ${pageCount + 1}`, { url: playlistUrl.replace(apiKey, 'HIDDEN') });
+                
+                const response = await fetch(playlistUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (data.items && data.items.length > 0) {
+                    // Convert playlist items to search-like format
+                    const videos = data.items.map(item => ({
+                        id: { videoId: item.snippet.resourceId.videoId },
+                        snippet: item.snippet
+                    }));
+                    allVideos = allVideos.concat(videos);
+                    debugLog(`Fetched ${data.items.length} videos, total: ${allVideos.length}`);
+                    
+                    // Update progress
+                    showLoading(`Fetching ALL videos... Found ${allVideos.length} so far`);
+                }
+                
+                nextPageToken = data.nextPageToken;
+                pageCount++;
+                
+                // Safety limit to prevent infinite loops
+                if (pageCount >= 100) {
+                    debugLog('Reached maximum page limit (100 pages = ~5000 videos)');
+                    break;
+                }
+                
+            } while (nextPageToken);
+            
+            debugLog(`Total videos from uploads playlist: ${allVideos.length}`);
+            return allVideos;
+        }
+        
+        // Apply keyword filtering after getting all videos
+        function applyKeywordFilter(query, logic) {
+            if (!query) return;
+            
+            // Parse keywords - same logic as before
+            let keywords = [];
+            if (query.includes(',')) {
+                keywords = query.split(',').map(k => k.trim().toLowerCase());
+            } else if (query.toLowerCase().includes(' and ')) {
+                keywords = query.toLowerCase().split(' and ').map(k => k.trim());
+            } else {
+                keywords = query.toLowerCase().split(/\s+/);
+            }
+            
+            const originalCount = videosData.length;
+            
+            filteredData = videosData.filter(video => {
+                const searchText = `${video.title} ${video.description}`.toLowerCase();
+                
+                if (logic === 'AND') {
+                    return keywords.every(keyword => searchText.includes(keyword));
+                } else {
+                    return keywords.some(keyword => searchText.includes(keyword));
+                }
+            });
+            
+            // Update the displayed data
+            videosData = [...filteredData];
+            
+            debugLog(`Keyword filter applied: ${originalCount} → ${videosData.length} videos`);
         }
         
         // Process videos in batches to handle large datasets
@@ -1424,47 +1477,6 @@
             updateSearchResults();
         }
         
-        // Powerful topic search with AND/OR logic
-        function performTopicSearch() {
-            const searchInput = document.getElementById('topicSearch').value.trim();
-            const logic = document.getElementById('searchLogic').value;
-            
-            if (!searchInput) {
-                filteredData = [...videosData];
-                displayVideos(filteredData);
-                updateSearchResults();
-                return;
-            }
-            
-            // Parse keywords - split by comma, "AND", or natural separators
-            let keywords = [];
-            if (searchInput.includes(',')) {
-                keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
-            } else if (searchInput.toLowerCase().includes(' and ')) {
-                keywords = searchInput.toLowerCase().split(' and ').map(k => k.trim());
-            } else {
-                keywords = searchInput.toLowerCase().split(/\s+/);
-            }
-            
-            filteredData = videosData.filter(video => {
-                const searchText = `${video.title} ${video.description}`.toLowerCase();
-                
-                if (logic === 'AND') {
-                    // ALL keywords must be found
-                    return keywords.every(keyword => searchText.includes(keyword));
-                } else {
-                    // ANY keyword found (OR logic)
-                    return keywords.some(keyword => searchText.includes(keyword));
-                }
-            });
-            
-            displayVideos(filteredData);
-            updateSearchResults();
-            
-            // Show search results summary
-            showSuccess(`Found ${filteredData.length} videos matching "${searchInput}" (${logic} logic)`);
-        }
-        
         // Update search results count
         function updateSearchResults() {
             const resultsCount = document.getElementById('resultsCount');
@@ -1613,9 +1625,7 @@
         // Add Enter key support for channel input and topic search
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                if (e.target.id === 'topicSearch') {
-                    performTopicSearch();
-                } else {
+                if (e.target.id === 'channelInput' || e.target.id === 'channelQuery') {
                     analyzeChannelComplete();
                 }
             }
@@ -1765,44 +1775,6 @@
             if (basicAnalysis) {
                 basicAnalysis.insertAdjacentHTML('afterend', advancedPanel);
             }
-        }
-        
-        // Add preset topic searches (common use cases)
-        function addTopicPresets() {
-            const presets = [
-                { name: 'Tutorial Content', query: 'tutorial, guide, how to, walkthrough', logic: 'OR' },
-                { name: 'AI & Machine Learning', query: 'AI, machine learning, artificial intelligence, ML', logic: 'OR' },
-                { name: 'Web Development', query: 'react, vue, angular, javascript, web development', logic: 'OR' },
-                { name: 'Reviews & Analysis', query: 'review, analysis, breakdown, opinion', logic: 'OR' },
-                { name: 'News & Updates', query: 'news, update, announcement, release', logic: 'OR' }
-            ];
-            
-            // Add preset buttons if we have results
-            if (videosData.length > 0) {
-                const searchPanel = document.querySelector('.search-panel');
-                const presetsDiv = document.createElement('div');
-                presetsDiv.innerHTML = `
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--xp-border-dark);">
-                        <div style="font-size: 11px; font-weight: bold; margin-bottom: 6px; color: var(--xp-text);">Quick Topic Searches:</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                            ${presets.map(preset => `
-                                <button onclick="applyPreset('${preset.query}', '${preset.logic}')" 
-                                        style="padding: 4px 8px; font-size: 10px; background: var(--xp-gray-dark); color: var(--xp-text); border: 1px outset var(--xp-button-face); border-radius: 3px; cursor: pointer; font-family: 'Tahoma', sans-serif;">
-                                    ${preset.name}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-                searchPanel.appendChild(presetsDiv);
-            }
-        }
-        
-        // Apply preset search
-        function applyPreset(query, logic) {
-            document.getElementById('topicSearch').value = query;
-            document.getElementById('searchLogic').value = logic;
-            performTopicSearch();
         }
     </script>
 </body>
