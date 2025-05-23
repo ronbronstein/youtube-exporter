@@ -811,6 +811,10 @@
          * UTILITY FUNCTIONS (Line ~850)
          *   - debugLog(): Centralized logging
          *   - formatViewCount(): Number formatting (1.2M, 1.2K)
+         *   - checkDemoRateLimit(): Demo mode rate limiting
+         *   - incrementDemoUsage(): Increment demo usage
+         *   - getDemoUsage(): Retrieve demo usage
+         *   - getUserIP(): Get user IP for demo rate limiting
          *   - Section marker: UTILITY FUNCTIONS
          * 
          * API LAYER (Line ~870)
@@ -905,6 +909,13 @@
             STORAGE: {
                 MAX_SAVED_SEARCHES: 10,
                 CACHE_EXPIRY_HOURS: 24
+            },
+            DEMO: {
+                ENABLED: false, // Will be set by server/environment
+                MAX_VIDEOS_PER_ANALYSIS: 100,
+                MAX_ANALYSES_PER_IP_PER_DAY: 3,
+                GLOBAL_DAILY_LIMIT: 100,
+                RATE_LIMIT_STORAGE_KEY: 'yt_demo_usage'
             }
         };
         
@@ -914,7 +925,8 @@
         let youtubeApiKey = null;
         let currentView = 'list';
         let currentSort = { column: null, direction: 'asc' };
-        let apiMode = null; // 'local' or 'web'
+        let apiMode = null; // 'local', 'web', or 'demo'
+        let isDemoMode = false;
         
         /* ===== GLOBAL ERROR HANDLING ===== */
         
@@ -948,6 +960,107 @@
             }
         }
         
+        // Demo mode rate limiting functions
+        function checkDemoRateLimit() {
+            if (!isDemoMode) return { allowed: true, remaining: Infinity };
+            
+            const today = new Date().toDateString();
+            const usage = getDemoUsage();
+            
+            // Check if user has exceeded daily limit
+            const userToday = usage.perIP[getUserIP()] || {};
+            const userTodayCount = userToday[today] || 0;
+            
+            if (userTodayCount >= CONFIG.DEMO.MAX_ANALYSES_PER_IP_PER_DAY) {
+                return {
+                    allowed: false,
+                    reason: 'daily_limit_per_ip',
+                    remaining: 0,
+                    resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()
+                };
+            }
+            
+            // Check global daily limit
+            const globalToday = usage.global[today] || 0;
+            if (globalToday >= CONFIG.DEMO.GLOBAL_DAILY_LIMIT) {
+                return {
+                    allowed: false,
+                    reason: 'global_daily_limit',
+                    remaining: 0,
+                    resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()
+                };
+            }
+            
+            return {
+                allowed: true,
+                remaining: CONFIG.DEMO.MAX_ANALYSES_PER_IP_PER_DAY - userTodayCount,
+                globalRemaining: CONFIG.DEMO.GLOBAL_DAILY_LIMIT - globalToday
+            };
+        }
+        
+        function incrementDemoUsage() {
+            if (!isDemoMode) return;
+            
+            const today = new Date().toDateString();
+            const usage = getDemoUsage();
+            const userIP = getUserIP();
+            
+            // Increment per-IP counter
+            if (!usage.perIP[userIP]) usage.perIP[userIP] = {};
+            usage.perIP[userIP][today] = (usage.perIP[userIP][today] || 0) + 1;
+            
+            // Increment global counter
+            usage.global[today] = (usage.global[today] || 0) + 1;
+            
+            // Clean old entries (keep only last 7 days)
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            Object.keys(usage.global).forEach(date => {
+                if (new Date(date) < sevenDaysAgo) {
+                    delete usage.global[date];
+                }
+            });
+            
+            // Clean old IP entries
+            Object.keys(usage.perIP).forEach(ip => {
+                Object.keys(usage.perIP[ip]).forEach(date => {
+                    if (new Date(date) < sevenDaysAgo) {
+                        delete usage.perIP[ip][date];
+                    }
+                });
+            });
+            
+            localStorage.setItem(CONFIG.DEMO.RATE_LIMIT_STORAGE_KEY, JSON.stringify(usage));
+        }
+        
+        function getDemoUsage() {
+            try {
+                const stored = localStorage.getItem(CONFIG.DEMO.RATE_LIMIT_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : { perIP: {}, global: {} };
+            } catch (error) {
+                return { perIP: {}, global: {} };
+            }
+        }
+        
+        function getUserIP() {
+            // Simple IP approximation using screen resolution + timezone + user agent
+            // Not perfect but good enough for demo rate limiting
+            const fingerprint = [
+                screen.width,
+                screen.height,
+                Intl.DateTimeFormat().resolvedOptions().timeZone,
+                navigator.userAgent.substr(0, 50)
+            ].join('|');
+            
+            // Simple hash function
+            let hash = 0;
+            for (let i = 0; i < fingerprint.length; i++) {
+                const char = fingerprint.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(36);
+        }
+        
         /* ===== API LAYER ===== */
         
         // Hybrid API key initialization - tries server first, falls back to client input
@@ -962,10 +1075,24 @@
                         // Local mode - server provided key
                         youtubeApiKey = data.apiKey;
                         apiMode = 'local';
+                        isDemoMode = false;
                         hideApiKeyPanel();
                         debugLog('✅ Local mode: API key loaded from server');
                         console.log('🏠 Local mode: Server API key loaded');
                         return 'local';
+                    }
+                    
+                    // Check if demo mode is enabled
+                    if (data.demoMode && data.demoApiKey) {
+                        youtubeApiKey = data.demoApiKey;
+                        apiMode = 'demo';
+                        isDemoMode = true;
+                        CONFIG.DEMO.ENABLED = true;
+                        hideApiKeyPanel();
+                        showDemoModeInfo();
+                        debugLog('✅ Demo mode: Using hosted API key with rate limits');
+                        console.log('🎭 Demo mode: Rate-limited analysis enabled');
+                        return 'demo';
                     }
                 }
             } catch (error) {
@@ -974,11 +1101,49 @@
             
             // Web mode - client-side key input
             apiMode = 'web';
+            isDemoMode = false;
             showApiKeyPanel();
             loadSavedClientKey();
             debugLog('🌐 Web mode: Client-side API key required');
             console.log('🌐 Web mode: Please enter your API key');
             return 'web';
+        }
+        
+        function showDemoModeInfo() {
+            const panel = document.getElementById('apiKeyPanel');
+            if (panel) {
+                const rateLimit = checkDemoRateLimit();
+                panel.style.display = 'block';
+                panel.style.background = '#e8f5e8';
+                panel.style.borderLeft = '4px solid #4caf50';
+                panel.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="font-size: 16px;">🎭</span>
+                        <strong style="color: var(--xp-text); font-size: 14px;">Demo Mode Active</strong>
+                        <span style="color: var(--xp-text-disabled); font-size: 12px; margin-left: auto;">Powered by Ron's API Key</span>
+                    </div>
+                    
+                    <div style="margin-bottom: 8px; font-size: 12px; color: var(--xp-text);">
+                        ✅ <strong>Try any channel for FREE</strong> - Real analysis with live data<br>
+                        📊 <strong>Limit:</strong> 100 videos per analysis (${rateLimit.remaining} analyses remaining today)<br>
+                        🔄 <strong>Resets daily</strong> - Want unlimited? Get your own free API key below
+                    </div>
+                    
+                    <details style="margin-top: 8px;">
+                        <summary style="cursor: pointer; font-size: 12px; color: var(--xp-blue-start); font-weight: bold;">Need unlimited access? Get your own API key</summary>
+                        <div style="margin-top: 8px; padding: 8px; background: white; border: 1px inset var(--xp-button-face); border-radius: 3px; font-size: 11px; line-height: 1.4;">
+                            <p style="margin: 0 0 8px 0;"><strong>Get unlimited access in 2 minutes:</strong></p>
+                            <ol style="margin: 0; padding-left: 16px;">
+                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--xp-blue-start);">Google Cloud Console</a></li>
+                                <li>Enable "YouTube Data API v3"</li>
+                                <li>Create an API key</li>
+                                <li>Download and run this tool locally</li>
+                            </ol>
+                            <p style="margin: 8px 0 0 0; color: var(--xp-text-disabled);">Local version has no limits and keeps your API key private.</p>
+                        </div>
+                    </details>
+                `;
+            }
         }
         
         // Get channel ID from various input formats
@@ -1077,6 +1242,10 @@
             let pageCount = 0;
             const maxResults = CONFIG.API.BATCH_SIZE;
             
+            // Demo mode video limit
+            const videoLimit = isDemoMode ? CONFIG.DEMO.MAX_VIDEOS_PER_ANALYSIS : Infinity;
+            let videosCollected = 0;
+            
             do {
                 let playlistUrl = `${CONFIG.API.BASE_URL}/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
                 
@@ -1099,11 +1268,26 @@
                         id: { videoId: item.snippet.resourceId.videoId },
                         snippet: item.snippet
                     }));
-                    allVideos = allVideos.concat(videos);
-                    debugLog(`Fetched ${data.items.length} videos, total: ${allVideos.length}`);
                     
-                    // Update progress
-                    showLoading(`Fetching complete video library... Found ${allVideos.length} so far`);
+                    // Apply demo mode video limit
+                    const videosToAdd = videos.slice(0, Math.max(0, videoLimit - videosCollected));
+                    allVideos = allVideos.concat(videosToAdd);
+                    videosCollected += videosToAdd.length;
+                    
+                    debugLog(`Fetched ${data.items.length} videos, added ${videosToAdd.length}, total: ${allVideos.length}`);
+                    
+                    // Update progress with demo mode info
+                    if (isDemoMode) {
+                        showLoading(`Demo Mode: Fetching videos... Found ${allVideos.length}/${videoLimit} (limited for cost control)`);
+                    } else {
+                        showLoading(`Fetching complete video library... Found ${allVideos.length} so far`);
+                    }
+                    
+                    // Stop if we've reached the demo limit
+                    if (isDemoMode && videosCollected >= videoLimit) {
+                        debugLog(`Demo mode: Reached video limit of ${videoLimit}`);
+                        break;
+                    }
                 }
                 
                 nextPageToken = data.nextPageToken;
@@ -1115,9 +1299,9 @@
                     break;
                 }
                 
-            } while (nextPageToken);
+            } while (nextPageToken && (!isDemoMode || videosCollected < videoLimit));
             
-            debugLog(`Total videos from uploads playlist: ${allVideos.length}`);
+            debugLog(`Total videos from uploads playlist: ${allVideos.length}${isDemoMode ? ` (demo limited to ${videoLimit})` : ''}`);
             return allVideos;
         }
         
@@ -1457,6 +1641,26 @@
             const order = document.getElementById('channelOrder').value;
             const searchLogic = document.getElementById('searchLogic').value;
             
+            // Check demo rate limits first
+            if (isDemoMode) {
+                const rateLimitCheck = checkDemoRateLimit();
+                if (!rateLimitCheck.allowed) {
+                    let errorMessage = '';
+                    if (rateLimitCheck.reason === 'daily_limit_per_ip') {
+                        errorMessage = `Daily limit reached! You've used all 3 free analyses today. Try again tomorrow or get your own API key for unlimited access.`;
+                    } else if (rateLimitCheck.reason === 'global_daily_limit') {
+                        errorMessage = `Demo quota exhausted for today! Too many people are trying the demo. Try again tomorrow or get your own API key.`;
+                    }
+                    showError(errorMessage);
+                    return;
+                }
+                
+                // Show remaining uses
+                if (rateLimitCheck.remaining <= 1) {
+                    showSuccess(`⚠️ Last free analysis for today! Remaining: ${rateLimitCheck.remaining}`);
+                }
+            }
+            
             // Get API key from input field
             if (!saveApiKey()) {
                 if (apiMode === 'web') {
@@ -1475,6 +1679,11 @@
             showLoading(`Analyzing channel content...`);
             
             try {
+                // Increment demo usage counter
+                if (isDemoMode) {
+                    incrementDemoUsage();
+                }
+                
                 // Get channel ID and uploads playlist ID
                 const channelData = await getChannelData(channelInput, youtubeApiKey);
                 debugLog('Channel data resolved', channelData);
@@ -1509,7 +1718,14 @@
                 // Save search if requested
                 saveCurrentSearch();
                 
-                showSuccess(`Analyzed ${videosData.length} videos from channel${channelQuery ? ` (filtered by "${channelQuery}")` : ''}`);
+                const demoInfo = isDemoMode ? ` (Demo: limited to ${CONFIG.DEMO.MAX_VIDEOS_PER_ANALYSIS} videos)` : '';
+                showSuccess(`Analyzed ${videosData.length} videos from channel${channelQuery ? ` (filtered by "${channelQuery}")` : ''}${demoInfo}`);
+                
+                // Update demo mode panel with remaining uses
+                if (isDemoMode) {
+                    const newRateLimit = checkDemoRateLimit();
+                    showDemoModeInfo(); // Refresh the demo panel
+                }
                 
             } catch (error) {
                 debugLog('Channel analysis error', error);
