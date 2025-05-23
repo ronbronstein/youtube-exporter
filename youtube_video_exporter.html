@@ -793,6 +793,93 @@
     </footer>
 
     <script>
+        /**
+         * YOUTUBE RESEARCH HUB - TABLE OF CONTENTS
+         * 
+         * Use Ctrl+F to quickly navigate to any section or function
+         * 
+         * CONFIGURATION SECTION (Line ~800)
+         *   - CONFIG Object: Global settings and constants
+         *   - Global State Variables: videosData, filteredData, apiMode, etc.
+         *   - Section marker: CONFIGURATION SECTION
+         * 
+         * ERROR HANDLING (Line ~830) 
+         *   - Global error listeners
+         *   - Promise rejection handling
+         *   - Section marker: GLOBAL ERROR HANDLING
+         * 
+         * UTILITY FUNCTIONS (Line ~850)
+         *   - debugLog(): Centralized logging
+         *   - formatViewCount(): Number formatting (1.2M, 1.2K)
+         *   - Section marker: UTILITY FUNCTIONS
+         * 
+         * API LAYER (Line ~870)
+         *   - initializeApiKey(): Detect local vs web mode
+         *   - getChannelId(): Extract channel ID from various formats
+         *   - getChannelData(): Get channel metadata + uploads playlist
+         *   - getAllChannelVideos(): Fetch ALL videos via uploads playlist
+         *   - processVideoDataBatched(): Batch process video details
+         *   - formatDuration(): Convert PT1H2M3S to readable format
+         *   - Section marker: API LAYER
+         * 
+         * STORAGE & CACHING (Line ~1050)
+         *   - saveAnalysis(): Cache results in localStorage
+         *   - loadAnalysis(): Retrieve cached results
+         *   - getSavedSearches(): Get saved search configurations
+         *   - saveCurrentSearch(): Save current search parameters
+         *   - Section marker: STORAGE & CACHING
+         * 
+         * UI COMPONENTS (Line ~1100)
+         *   - showApiKeyPanel() / hideApiKeyPanel(): API key input control
+         *   - loadSavedClientKey() / saveApiKey(): Client-side key management
+         *   - initializeSavedSearches(): Setup saved searches functionality
+         *   - loadSavedSearches() / loadSavedSearch() / deleteSavedSearch()
+         *   - sortTable(): Table sorting functionality
+         *   - Section marker: UI COMPONENTS
+         * 
+         * MAIN ANALYSIS WORKFLOW (Line ~1250)
+         *   - analyzeChannelComplete(): Main entry point for analysis
+         *   - applyKeywordFilter(): Filter videos by keywords (AND/OR logic)
+         *   - Section marker: MAIN ANALYSIS WORKFLOW
+         * 
+         * ANALYTICS ENGINE (Line ~1320)
+         *   - generateContentAnalysis(): Basic content statistics
+         *   - createUploadTimeline(): Chart.js timeline generation
+         *   - analyzeTitlePatterns(): Extract patterns from top videos
+         *   - identifyViralContent(): Find 3x+ performance videos
+         *   - analyzeUploadSchedule(): Optimal timing analysis
+         *   - generateAdvancedAnalysis(): Advanced insights panel
+         *   - Section marker: ANALYTICS ENGINE
+         * 
+         * DISPLAY & VIEW FUNCTIONS (Line ~1400)
+         *   - switchView(): Toggle list/grid views
+         *   - displayVideos(): Main video rendering dispatcher
+         *   - displayListView(): Sortable table rendering
+         *   - displayGridView(): Thumbnail cards rendering
+         *   - filterResults(): Real-time search filtering
+         *   - updateSearchResults(): Results count updates
+         * 
+         * EXPORT FUNCTIONS (Line ~1500)
+         *   - exportToCSV(): Complete dataset export
+         *   - exportTitles(): Title-only text export
+         *   - exportToMarkdown(): LLM-ready structured export
+         * 
+         * MESSAGE & LOADING FUNCTIONS (Line ~1580)
+         *   - showLoading() / hideLoading(): Loading spinner control
+         *   - showError() / showSuccess(): User feedback messages
+         *   - clearMessages(): Remove message panels
+         * 
+         * EVENT HANDLERS & INITIALIZATION (Line ~1620)
+         *   - DOMContentLoaded: App initialization
+         *   - Keyboard support: Enter key handling
+         *   - Real-time filtering: Search input debouncing
+         * 
+         * SEARCH TIPS:
+         *   - Use Ctrl+F + "function functionName" to find specific functions
+         *   - Use Ctrl+F + "===== SECTION NAME =====" to jump to sections
+         *   - Line numbers are approximate - use section markers for precise navigation
+         */
+        
         /* ===== CONFIGURATION SECTION ===== */
         
         // Global configuration constants
