@@ -48,10 +48,13 @@ youtube-exporter/
 ├── test-server.js                 # 🧪 Local testing server
 ├── docs/                          # 📚 All documentation
 │   ├── CONTRIBUTING.md            # This file
-│   ├── CODE_STANDARDS.md          # Development standards
 │   ├── TaskBoard.md               # Project roadmap
 │   ├── ARCHITECTURE.md            # Technical overview
-│   └── [other docs]               # User guides, API reference
+│   ├── API_SECURITY.md            # Security guidelines
+│   ├── DEPLOYMENT.md              # Deployment guide
+│   ├── TROUBLESHOOTING.md         # Common issues
+│   ├── USER_GUIDE.md              # User documentation
+│   └── API_REFERENCE.md           # Function reference
 ├── .github/                       # 🔧 GitHub automation (coming soon)
 └── README.md                      # Project overview
 ```
@@ -100,7 +103,7 @@ git checkout -b feature/your-feature-name
 
 ### **Step 2: Make Your Changes**
 - Edit `youtube_video_exporter.html` directly
-- Follow our [Code Standards](./CODE_STANDARDS.md)
+- Follow our code standards (see below)
 - Use the section markers: `/* ===== SECTION NAME ===== */`
 - Add JSDoc comments for new functions
 
@@ -148,6 +151,126 @@ git push origin your-branch-name
 
 ---
 
+## 📐 **Code Standards**
+
+### **File Organization**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Metadata & External Resources -->
+    <style>
+        /* CSS organized by component hierarchy */
+    </style>
+</head>
+<body>
+    <!-- HTML Structure -->
+    
+    <script>
+        /* ===== TABLE OF CONTENTS ===== */
+        /* ===== CONFIGURATION SECTION ===== */
+        /* ===== UTILITY FUNCTIONS ===== */
+        /* ===== API LAYER ===== */
+        /* ===== STORAGE & CACHING ===== */
+        /* ===== UI COMPONENTS ===== */
+        /* ===== MAIN ANALYSIS WORKFLOW ===== */
+        /* ===== ANALYTICS ENGINE ===== */
+        /* ===== DISPLAY & VIEW FUNCTIONS ===== */
+        /* ===== EXPORT FUNCTIONS ===== */
+        /* ===== MESSAGE & LOADING FUNCTIONS ===== */
+        /* ===== EVENT HANDLERS & INITIALIZATION ===== */
+    </script>
+</body>
+</html>
+```
+
+### **Naming Conventions**
+
+#### **Variables**
+```javascript
+// ✅ GOOD: Descriptive camelCase with type hints
+let videosData = [];           // Array of video objects
+let currentView = 'list';      // String state indicator
+let isDemoMode = false;        // Boolean flags with 'is' prefix
+const CONFIG = {};             // Constants in SCREAMING_SNAKE
+
+// ❌ AVOID: Generic or unclear names
+let data = [];                 // Too generic
+let x = 'list';               // Single letter variables
+```
+
+#### **Functions**
+```javascript
+// ✅ GOOD: Verb + noun pattern with descriptive prefixes
+async function getChannelData(channelId) {}        // get* for data retrieval
+function showLoadingSpinner(message) {}            // show*/hide* for UI control
+function analyzeChannelComplete() {}               // analyze* for processing
+function displayVideos(videos) {}                  // display* for rendering
+function exportToCSV() {}                          // export* for data export
+function initializeApiKey() {}                     // initialize* for setup
+
+// ❌ AVOID: Unclear or inconsistent patterns
+function doStuff() {}                              // Too generic
+function channel() {}                              // Missing action verb
+```
+
+### **Comment Standards**
+
+#### **Function Documentation (JSDoc Style)**
+```javascript
+/**
+ * Get complete channel data including uploads playlist ID
+ * @param {string} channelInput - Channel URL, handle, or ID
+ * @param {string} apiKey - YouTube Data API v3 key
+ * @returns {Promise<{channelId: string, uploadsPlaylistId: string}>}
+ * @throws {Error} When channel not found or API error
+ */
+async function getChannelData(channelInput, apiKey) {
+    // Implementation
+}
+```
+
+#### **Section Headers**
+```javascript
+/* ===== API LAYER ===== */
+
+// Get channel ID from various input formats
+async function getChannelId(channelInput, apiKey) {}
+```
+
+#### **Complex Logic Comments**
+```javascript
+// Apply demo mode video limit
+const videoLimit = isDemoMode ? CONFIG.DEMO.MAX_VIDEOS_PER_ANALYSIS : Infinity;
+
+// Convert playlist items to search-like format for consistency
+const videos = data.items.map(item => ({
+    id: { videoId: item.snippet.resourceId.videoId },
+    snippet: item.snippet
+}));
+```
+
+### **Error Handling Pattern**
+```javascript
+// ✅ GOOD: Consistent error handling with user feedback
+async function analyzeChannelComplete() {
+    try {
+        showLoading('Analyzing channel content...');
+        
+        const result = await processData();
+        
+        showSuccess('Analysis completed successfully!');
+    } catch (error) {
+        debugLog('Analysis error', error);
+        showError(`Analysis failed: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+```
+
+---
+
 ## 🧪 **Testing Guidelines**
 
 ### **Manual Testing**
@@ -179,6 +302,21 @@ Test on these browsers (if possible):
 - [ ] Edge (if on Windows)
 - [ ] Mobile browser (any)
 
+### **Test Channels (Good for Development)**
+```bash
+# Small channels (< 100 videos)
+@techexplained
+
+# Medium channels (100-1000 videos)  
+@veritasium
+
+# Large channels (1000+ videos)
+@mrbeast
+
+# Handle edge cases
+@nonexistentchannel    # Test error handling
+```
+
 ---
 
 ## 🎨 **UI/UX Guidelines**
@@ -199,11 +337,24 @@ body { /* Base styles */ }
 @media { /* Responsive overrides */ }
 ```
 
-### **Adding New UI Elements**
-- Use existing CSS classes when possible
-- Follow the XP button/panel styling
-- Test on mobile devices
-- Add hover states for interactive elements
+### **Windows XP Styling Guidelines**
+```css
+/* Use XP variables for consistency */
+background: var(--xp-gray-light);
+border: 2px inset var(--xp-button-face);
+
+/* Authentic 3D borders */
+border: 2px outset var(--xp-button-face); /* Raised elements */
+border: 2px inset var(--xp-button-face);  /* Pressed elements */
+
+/* Classic button styling */
+.button:hover {
+    background: #f0f0f0;
+}
+.button:active {
+    border: 2px inset var(--xp-button-face);
+}
+```
 
 ---
 
@@ -256,6 +407,30 @@ The code is organized in clear sections:
 3. **Use descriptive names**: `getChannelData()`, `showLoadingSpinner()`
 4. **Add JSDoc comments** for complex functions
 5. **Group related functions** together
+
+### **Configuration Management**
+```javascript
+const CONFIG = {
+    API: {
+        BASE_URL: 'https://www.googleapis.com/youtube/v3',
+        BATCH_SIZE: 50,
+        QUOTA_COSTS: {
+            search: 100,
+            channel: 1
+        }
+    },
+    UI: {
+        CHART_COLORS: {
+            primary: 'rgb(0, 120, 212)',
+            secondary: 'rgb(76, 175, 80)'
+        }
+    },
+    DEMO: {
+        MAX_VIDEOS_PER_ANALYSIS: 100,
+        MAX_ANALYSES_PER_IP_PER_DAY: 3
+    }
+};
+```
 
 ---
 
@@ -340,9 +515,8 @@ Check [TaskBoard.md](./TaskBoard.md) for the full roadmap. Current focus areas:
 
 ### **Stuck on Something?**
 1. Check existing [issues](https://github.com/ronbronstein/youtube-exporter/issues)
-2. Read through [CODE_STANDARDS.md](./CODE_STANDARDS.md)
-3. Look at recent commits for examples
-4. Create a discussion or issue with your question
+2. Look at recent commits for examples
+3. Create a discussion or issue with your question
 
 ### **Want to Chat?**
 - 💬 GitHub Discussions for general questions
