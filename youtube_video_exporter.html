@@ -734,6 +734,7 @@
                 <div class="export-section">
                     <button class="export-button" onclick="exportToCSV()">📥 Download CSV</button>
                     <button class="export-button secondary" onclick="exportTitles()">📝 Export Titles</button>
+                    <button class="export-button" onclick="exportToMarkdown()">🤖 LLM Export (Markdown)</button>
                 </div>
             </div>
         </div>
@@ -874,69 +875,75 @@
             const chartPanel = `
                 <div class="chart-panel" data-title="📈 Upload Frequency Timeline">
                     <div class="chart-container">
-                        <canvas id="uploadChart" width="400" height="200"></canvas>
+                        <canvas id="uploadChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             `;
             
-            // Insert after analysis panels
+            // Remove existing chart to prevent duplicates
             const results = document.getElementById('results');
-            const existingChart = document.querySelector('.chart-panel');
+            const existingChart = results.querySelector('.chart-panel');
             if (existingChart) {
                 existingChart.remove();
             }
             
-            const lastAnalysis = results.querySelector('.analysis-panel:last-of-type');
-            if (lastAnalysis) {
-                lastAnalysis.insertAdjacentHTML('afterend', chartPanel);
+            // Insert after advanced analysis panel
+            const advancedAnalysis = results.querySelector('.analysis-panel[data-title*="Advanced Content Insights"]');
+            if (advancedAnalysis) {
+                advancedAnalysis.insertAdjacentHTML('afterend', chartPanel);
             }
             
-            // Create Chart.js chart with XP styling
-            const ctx = document.getElementById('uploadChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Videos Uploaded',
-                        data: data,
-                        borderColor: '#0078d4', // XP blue
-                        backgroundColor: 'rgba(0, 120, 212, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                font: { family: 'Tahoma', size: 11 },
-                                color: '#000000'
+            // Create Chart.js chart with XP styling - use setTimeout to ensure DOM is ready
+            setTimeout(() => {
+                const canvas = document.getElementById('uploadChart');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Videos Uploaded',
+                                data: data,
+                                borderColor: '#0078d4', // XP blue
+                                backgroundColor: 'rgba(0, 120, 212, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        font: { family: 'Tahoma', size: 11 },
+                                        color: '#000000'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        font: { family: 'Tahoma', size: 10 },
+                                        color: '#000000'
+                                    },
+                                    grid: { color: 'rgba(0,0,0,0.1)' }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: { family: 'Tahoma', size: 10 },
+                                        color: '#000000'
+                                    },
+                                    grid: { color: 'rgba(0,0,0,0.1)' }
+                                }
                             }
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                font: { family: 'Tahoma', size: 10 },
-                                color: '#000000'
-                            },
-                            grid: { color: 'rgba(0,0,0,0.1)' }
-                        },
-                        x: {
-                            ticks: {
-                                font: { family: 'Tahoma', size: 10 },
-                                color: '#000000'
-                            },
-                            grid: { color: 'rgba(0,0,0,0.1)' }
-                        }
-                    }
+                    });
                 }
-            });
+            }, 100);
         }
         
         // Load API key from server on page load
@@ -1436,6 +1443,47 @@
             showSuccess('Video titles exported successfully!');
         }
         
+        function exportToMarkdown() {
+            if (filteredData.length === 0) {
+                showError('No videos to export');
+                return;
+            }
+            
+            let markdown = `# YouTube Channel Analysis\n\n`;
+            markdown += `**Total Videos:** ${filteredData.length}\n`;
+            markdown += `**Export Date:** ${new Date().toLocaleDateString()}\n\n`;
+            
+            // Channel summary
+            const totalViews = filteredData.reduce((sum, video) => sum + video.viewCount, 0);
+            const avgViews = Math.round(totalViews / filteredData.length);
+            const topVideo = filteredData.reduce((max, video) => video.viewCount > max.viewCount ? video : max);
+            
+            markdown += `## Channel Summary\n\n`;
+            markdown += `- **Average Views:** ${formatViewCount(avgViews)}\n`;
+            markdown += `- **Total Views:** ${formatViewCount(totalViews)}\n`;
+            markdown += `- **Top Video:** ${topVideo.title} (${formatViewCount(topVideo.viewCount)} views)\n\n`;
+            
+            // Video list
+            markdown += `## Video List\n\n`;
+            
+            filteredData.forEach((video, index) => {
+                const engagementRate = video.viewCount > 0 ? 
+                    ((video.likeCount + video.commentCount) / video.viewCount * 100).toFixed(2) : '0.00';
+                
+                markdown += `### ${index + 1}. ${video.title}\n\n`;
+                markdown += `- **URL:** ${video.url}\n`;
+                markdown += `- **Published:** ${video.publishedAt}\n`;
+                markdown += `- **Duration:** ${video.duration}\n`;
+                markdown += `- **Views:** ${formatViewCount(video.viewCount)}\n`;
+                markdown += `- **Likes:** ${video.likeCount.toLocaleString()}\n`;
+                markdown += `- **Comments:** ${video.commentCount.toLocaleString()}\n`;
+                markdown += `- **Engagement Rate:** ${engagementRate}%\n\n`;
+            });
+            
+            downloadFile(markdown, `youtube_analysis_${new Date().toISOString().split('T')[0]}.md`, 'text/markdown');
+            showSuccess('LLM-ready markdown exported successfully!');
+        }
+        
         function downloadFile(content, filename, contentType) {
             const blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
             const link = document.createElement('a');
@@ -1628,14 +1676,13 @@
                 </div>
             `;
             
-            // Insert advanced analysis after basic analysis
+            // Remove ALL existing advanced analysis panels to prevent duplicates
             const results = document.getElementById('results');
-            const existingAdvanced = results.querySelector('.analysis-panel:last-of-type');
-            if (existingAdvanced && existingAdvanced.innerHTML.includes('Advanced Content Insights')) {
-                existingAdvanced.remove();
-            }
+            const existingAdvanced = results.querySelectorAll('.analysis-panel[data-title*="Advanced Content Insights"]');
+            existingAdvanced.forEach(panel => panel.remove());
             
-            const basicAnalysis = results.querySelector('.analysis-panel');
+            // Insert after the basic analysis panel
+            const basicAnalysis = results.querySelector('.analysis-panel[data-title*="Content Analysis"]');
             if (basicAnalysis) {
                 basicAnalysis.insertAdjacentHTML('afterend', advancedPanel);
             }
