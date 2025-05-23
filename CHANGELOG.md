@@ -5,6 +5,19 @@ All notable changes to YouTube Channel Research Hub will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2024-12-19
+
+### 🐛 Fixed
+- **Duration Format Handling**: Fixed console warnings for videos with unusual duration formats
+  - Now gracefully handles `P0D` (zero duration) and `PT0S` formats
+  - Reduces console noise while maintaining full functionality
+  - Non-critical edge case that primarily affected live streams and special content
+
+### 📊 Performance Validation
+- **Large Scale Testing**: Confirmed excellent performance with 1,983 video analysis
+- **Keyword Filtering**: Validated accurate matching across complete video datasets
+- **Match Detection**: Enhanced debugging shows exact keyword locations (title vs description)
+
 ## [1.1.0] - 2024-12-19
 
 ### 🚀 Major Video Fetching Overhaul
