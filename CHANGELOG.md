@@ -5,6 +5,45 @@ All notable changes to YouTube Channel Research Hub will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-12-19
+
+### 🌐 Major Web Deployment Update
+
+This release introduces hybrid deployment capabilities, supporting both local development and web hosting simultaneously.
+
+### ✨ Added
+- **Hybrid API Key System**: Auto-detects environment (local vs web)
+  - Local mode: Uses .env file seamlessly (existing workflow unchanged)  
+  - Web mode: Shows secure client-side API key input with guidance
+- **GitHub Pages Support**: Standalone web version generation
+  - `npm run build:web` creates optimized static version
+  - Automatic environment detection and UI adaptation
+  - Client-side API key management with localStorage
+- **Web Build Pipeline**: Automated generation from main HTML file
+  - SEO meta tags and social sharing optimization
+  - Web-specific UI enhancements and help links
+  - Maintains 100% feature parity with local version
+
+### 🔧 Improved  
+- **API Key Security**: Enhanced guidance and restrictions setup
+  - Expandable security panel with step-by-step instructions
+  - Clear warnings about browser visibility limitations
+  - Links to Google Cloud Console for proper configuration
+- **User Experience**: Seamless transition between deployment modes
+  - No configuration needed - auto-detects environment
+  - Helpful error messages tailored to each mode
+  - Progressive enhancement for different hosting scenarios
+
+### 🗂️ Documentation
+- **Comprehensive User Guide**: `docs/USER_GUIDE.md` with complete setup walkthrough
+- **Web Deployment**: `docs/README.md` explaining GitHub Pages setup
+- **Build System**: Automated web version generation and maintenance
+
+### 🚀 Infrastructure  
+- **Backward Compatibility**: Existing `npm start` workflow unchanged
+- **Dual Deployment**: Supports both local development and web hosting
+- **Build Automation**: Single source of truth with automated web generation
+
 ## [1.1.1] - 2024-12-19
 
 ### 🐛 Fixed

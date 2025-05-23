@@ -4,9 +4,15 @@
 
 A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP aesthetics with powerful modern analytics. Get deep insights into any YouTube channel's content strategy, upload patterns, and viral content detection.
 
-![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)
+
+## 🌐 **Try It Online**
+
+**🚀 [Live Web Version](https://ronbronstein.github.io/youtube-exporter/)** - No installation required!
+
+*Just bring your own YouTube API key (free setup in 2 minutes)*
 
 ## ✨ Features
 
