@@ -1,14 +1,54 @@
 {
   "name": "youtube-research-hub",
   "version": "1.0.0",
-  "description": "Local YouTube Content Research Tool",
+  "description": "Retro Windows XP meets cutting-edge YouTube analytics - Comprehensive channel analysis tool with nostalgic design",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "youtube",
+    "analytics",
+    "channel-analysis",
+    "content-strategy",
+    "windows-xp",
+    "retro-design",
+    "social-media",
+    "research-tool",
+    "nostalgia",
+    "viral-content"
+  ],
+  "author": {
+    "name": "Ron Bronstein",
+    "email": "ron@example.com",
+    "url": "https://github.com/your-username"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/youtube-research-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/youtube-research-hub/issues"
+  },
+  "homepage": "https://github.com/your-username/youtube-research-hub#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
     "dotenv": "^16.3.1"
-  }
+  },
+  "devDependencies": {},
+  "files": [
+    "server.js",
+    "youtube_video_exporter.html",
+    ".env.template",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
 } 
