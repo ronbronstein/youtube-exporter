@@ -1,6 +1,237 @@
 # 📋 YouTube Research Hub - Task Board
 
-## 🎯 **Current Sprint: Demo Hosting & Abuse Prevention**
+## 🎯 **CURRENT EPIC: Public Deployment & Contributor Ecosystem**
+
+### **📋 EPIC Overview: From Local Tool to Public Platform**
+
+**Vision**: Transform YouTube Research Hub from a local development tool into a public GitHub Pages platform where users bring their own API keys, contributors can easily participate, and the live demo auto-updates from the main branch.
+
+**Architecture Summary**:
+```
+┌─ DEPLOYMENT INSTANCES ─────────────────────────────────────────┐
+│                                                                │
+│  🌐 LIVE DEMO (GitHub Pages)                                  │
+│  ├─ URL: https://ronbronstein.github.io/youtube-exporter/     │
+│  ├─ Mode: User API Key Required                               │
+│  ├─ Auth: GitHub OAuth + Encrypted Storage                    │
+│  ├─ Auto-Deploy: On every push to main                        │
+│  └─ Features: Full functionality with user's quota            │
+│                                                                │
+│  💻 LOCAL DEVELOPMENT                                          │
+│  ├─ Mode: File-based (youtube_video_exporter.html)           │
+│  ├─ API Key: Manual input or environment variable             │
+│  ├─ Features: Full functionality, unlimited                   │
+│  └─ Testing: test-server.js for demo simulation               │
+│                                                                │
+│  🔧 CONTRIBUTOR SETUP                                          │
+│  ├─ Clone repo → npm install → open HTML file                 │
+│  ├─ Documentation: CONTRIBUTING.md                            │
+│  ├─ Standards: CODE_STANDARDS.md                              │
+│  └─ Templates: Issue/PR templates                             │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**API Key Management Strategy**:
+```
+┌─ API KEY HIERARCHY ──────────────────────────────────────────┐
+│                                                              │
+│  🔐 USER API KEYS (Public Demo)                             │
+│  ├─ Storage: Encrypted localStorage (AES-256)               │
+│  ├─ Auth: GitHub OAuth for key-user binding                 │
+│  ├─ Scope: User's personal YouTube quota                    │
+│  ├─ Security: Never leaves user's browser                   │
+│  └─ Fallback: Manual key entry for non-GitHub users        │
+│                                                              │
+│  🏠 DEVELOPER API KEYS (Local)                              │
+│  ├─ Storage: Environment variables or manual input          │
+│  ├─ Scope: Developer's personal quota                       │
+│  ├─ Security: Local machine only                            │
+│  └─ Testing: test-server.js with YOUTUBE_API_KEY env        │
+│                                                              │
+│  🤝 CONTRIBUTOR API KEYS                                     │
+│  ├─ Setup: Each contributor uses their own key              │
+│  ├─ Documentation: Step-by-step API key creation guide     │
+│  ├─ Testing: Standardized test scenarios                    │
+│  └─ CI/CD: No API keys in repository (security)            │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎯 **Current Sprint: EPIC Implementation**
+
+### **🔥 HIGH PRIORITY - EPIC Tasks**
+
+#### **EPIC-001: Repository Standardization & Documentation**
+- **Status**: 🟡 To Do
+- **Priority**: Critical
+- **Description**: Establish consistent code standards and comprehensive documentation
+- **Deliverables**:
+  - [ ] **CODE_STANDARDS.md**: Naming conventions, function organization, comment styles
+  - [ ] **CONTRIBUTING.md**: Complete contributor onboarding guide
+  - [ ] **DEPLOYMENT.md**: Architecture overview and deployment instructions
+  - [ ] **API_SECURITY.md**: API key management best practices
+  - [ ] Update existing docs to match new architecture
+- **Code Standards to Define**:
+  - [ ] Function naming: `camelCase` with descriptive prefixes (`get`, `show`, `analyze`)
+  - [ ] Variable naming: `camelCase` with type hints (`videosData`, `isDemo`, `apiKey`)
+  - [ ] Section markers: `/* ===== SECTION NAME ===== */`
+  - [ ] Comment style: JSDoc for functions, inline for complex logic
+  - [ ] File organization: Single HTML file maintained, docs separate
+- **Estimated Effort**: 3 hours
+
+#### **EPIC-002: User API Key Management System**
+- **Status**: 🟡 To Do
+- **Priority**: High
+- **Description**: Implement secure, user-friendly API key management
+- **Technical Implementation**:
+  - [ ] **GitHub OAuth Integration**:
+    ```javascript
+    // User authentication flow
+    async function authenticateWithGitHub() {
+        // OAuth flow → user session → key binding
+    }
+    ```
+  - [ ] **Encrypted Storage System**:
+    ```javascript
+    // Client-side encryption (never send keys to server)
+    function encryptApiKey(key, userSession) {
+        // AES-256 encryption with user-specific salt
+    }
+    ```
+  - [ ] **Key Management UI**:
+    - User dashboard for key setup/rotation
+    - One-click YouTube API setup guide
+    - Key validation and quota monitoring
+  - [ ] **Security Measures**:
+    - Keys never leave user's browser
+    - Automatic key rotation reminders
+    - Secure logout (clear encrypted storage)
+- **Dependencies**: GitHub OAuth app creation
+- **Estimated Effort**: 4-5 hours
+
+#### **EPIC-003: GitHub Pages Deployment Pipeline**
+- **Status**: 🟡 To Do
+- **Priority**: High
+- **Description**: Auto-deploying public demo with CI/CD
+- **Deployment Architecture**:
+  ```yaml
+  # .github/workflows/deploy.yml
+  name: Deploy to GitHub Pages
+  on:
+    push:
+      branches: [ main ]
+  jobs:
+    deploy:
+      - Build static assets
+      - Configure for Pages environment
+      - Deploy to gh-pages branch
+      - Update live demo instantly
+  ```
+- **Implementation Steps**:
+  - [ ] Create GitHub Actions workflow
+  - [ ] Configure Pages settings in repo
+  - [ ] Set up custom domain (optional): `youtube-tool.ronbronstein.com`
+  - [ ] Environment detection in code (`isGitHubPages`)
+  - [ ] Auto-update notifications in live demo
+- **Dependencies**: EPIC-002 (user auth system)
+- **Estimated Effort**: 2-3 hours
+
+#### **EPIC-004: Contributor Ecosystem Setup**
+- **Status**: 🟡 To Do
+- **Priority**: Medium
+- **Description**: Make repository contributor-friendly and sustainable
+- **Contributor Experience**:
+  ```bash
+  # One-command setup
+  git clone https://github.com/ronbronstein/youtube-exporter.git
+  cd youtube-exporter
+  npm install  # (if needed for dev tools)
+  open youtube_video_exporter.html  # Ready to contribute!
+  ```
+- **Repository Structure**:
+  ```
+  youtube-exporter/
+  ├── youtube_video_exporter.html    # Main application (single file)
+  ├── test-server.js                 # Local testing server
+  ├── docs/                          # All documentation
+  │   ├── CONTRIBUTING.md            # Contributor guide
+  │   ├── CODE_STANDARDS.md          # Development standards
+  │   ├── DEPLOYMENT.md              # Architecture overview
+  │   ├── API_SECURITY.md            # Security guidelines
+  │   └── [existing docs updated]    # Current documentation
+  ├── .github/
+  │   ├── workflows/deploy.yml       # Auto-deployment
+  │   ├── ISSUE_TEMPLATE/            # Bug/feature templates
+  │   └── PULL_REQUEST_TEMPLATE.md   # PR checklist
+  ├── examples/                      # Usage examples
+  └── scripts/                       # Development utilities
+  ```
+- **Deliverables**:
+  - [ ] Issue templates (bug, feature, question)
+  - [ ] PR template with testing checklist
+  - [ ] Automated contributor recognition
+  - [ ] Development setup scripts
+- **Estimated Effort**: 2 hours
+
+---
+
+## 📊 **Implementation Timeline**
+
+### **Week 1: Foundation & Standards**
+1. **Day 1-2**: EPIC-001 (Documentation & Standards)
+2. **Day 3**: Repository structure cleanup
+
+### **Week 2: User Authentication**
+1. **Day 1-3**: EPIC-002 (API Key Management)
+2. **Day 4**: Security testing and validation
+
+### **Week 3: Deployment & Community**
+1. **Day 1-2**: EPIC-003 (GitHub Pages Pipeline)
+2. **Day 3**: EPIC-004 (Contributor Setup)
+3. **Day 4**: End-to-end testing and launch
+
+---
+
+## 🎯 **Success Metrics**
+
+### **Technical Metrics**
+- ✅ Auto-deployment working (< 5 minutes from push to live)
+- ✅ User API key setup < 2 minutes
+- ✅ Zero API keys in repository or logs
+- ✅ Contributor setup < 1 minute
+
+### **Community Metrics**
+- 🎯 First external contributor within 2 weeks
+- 🎯 5+ GitHub stars in first month
+- 🎯 Documentation completeness score > 90%
+- 🎯 Zero security incidents
+
+---
+
+## 📝 **Architecture Decisions**
+
+### **Why Single HTML File?**
+- ✅ **Simplicity**: No build process, instant setup
+- ✅ **Portability**: Works offline, easy to share
+- ✅ **Deployment**: GitHub Pages native support
+- ✅ **Contributors**: Lower barrier to entry
+
+### **Why User API Keys?**
+- ✅ **Cost**: No server costs, scales infinitely
+- ✅ **Security**: Users control their own quotas
+- ✅ **Privacy**: No data passes through our servers
+- ✅ **Reliability**: No single point of failure
+
+### **Why GitHub Pages?**
+- ✅ **Free**: No hosting costs
+- ✅ **Automatic**: Deploys on every commit
+- ✅ **Reliable**: GitHub's infrastructure
+- ✅ **Community**: Easy for contributors to see changes
+
+## 🎯 **Current Sprint: GitHub Pages Deployment & User API Keys**
 
 ### **🟢 COMPLETED - Recently Done**
 
@@ -90,6 +321,67 @@
   - [ ] Mode-specific configuration
 - **Dependencies**: None
 - **Estimated Effort**: 1 hour remaining
+
+### **🔥 HIGH PRIORITY - Updated Direction**
+
+#### **TASK-015: GitHub Pages Deployment**
+- **Status**: 🟡 To Do
+- **Priority**: High
+- **Assignee**: Development Team
+- **Description**: Deploy on GitHub Pages with auto-updates from main branch
+- **Acceptance Criteria**:
+  - [ ] GitHub Actions workflow for auto-deployment
+  - [ ] Custom domain support (optional)
+  - [ ] Static-only architecture (no server required)
+  - [ ] Auto-deploy on every push to main
+  - [ ] Environment detection (Pages vs local)
+- **Technical Requirements**:
+  - [ ] `.github/workflows/deploy.yml` workflow
+  - [ ] Build process for static deployment
+  - [ ] Environment configuration for Pages
+  - [ ] CNAME file for custom domain
+- **Dependencies**: TASK-016
+- **Estimated Effort**: 2 hours
+
+#### **TASK-016: User API Key Management**
+- **Status**: 🟡 To Do
+- **Priority**: High
+- **Assignee**: Development Team
+- **Description**: Secure user API key storage with GitHub/Google auth
+- **Acceptance Criteria**:
+  - [ ] GitHub OAuth integration for auth
+  - [ ] Secure API key storage (encrypted localStorage)
+  - [ ] User dashboard for key management
+  - [ ] One-click API key setup guide
+  - [ ] Fallback to manual key entry
+- **Technical Requirements**:
+  - [ ] GitHub OAuth app setup
+  - [ ] Crypto.js for client-side encryption
+  - [ ] User session management
+  - [ ] API key validation
+  - [ ] Key rotation support
+- **Dependencies**: None
+- **Estimated Effort**: 3-4 hours
+
+#### **TASK-017: Contributor Documentation**
+- **Status**: 🟡 To Do
+- **Priority**: High
+- **Assignee**: Development Team
+- **Description**: Make repo contributor-friendly with clear setup
+- **Acceptance Criteria**:
+  - [ ] Updated README with live demo link
+  - [ ] CONTRIBUTING.md with setup instructions
+  - [ ] Issue templates for bugs/features
+  - [ ] Pull request template
+  - [ ] Local development guide
+  - [ ] Architecture documentation for contributors
+- **Technical Requirements**:
+  - [ ] GitHub issue templates
+  - [ ] PR template with checklist
+  - [ ] Setup scripts for quick start
+  - [ ] Code of conduct
+- **Dependencies**: None
+- **Estimated Effort**: 2 hours
 
 ---
 

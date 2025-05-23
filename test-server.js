@@ -7,7 +7,7 @@ const PORT = 3000;
 // Demo configuration
 const DEMO_CONFIG = {
     demoMode: true,
-    demoApiKey: 'AIzaSyDemoKey123456789', // Placeholder - replace with real key for testing
+    demoApiKey: process.env.YOUTUBE_API_KEY || 'AIzaSyDemoKey123456789', // Use environment variable or placeholder
     enabled: true
 };
 
