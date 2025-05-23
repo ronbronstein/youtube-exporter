@@ -705,6 +705,13 @@
                         </select>
                     </div>
                     <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="saveSearch" style="transform: scale(1.2);">
+                            <span>💾 Save this search for later</span>
+                        </label>
+                        <input type="text" id="searchName" placeholder="Optional: name for this search (e.g., 'Chainlink Security Videos')" style="margin-top: 6px; display: none;">
+                    </div>
+                    <div class="input-group">
                         <label for="channelOrder">Sort Order</label>
                         <select id="channelOrder">
                             <option value="date">Most Recent First</option>
@@ -738,6 +745,14 @@
                     <button class="export-button" onclick="exportToCSV()">📥 Download CSV</button>
                     <button class="export-button secondary" onclick="exportTitles()">📝 Export Titles</button>
                     <button class="export-button" onclick="exportToMarkdown()">🤖 LLM Export (Markdown)</button>
+                </div>
+            </div>
+            
+            <!-- Saved Searches Panel -->
+            <div class="saved-searches-panel" id="savedSearchesPanel" style="display: none; background: var(--xp-gray-light); border: 2px inset var(--xp-button-face); border-radius: 6px; padding: 16px; margin-bottom: 12px; position: relative;">
+                <div style="position: absolute; top: -12px; left: 12px; background: var(--xp-gray-light); padding: 0 12px; font-size: 12px; font-weight: bold; color: var(--xp-text);">💾 Saved Searches</div>
+                <div id="savedSearchesList" style="margin-top: 8px;">
+                    <p style="text-align: center; color: var(--xp-text-disabled); font-style: italic;">No saved searches yet. Check "Save this search" when analyzing a channel.</p>
                 </div>
             </div>
         </div>
@@ -782,6 +797,123 @@
         let youtubeApiKey = null; // Global API key variable
         let currentView = 'list'; // Track current view mode
         let currentSort = { column: null, direction: 'asc' }; // Track sorting state
+        
+        // Saved searches functionality
+        function initializeSavedSearches() {
+            loadSavedSearches();
+            
+            // Show/hide search name input based on checkbox
+            document.getElementById('saveSearch').addEventListener('change', function() {
+                const searchNameInput = document.getElementById('searchName');
+                searchNameInput.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+        
+        function saveCurrentSearch() {
+            const saveSearchChecked = document.getElementById('saveSearch').checked;
+            if (!saveSearchChecked) return;
+            
+            const channelInput = document.getElementById('channelInput').value.trim();
+            const channelQuery = document.getElementById('channelQuery').value.trim();
+            const searchLogic = document.getElementById('searchLogic').value;
+            const order = document.getElementById('channelOrder').value;
+            const searchName = document.getElementById('searchName').value.trim();
+            
+            if (!channelInput) return;
+            
+            const search = {
+                id: Date.now(),
+                name: searchName || `${channelInput}${channelQuery ? ` (${channelQuery})` : ''}`,
+                channel: channelInput,
+                keywords: channelQuery,
+                logic: searchLogic,
+                order: order,
+                date: new Date().toLocaleDateString(),
+                videoCount: videosData.length
+            };
+            
+            const savedSearches = getSavedSearches();
+            savedSearches.unshift(search); // Add to beginning
+            
+            // Keep only last 10 searches
+            if (savedSearches.length > 10) {
+                savedSearches.splice(10);
+            }
+            
+            localStorage.setItem('youtubeSearches', JSON.stringify(savedSearches));
+            
+            // Reset save checkbox and hide name input
+            document.getElementById('saveSearch').checked = false;
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchName').style.display = 'none';
+            
+            loadSavedSearches();
+            showSuccess(`Search saved: "${search.name}"`);
+        }
+        
+        function getSavedSearches() {
+            try {
+                return JSON.parse(localStorage.getItem('youtubeSearches') || '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+        
+        function loadSavedSearches() {
+            const savedSearches = getSavedSearches();
+            const panel = document.getElementById('savedSearchesPanel');
+            const list = document.getElementById('savedSearchesList');
+            
+            if (savedSearches.length === 0) {
+                panel.style.display = 'none';
+                return;
+            }
+            
+            panel.style.display = 'block';
+            
+            list.innerHTML = savedSearches.map(search => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin-bottom: 6px; background: white; border: 1px inset var(--xp-button-face); border-radius: 4px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; font-size: 13px; color: var(--xp-text);">${search.name}</div>
+                        <div style="font-size: 11px; color: var(--xp-text-disabled); margin-top: 2px;">
+                            ${search.channel} • ${search.date} • ${search.videoCount} videos
+                            ${search.keywords ? ` • Keywords: "${search.keywords}" (${search.logic})` : ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="loadSavedSearch(${search.id})" style="padding: 4px 8px; background: var(--xp-button-face); color: var(--xp-text); border: 1px outset var(--xp-button-face); border-radius: 3px; cursor: pointer; font-size: 11px; font-family: 'Tahoma', sans-serif;">
+                            🔄 Load
+                        </button>
+                        <button onclick="deleteSavedSearch(${search.id})" style="padding: 4px 8px; background: var(--xp-button-face); color: var(--xp-text); border: 1px outset var(--xp-button-face); border-radius: 3px; cursor: pointer; font-size: 11px; font-family: 'Tahoma', sans-serif;">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadSavedSearch(searchId) {
+            const savedSearches = getSavedSearches();
+            const search = savedSearches.find(s => s.id === searchId);
+            
+            if (!search) return;
+            
+            // Populate form fields
+            document.getElementById('channelInput').value = search.channel;
+            document.getElementById('channelQuery').value = search.keywords || '';
+            document.getElementById('searchLogic').value = search.logic;
+            document.getElementById('channelOrder').value = search.order;
+            
+            // Run the search
+            analyzeChannelComplete();
+        }
+        
+        function deleteSavedSearch(searchId) {
+            const savedSearches = getSavedSearches();
+            const filtered = savedSearches.filter(s => s.id !== searchId);
+            localStorage.setItem('youtubeSearches', JSON.stringify(filtered));
+            loadSavedSearches();
+        }
         
         // Simple localStorage for analysis cache
         function saveAnalysis(channelId, data) {
@@ -1021,6 +1153,9 @@
                 // Create upload timeline chart
                 createUploadTimeline();
                 
+                // Save search if requested
+                saveCurrentSearch();
+                
                 showSuccess(`Analyzed ${videosData.length} videos from channel${channelQuery ? ` (filtered by "${channelQuery}")` : ''}`);
                 
             } catch (error) {
@@ -1110,25 +1245,44 @@
         function applyKeywordFilter(query, logic) {
             if (!query) return;
             
-            // Parse keywords - same logic as before
+            // Parse keywords - fixed parsing logic
             let keywords = [];
             if (query.includes(',')) {
-                keywords = query.split(',').map(k => k.trim().toLowerCase());
+                keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
             } else if (query.toLowerCase().includes(' and ')) {
-                keywords = query.toLowerCase().split(' and ').map(k => k.trim());
+                keywords = query.toLowerCase().split(' and ').map(k => k.trim()).filter(k => k.length > 0);
             } else {
-                keywords = query.toLowerCase().split(/\s+/);
+                keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
             }
+            
+            debugLog(`Original query: "${query}"`);
+            debugLog(`Filtering with keywords: [${keywords.join(', ')}] using ${logic} logic`);
             
             const originalCount = videosData.length;
             
             filteredData = videosData.filter(video => {
-                const searchText = `${video.title} ${video.description}`.toLowerCase();
+                const searchText = `${video.title} ${video.fullDescription || video.description}`.toLowerCase();
                 
                 if (logic === 'AND') {
-                    return keywords.every(keyword => searchText.includes(keyword));
+                    const matches = keywords.every(keyword => searchText.includes(keyword));
+                    if (matches) {
+                        debugLog(`✅ AND match: "${video.title}" - all keywords found`);
+                    }
+                    return matches;
                 } else {
-                    return keywords.some(keyword => searchText.includes(keyword));
+                    const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
+                    if (matchedKeywords.length > 0) {
+                        // Find where the keywords matched
+                        const titleMatch = matchedKeywords.filter(k => video.title.toLowerCase().includes(k));
+                        const descMatch = matchedKeywords.filter(k => (video.fullDescription || video.description).toLowerCase().includes(k));
+                        
+                        let matchLocation = '';
+                        if (titleMatch.length > 0) matchLocation += `title: [${titleMatch.join(', ')}]`;
+                        if (descMatch.length > 0) matchLocation += `${matchLocation ? ' | ' : ''}desc: [${descMatch.join(', ')}]`;
+                        
+                        debugLog(`✅ OR match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${matchLocation}`);
+                    }
+                    return matchedKeywords.length > 0;
                 }
             });
             
@@ -1167,6 +1321,7 @@
                         const batchVideos = detailsData.items.map(video => ({
                             title: video.snippet?.title || 'No title',
                             description: (video.snippet?.description || '').substring(0, 150) + '...',
+                            fullDescription: video.snippet?.description || '',
                             publishedAt: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt).toLocaleDateString() : 'Unknown',
                             publishedDate: video.snippet?.publishedAt ? new Date(video.snippet.publishedAt) : new Date(),
                             channelTitle: video.snippet?.channelTitle || 'Unknown channel',
@@ -1182,7 +1337,7 @@
                         
                         videosData = videosData.concat(batchVideos);
                     }
-            } catch (error) {
+                } catch (error) {
                     debugLog(`Batch processing error for batch starting at ${i}`, error);
                     // Continue with other batches
                 }
@@ -1332,11 +1487,16 @@
                 return '0:00';
             }
             
+            // Handle "P0D" (0 days) and other edge cases
+            if (duration === 'P0D' || duration === 'PT0S') {
+                return '0:00';
+            }
+            
             const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
             
             // Handle null regex match
             if (!match) {
-                console.warn('Invalid duration format:', duration);
+                console.warn('Unusual duration format (non-critical):', duration);
                 return '0:00';
             }
             
@@ -1599,7 +1759,14 @@
             const errorDiv = document.createElement('div');
             errorDiv.className = 'message error';
             errorDiv.textContent = message;
-            document.querySelector('.main-content').appendChild(errorDiv);
+            
+            // Find the correct container
+            const container = document.querySelector('.main-section') || document.querySelector('.app-container');
+            if (container) {
+                container.appendChild(errorDiv);
+            } else {
+                console.error('Could not find container for error message:', message);
+            }
             hideLoading();
         }
         
@@ -1608,7 +1775,14 @@
             const successDiv = document.createElement('div');
             successDiv.className = 'message success';
             successDiv.textContent = message;
-            document.querySelector('.main-content').appendChild(successDiv);
+            
+            // Find the correct container
+            const container = document.querySelector('.main-section') || document.querySelector('.app-container');
+            if (container) {
+                container.appendChild(successDiv);
+            } else {
+                console.log('Success:', message);
+            }
         }
         
         function clearMessages() {
@@ -1620,6 +1794,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Load API key from server
             loadApiKey();
+            
+            // Initialize saved searches
+            initializeSavedSearches();
         });
         
         // Add Enter key support for channel input and topic search
