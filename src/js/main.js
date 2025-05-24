@@ -10,6 +10,7 @@ import { debugLog } from './utils/debug.js';
 import { CONFIG, globalState, updateGlobalState, getGlobalState } from './config.js';
 import { DemoRateLimiter } from './utils/rateLimiter.js';
 import { detectEnvironment, initializeEnvironment } from './utils/environment.js';
+import { YouTubeApiService } from './services/youtubeApi.js';
 
 // Initialize the application
 debugLog('YouTube Research Hub - Modular version loading...');
@@ -61,6 +62,15 @@ debugLog('Testing DemoRateLimiter', {
     userFingerprint: rateLimiter.getUserIP()
 });
 
+// Test YouTube API service
+const youtubeApi = new YouTubeApiService('test-key');
+debugLog('Testing YouTubeApiService', {
+    instance: !!youtubeApi,
+    hasSetApiKey: typeof youtubeApi.setApiKey === 'function',
+    hasGetChannelData: typeof youtubeApi.getChannelData === 'function',
+    hasValidateApiKey: typeof youtubeApi.validateApiKey === 'function'
+});
+
 // Initialize environment
 initializeEnvironment();
 
@@ -106,5 +116,6 @@ window.debugModules = {
     validateApiKey,
     CONFIG,
     rateLimiter,
-    detectEnvironment
+    detectEnvironment,
+    youtubeApi
 }; 
