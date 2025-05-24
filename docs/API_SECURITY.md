@@ -2,11 +2,26 @@
 
 ## 🎯 **Security Philosophy**
 
-YouTube Research Hub implements a **"Zero Trust"** approach to API key management:
-- **No API keys** stored in code, repositories, or servers
-- **User-controlled keys** for maximum security and cost control
-- **Client-side encryption** when storage is necessary
-- **Transparent practices** with open-source implementation
+YouTube Research Hub implements a **"Bring Your Own API Key"** approach that eliminates traditional abuse scenarios:
+- **No shared API keys** - each user brings their own
+- **No server costs** - users control their own quotas
+- **No abuse potential** - self-inflicted usage only
+- **Real security focus** - protecting YOUR personal API key
+
+## ⚠️ **The Only "Abuse" Scenario: API Key Theft**
+
+In our architecture, there's only **one real security concern**: someone stealing your personal API key. Here's why this matters and how to prevent it:
+
+### **Why API Key Security Matters**
+- **Your quota, your cost** - stolen keys use YOUR Google Cloud quota
+- **Your responsibility** - Google bills YOU for unauthorized usage
+- **Easy to prevent** - proper restrictions eliminate the risk
+
+### **How to Protect Your API Key**
+1. **Restrict to specific domains** - key only works on websites you approve
+2. **Restrict to YouTube API only** - key can't access other Google services
+3. **Monitor usage** - set up quota alerts in Google Cloud Console
+4. **Rotate regularly** - change your key every few months
 
 ---
 

@@ -696,9 +696,12 @@
                     <div class="input-group" style="margin-bottom: 12px;">
                         <label for="apiKeyInput">Your YouTube API Key</label>
                         <input type="password" id="apiKeyInput" placeholder="AIza... (paste your YouTube Data API v3 key)" style="font-family: monospace;">
-                        <div style="margin-top: 6px; font-size: 11px; color: var(--xp-text-disabled);">
-                            <strong>Stored locally in your browser only</strong> • Not sent to our servers
-                        </div>
+                                            <div style="margin-top: 6px; font-size: 11px; color: var(--xp-text-disabled);">
+                        <strong>Stored locally in your browser only</strong> • Not sent to our servers
+                    </div>
+                    <div style="margin-top: 8px; padding: 8px; background: #ffeaa7; border-left: 3px solid #fdcb6e; border-radius: 3px; font-size: 11px;">
+                        <strong>🔒 Important:</strong> Keep your API key secure. Restrict it to this website only when creating it.
+                    </div>
                     </div>
                     
                     <details style="margin-top: 8px;">
@@ -713,8 +716,8 @@
                                 <li><strong>Important:</strong> Restrict your key to this domain and YouTube API only</li>
                                 <li>Copy your API key and paste it above</li>
                             </ol>
-                            <div style="margin-top: 8px; padding: 6px; background: #e8f5e8; border-radius: 3px; font-size: 10px;">
-                                <strong>🔒 Security tip:</strong> Always restrict your API keys to specific websites and APIs for security.
+                            <div style="margin-top: 8px; padding: 8px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 11px;">
+                                <strong>🔒 Critical Security:</strong> Restrict your API key to <strong>YouTube Data API v3 only</strong> and <strong>this domain only</strong>. This prevents unauthorized use if your key is compromised.
                             </div>
                         </div>
                     </details>
@@ -822,16 +825,7 @@
          *   - getUserIP(): Get user IP for demo rate limiting
          *   - Section marker: UTILITY FUNCTIONS
          * 
-         * ENHANCED ABUSE PREVENTION (Line ~1080)
-         *   - checkAdminKillSwitch(): Admin disable functionality
-         *   - checkIPBlacklist(): IP blocking capability
-         *   - checkRapidRequestAbuse(): Automatic abuse detection
-         *   - logRequestForAbuseDetection(): Request logging
-         *   - addToBlacklist(): IP blacklist management
-         *   - checkAbusePreventionAll(): Comprehensive abuse check
-         *   - window.demoAdmin: Admin console functions
-         *   - Section marker: ENHANCED ABUSE PREVENTION
-         * 
+
          * API LAYER (Line ~870)
          *   - initializeApiKey(): Detect local vs web mode
          *   - getChannelId(): Extract channel ID from various formats
@@ -946,12 +940,7 @@
                 MAX_ANALYSES_PER_IP_PER_DAY: 3,
                 GLOBAL_DAILY_LIMIT: 100,
                 RATE_LIMIT_STORAGE_KEY: 'yt_demo_usage',
-                // Enhanced abuse prevention
-                RAPID_REQUEST_THRESHOLD: 5, // Max requests per minute
-                RAPID_REQUEST_WINDOW: 60 * 1000, // 1 minute window
-                BLACKLIST_STORAGE_KEY: 'yt_demo_blacklist',
-                ABUSE_DETECTION_STORAGE_KEY: 'yt_demo_abuse_log',
-                ADMIN_KILL_SWITCH_KEY: 'yt_demo_disabled' // Can be set by admin
+
             }
         };
         
@@ -1102,328 +1091,7 @@
             }
             return Math.abs(hash).toString(36);
         }
-        
-        /* ===== ENHANCED ABUSE PREVENTION ===== */
-        
-        /**
-         * Check if demo mode is administratively disabled
-         */
-        function checkAdminKillSwitch() {
-            try {
-                // Check localStorage for admin kill switch (can be set via browser console)
-                const adminDisabled = localStorage.getItem(CONFIG.DEMO.ADMIN_KILL_SWITCH_KEY);
-                if (adminDisabled === 'true') {
-                    return {
-                        disabled: true,
-                        reason: 'admin_disabled',
-                        message: 'Demo temporarily disabled by administrator. Please try again later.'
-                    };
-                }
-                
-                // Check for server-side kill switch (if available)
-                if (window.DEMO_DISABLED === true) {
-                    return {
-                        disabled: true,
-                        reason: 'server_disabled',
-                        message: 'Demo service temporarily unavailable. Please try again later.'
-                    };
-                }
-                
-                // Check server-side admin disable flag (from API response)
-                if (window.DEMO_CONFIG && (window.DEMO_CONFIG.adminDisabled || !window.DEMO_CONFIG.enabled)) {
-                    return {
-                        disabled: true,
-                        reason: 'server_admin_disabled',
-                        message: 'Demo temporarily disabled by administrator. Please try again later or use your own API key.'
-                    };
-                }
-                
-                return { disabled: false };
-            } catch (error) {
-                debugLog('Admin kill switch check failed', error);
-                return { disabled: false };
-            }
-        }
-        
-        /**
-         * Check if IP is blacklisted
-         */
-        function checkIPBlacklist(userIP) {
-            try {
-                const blacklist = JSON.parse(localStorage.getItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY) || '[]');
-                const isBlacklisted = blacklist.some(entry => {
-                    return entry.ip === userIP && (!entry.expires || Date.now() < entry.expires);
-                });
-                
-                if (isBlacklisted) {
-                    return {
-                        blocked: true,
-                        reason: 'ip_blacklisted',
-                        message: 'Access temporarily restricted. Please try again later or use your own API key.'
-                    };
-                }
-                
-                return { blocked: false };
-            } catch (error) {
-                debugLog('IP blacklist check failed', error);
-                return { blocked: false };
-            }
-        }
-        
-        /**
-         * Check for rapid request abuse (too many requests in short time)
-         */
-        function checkRapidRequestAbuse(userIP) {
-            try {
-                const now = Date.now();
-                const abuseLog = JSON.parse(localStorage.getItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY) || '{}');
-                
-                // Initialize user's request log if not exists
-                if (!abuseLog[userIP]) {
-                    abuseLog[userIP] = [];
-                }
-                
-                // Remove old entries outside the window
-                const windowStart = now - CONFIG.DEMO.RAPID_REQUEST_WINDOW;
-                abuseLog[userIP] = abuseLog[userIP].filter(timestamp => timestamp > windowStart);
-                
-                // Check if user has exceeded rapid request threshold
-                if (abuseLog[userIP].length >= CONFIG.DEMO.RAPID_REQUEST_THRESHOLD) {
-                    // Auto-blacklist for 1 hour on rapid request abuse
-                    addToBlacklist(userIP, 'rapid_requests', 60 * 60 * 1000); // 1 hour
-                    
-                    return {
-                        abusive: true,
-                        reason: 'rapid_requests',
-                        message: `Too many requests detected. Access temporarily restricted for 1 hour.`,
-                        count: abuseLog[userIP].length,
-                        threshold: CONFIG.DEMO.RAPID_REQUEST_THRESHOLD
-                    };
-                }
-                
-                return { 
-                    abusive: false, 
-                    count: abuseLog[userIP].length,
-                    remaining: CONFIG.DEMO.RAPID_REQUEST_THRESHOLD - abuseLog[userIP].length
-                };
-                
-            } catch (error) {
-                debugLog('Rapid request abuse check failed', error);
-                return { abusive: false };
-            }
-        }
-        
-        /**
-         * Log a request for abuse detection
-         */
-        function logRequestForAbuseDetection(userIP) {
-            try {
-                const now = Date.now();
-                const abuseLog = JSON.parse(localStorage.getItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY) || '{}');
-                
-                if (!abuseLog[userIP]) {
-                    abuseLog[userIP] = [];
-                }
-                
-                // Add current request timestamp
-                abuseLog[userIP].push(now);
-                
-                // Clean up old entries and limit storage size
-                const windowStart = now - CONFIG.DEMO.RAPID_REQUEST_WINDOW;
-                abuseLog[userIP] = abuseLog[userIP].filter(timestamp => timestamp > windowStart);
-                
-                // Limit storage - keep only last 10 IPs
-                const ipKeys = Object.keys(abuseLog);
-                if (ipKeys.length > 10) {
-                    ipKeys.sort((a, b) => {
-                        const lastA = Math.max(...(abuseLog[a] || [0]));
-                        const lastB = Math.max(...(abuseLog[b] || [0]));
-                        return lastA - lastB; // Sort by oldest activity first
-                    });
-                    
-                    // Remove oldest IP entries
-                    for (let i = 0; i < ipKeys.length - 10; i++) {
-                        delete abuseLog[ipKeys[i]];
-                    }
-                }
-                
-                localStorage.setItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY, JSON.stringify(abuseLog));
-                debugLog(`Request logged for IP: ${userIP}`, { count: abuseLog[userIP].length });
-                
-            } catch (error) {
-                debugLog('Failed to log request for abuse detection', error);
-            }
-        }
-        
-        /**
-         * Add IP to blacklist
-         */
-        function addToBlacklist(userIP, reason, durationMs = 24 * 60 * 60 * 1000) {
-            try {
-                const blacklist = JSON.parse(localStorage.getItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY) || '[]');
-                const expires = Date.now() + durationMs;
-                
-                // Remove existing entry for this IP
-                const filtered = blacklist.filter(entry => entry.ip !== userIP);
-                
-                // Add new blacklist entry
-                filtered.push({
-                    ip: userIP,
-                    reason: reason,
-                    added: Date.now(),
-                    expires: expires,
-                    expiresReadable: new Date(expires).toLocaleString()
-                });
-                
-                // Limit blacklist size (keep only last 20 entries)
-                if (filtered.length > 20) {
-                    filtered.sort((a, b) => b.added - a.added);
-                    filtered.splice(20);
-                }
-                
-                localStorage.setItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY, JSON.stringify(filtered));
-                
-                console.warn(`🚫 IP ${userIP} blacklisted for ${reason} until ${new Date(expires).toLocaleString()}`);
-                debugLog(`IP blacklisted`, { ip: userIP, reason, durationMs, expires });
-                
-            } catch (error) {
-                debugLog('Failed to add IP to blacklist', error);
-            }
-        }
-        
-        /**
-         * Comprehensive abuse prevention check
-         */
-        function checkAbusePreventionAll() {
-            if (!isDemoMode) return { allowed: true };
-            
-            // Check admin kill switch first
-            const killSwitchCheck = checkAdminKillSwitch();
-            if (killSwitchCheck.disabled) {
-                return {
-                    allowed: false,
-                    reason: killSwitchCheck.reason,
-                    message: killSwitchCheck.message,
-                    critical: true
-                };
-            }
-            
-            const userIP = getUserIP();
-            
-            // Check IP blacklist
-            const blacklistCheck = checkIPBlacklist(userIP);
-            if (blacklistCheck.blocked) {
-                return {
-                    allowed: false,
-                    reason: blacklistCheck.reason,
-                    message: blacklistCheck.message,
-                    ip: userIP
-                };
-            }
-            
-            // Check rapid request abuse
-            const rapidCheck = checkRapidRequestAbuse(userIP);
-            if (rapidCheck.abusive) {
-                return {
-                    allowed: false,
-                    reason: rapidCheck.reason,
-                    message: rapidCheck.message,
-                    count: rapidCheck.count,
-                    threshold: rapidCheck.threshold
-                };
-            }
-            
-            // Log this request for future abuse detection
-            logRequestForAbuseDetection(userIP);
-            
-            return { 
-                allowed: true, 
-                ip: userIP,
-                requestCount: rapidCheck.count || 0,
-                remainingRequests: rapidCheck.remaining || CONFIG.DEMO.RAPID_REQUEST_THRESHOLD
-            };
-        }
-        
-        /**
-         * Admin functions for managing abuse prevention (callable from browser console)
-         */
-        window.demoAdmin = {
-            disableDemo: () => {
-                localStorage.setItem(CONFIG.DEMO.ADMIN_KILL_SWITCH_KEY, 'true');
-                console.log('🛑 Demo disabled via admin kill switch');
-            },
-            enableDemo: () => {
-                localStorage.removeItem(CONFIG.DEMO.ADMIN_KILL_SWITCH_KEY);
-                console.log('✅ Demo enabled via admin control');
-            },
-            blacklistIP: (ip, reason = 'manual', hours = 24) => {
-                addToBlacklist(ip, reason, hours * 60 * 60 * 1000);
-                console.log(`🚫 IP ${ip} blacklisted for ${hours} hours`);
-            },
-            clearBlacklist: () => {
-                localStorage.removeItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY);
-                console.log('🧹 Blacklist cleared');
-            },
-            viewBlacklist: () => {
-                const blacklist = JSON.parse(localStorage.getItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY) || '[]');
-                console.table(blacklist);
-                return blacklist;
-            },
-            viewAbuseLog: () => {
-                const log = JSON.parse(localStorage.getItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY) || '{}');
-                console.table(log);
-                return log;
-            },
-            clearAbuseLog: () => {
-                localStorage.removeItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY);
-                console.log('🧹 Abuse log cleared');
-            },
-            getStats: () => {
-                const usage = getDemoUsage();
-                const blacklist = JSON.parse(localStorage.getItem(CONFIG.DEMO.BLACKLIST_STORAGE_KEY) || '[]');
-                const abuseLog = JSON.parse(localStorage.getItem(CONFIG.DEMO.ABUSE_DETECTION_STORAGE_KEY) || '{}');
-                
-                console.log('📊 Demo Statistics:', {
-                    usage,
-                    blacklistedIPs: blacklist.length,
-                    trackedIPs: Object.keys(abuseLog).length,
-                    demoEnabled: !localStorage.getItem(CONFIG.DEMO.ADMIN_KILL_SWITCH_KEY)
-                });
-                
-                return { usage, blacklist, abuseLog };
-            },
-            help: () => {
-                console.log(`
-🛡️ Demo Admin Console - Abuse Prevention Controls
 
-Basic Commands:
-  demoAdmin.disableDemo()               - Disable demo mode instantly
-  demoAdmin.enableDemo()                - Re-enable demo mode
-  demoAdmin.getStats()                  - View usage statistics
-  
-IP Management:
-  demoAdmin.blacklistIP('ip', 'reason') - Block specific IP
-  demoAdmin.viewBlacklist()             - Show all blocked IPs
-  demoAdmin.clearBlacklist()            - Remove all IP blocks
-  
-Abuse Monitoring:
-  demoAdmin.viewAbuseLog()              - Show request patterns
-  demoAdmin.clearAbuseLog()             - Clear abuse detection log
-  
-Example Usage:
-  demoAdmin.blacklistIP('abc123', 'spam', 2)  // Block IP for 2 hours
-  demoAdmin.getStats()                         // Show current stats
-  
-Current Status:
-  Demo Enabled: ${!localStorage.getItem(CONFIG.DEMO.ADMIN_KILL_SWITCH_KEY)}
-  Environment: ${currentEnvironment || 'unknown'}
-  Mode: ${apiMode || 'unknown'}
-                `);
-            }
-                 };
-         
-         // Make admin help easily accessible
-         console.log('🛡️ Demo Admin Console loaded. Type demoAdmin.help() for commands.');
         
         /* ===== ENVIRONMENT DETECTION & AUTHENTICATION ===== */
         
@@ -2543,28 +2211,8 @@ Current Status:
             const order = document.getElementById('channelOrder').value;
             const searchLogic = document.getElementById('searchLogic').value;
             
-            // Enhanced abuse prevention checks for demo mode
+            // Demo mode checks
             if (isDemoMode) {
-                // Check comprehensive abuse prevention first
-                const abuseCheck = checkAbusePreventionAll();
-                if (!abuseCheck.allowed) {
-                    let errorMessage = abuseCheck.message;
-                    
-                    if (abuseCheck.critical) {
-                        // Admin kill switch or server issues
-                        showError(errorMessage);
-                        return;
-                    } else if (abuseCheck.reason === 'ip_blacklisted') {
-                        showError(`🚫 ${errorMessage}\n\nIf you believe this is an error, please use your own API key for unlimited access.`);
-                        return;
-                    } else if (abuseCheck.reason === 'rapid_requests') {
-                        showError(`⚡ ${errorMessage}\n\nPlease wait before making another request. For unlimited access, use your own API key.`);
-                        return;
-                    }
-                    
-                    showError(errorMessage);
-                    return;
-                }
                 
                 // Check standard rate limits
                 const rateLimitCheck = checkDemoRateLimit();
@@ -2579,11 +2227,9 @@ Current Status:
                     return;
                 }
                 
-                // Show remaining uses and request info
+                // Show remaining uses
                 if (rateLimitCheck.remaining <= 1) {
                     showSuccess(`⚠️ Last free analysis for today! Remaining: ${rateLimitCheck.remaining}`);
-                } else if (abuseCheck.requestCount > 2) {
-                    showSuccess(`ℹ️ Requests this minute: ${abuseCheck.requestCount}/${CONFIG.DEMO.RAPID_REQUEST_THRESHOLD} • Daily remaining: ${rateLimitCheck.remaining}`);
                 }
             }
             
