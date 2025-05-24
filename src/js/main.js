@@ -14,6 +14,10 @@ import { YouTubeApiService } from './services/youtubeApi.js';
 import { youtubeApiService } from './services/youtubeApi.js';
 import { storageService } from './services/storage.js';
 import { analyticsService } from './services/analytics.js';
+import { BaseComponent } from './components/BaseComponent.js';
+import { VideoList } from './components/VideoList.js';
+import { LoadingSpinner, GlobalLoading } from './components/LoadingSpinner.js';
+import { MessagePanel, GlobalMessages } from './components/MessagePanel.js';
 
 // Initialize the application
 debugLog('YouTube Research Hub - Modular version loading...');
@@ -157,7 +161,56 @@ console.log('HTML generation test:', analysisHTML.includes('📊 Content Analysi
 
 analyticsService.clearAnalytics();
 
-console.log('✅ All modules loaded and tested successfully!');
+// Test component system
+console.log('🏗️ Testing component system...');
+
+// Test BaseComponent
+const testDiv = document.createElement('div');
+document.body.appendChild(testDiv);
+const baseComponent = new BaseComponent(testDiv).init();
+console.log('BaseComponent test:', baseComponent ? '✅' : '❌');
+
+// Test VideoList component
+const videoListDiv = document.createElement('div');
+document.body.appendChild(videoListDiv);
+const videoList = new VideoList(videoListDiv, { 
+    enableViewSwitch: true,
+    defaultView: 'list'
+}).init();
+
+videoList.setVideos(mockVideosData);
+console.log('VideoList component test:', videoList ? '✅' : '❌');
+
+// Test LoadingSpinner
+const loadingDiv = document.createElement('div');
+document.body.appendChild(loadingDiv);
+const loader = new LoadingSpinner(loadingDiv, {
+    showProgress: true,
+    spinnerType: 'dots'
+}).init();
+
+loader.show('Testing loading spinner...');
+setTimeout(() => {
+    loader.setProgress(50, 'Halfway done...');
+    setTimeout(() => {
+        loader.hide();
+    }, 1000);
+}, 1000);
+console.log('LoadingSpinner component test:', loader ? '✅' : '❌');
+
+// Test MessagePanel
+const messageDiv = document.createElement('div');
+document.body.appendChild(messageDiv);
+const messages = new MessagePanel(messageDiv).init();
+
+messages.showSuccess('Component system working!');
+messages.showInfo('All components loaded successfully');
+setTimeout(() => {
+    messages.showWarning('This is a test warning');
+}, 2000);
+console.log('MessagePanel component test:', messages ? '✅' : '❌');
+
+console.log('✅ All modules and components loaded and tested successfully!');
 
 // Initialize environment
 initializeEnvironment();

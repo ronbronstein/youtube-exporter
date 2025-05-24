@@ -317,4 +317,89 @@ export class YouTubeApiService {
             };
         }
     }
+
+    /**
+     * Get comprehensive channel statistics and branding information
+     * @param {string} channelId - Channel ID
+     * @returns {Promise<object>} Complete channel analytics data
+     */
+    async getChannelAnalytics(channelId) {
+        try {
+            // Get detailed channel info including branding and statistics
+            const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=snippet,statistics,brandingSettings,contentDetails&id=${channelId}&key=${this.apiKey}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
+            if (!data.items || data.items.length === 0) {
+                throw new Error('Channel not found');
+            }
+            
+            const channel = data.items[0];
+            
+            return {
+                // Basic info
+                title: channel.snippet?.title || 'Unknown',
+                description: channel.snippet?.description || '',
+                customUrl: channel.snippet?.customUrl || '',
+                publishedAt: channel.snippet?.publishedAt,
+                
+                // Statistics  
+                subscriberCount: parseInt(channel.statistics?.subscriberCount || 0),
+                videoCount: parseInt(channel.statistics?.videoCount || 0),
+                totalViewCount: parseInt(channel.statistics?.viewCount || 0),
+                
+                // Branding insights
+                keywords: channel.brandingSettings?.channel?.keywords || '',
+                defaultLanguage: channel.brandingSettings?.channel?.defaultLanguage || '',
+                bannerImageUrl: channel.brandingSettings?.image?.bannerExternalUrl || '',
+                
+                // Upload patterns
+                uploadsPlaylistId: channel.contentDetails?.relatedPlaylists?.uploads,
+                
+                // Calculated metrics
+                avgViewsPerVideo: Math.round((parseInt(channel.statistics?.viewCount || 0)) / Math.max(1, parseInt(channel.statistics?.videoCount || 1))),
+                channelAgeYears: channel.snippet?.publishedAt ? 
+                    Math.round((Date.now() - new Date(channel.snippet.publishedAt).getTime()) / (365.25 * 24 * 60 * 60 * 1000) * 10) / 10 : 0
+            };
+        } catch (error) {
+            throw new Error(`Channel analytics failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Detect video content types and formats
+     * @param {object} video - Video object from API
+     * @returns {object} Content classification
+     */
+    classifyVideoContent(video) {
+        const duration = video.contentDetails?.duration || '';
+        const title = video.snippet?.title || '';
+        const isLive = video.snippet?.liveBroadcastContent === 'live';
+        const wasLive = video.snippet?.liveBroadcastContent === 'none' && 
+                        video.contentDetails?.duration && video.contentDetails.duration.includes('H');
+        
+        // Parse duration to seconds
+        const durationMatch = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+        const hours = parseInt(durationMatch?.[1] || 0);
+        const minutes = parseInt(durationMatch?.[2] || 0); 
+        const seconds = parseInt(durationMatch?.[3] || 0);
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        
+        return {
+            isShort: totalSeconds <= 60 && totalSeconds > 0,
+            isLong: totalSeconds > 1800, // 30+ minutes
+            isLive: isLive,
+            wasLivestream: wasLive,
+            contentType: totalSeconds <= 60 ? 'short' : 
+                        totalSeconds > 1800 ? 'long-form' : 'standard',
+            durationSeconds: totalSeconds,
+            liveIndicators: {
+                hasLiveInTitle: /\b(live|stream|streaming)\b/i.test(title),
+                hasQAInTitle: /\b(q&a|questions|qa)\b/i.test(title)
+            }
+        };
+    }
 } 

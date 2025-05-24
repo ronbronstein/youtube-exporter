@@ -3616,8 +3616,12 @@
                 import('./src/js/utils/environment.js'),
                 import('./src/js/services/youtubeApi.js'),
                 import('./src/js/services/storage.js'),
-                import('./src/js/services/analytics.js')
-            ]).then(([formatter, security, debug, config, rateLimiter, environment, youtubeApi, storage, analytics]) => {
+                import('./src/js/services/analytics.js'),
+                import('./src/js/components/BaseComponent.js'),
+                import('./src/js/components/VideoList.js'),
+                import('./src/js/components/LoadingSpinner.js'),
+                import('./src/js/components/MessagePanel.js')
+            ]).then(([formatter, security, debug, config, rateLimiter, environment, youtubeApi, storage, analytics, baseComponent, videoList, loadingSpinner, messagePanel]) => {
                 
                 // Bridge formatter functions (replace existing ones)
                 window.formatViewCount = formatter.formatViewCount;
@@ -3678,6 +3682,69 @@
                 console.log('📦 Storage service bridged - analysis caching and saved searches now modular');
                 console.log('🎯 YouTube API service bridged - channel analysis now modular');
                 console.log('📊 Analytics service bridged - content analysis and charts now modular');
+                console.log('🏗️ Component system bridged - UI components now modular');
+                
+                // Bridge component classes for global use
+                window.BaseComponent = baseComponent.BaseComponent;
+                window.VideoList = videoList.VideoList;
+                window.LoadingSpinner = loadingSpinner.LoadingSpinner;
+                window.GlobalLoading = loadingSpinner.GlobalLoading;
+                window.MessagePanel = messagePanel.MessagePanel;
+                window.GlobalMessages = messagePanel.GlobalMessages;
+                
+                // Bridge loading functions (replace existing ones)
+                window.showLoading = (message = 'Loading...') => {
+                    if (window.GlobalLoading) {
+                        window.GlobalLoading.show(message);
+                    } else {
+                        // Fallback to original function
+                        showLoading(message);
+                    }
+                };
+                
+                window.hideLoading = () => {
+                    if (window.GlobalLoading) {
+                        window.GlobalLoading.hide();
+                    } else {
+                        hideLoading();
+                    }
+                };
+                
+                // Bridge message functions (replace existing ones)
+                window.showError = (message) => {
+                    if (window.GlobalMessages) {
+                        window.GlobalMessages.error(message);
+                    } else {
+                        showError(message);
+                    }
+                };
+                
+                window.showSuccess = (message) => {
+                    if (window.GlobalMessages) {
+                        window.GlobalMessages.success(message);
+                    } else {
+                        showSuccess(message);
+                    }
+                };
+                
+                // Bridge video display functions
+                window.displayVideosModular = (videos) => {
+                    if (!window.videoListComponent) {
+                        // Initialize video list component on first use
+                        const container = document.getElementById('videoList') || document.getElementById('results');
+                        if (container) {
+                            window.videoListComponent = new window.VideoList(container, {
+                                enableViewSwitch: true,
+                                defaultView: currentView || 'list'
+                            }).init();
+                        }
+                    }
+                    
+                    if (window.videoListComponent) {
+                        window.videoListComponent.setVideos(videos);
+                        window.videoListComponent.switchView(currentView || 'list');
+                    }
+                };
                 
                 // Replace the original saveCurrentSearch with the modular version
                 window.saveCurrentSearch = window.saveCurrentSearchModular;
