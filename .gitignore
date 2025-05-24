@@ -24,4 +24,4 @@ tmp/
 temp/ 
 
 # misc
-.cursor
+legacy/

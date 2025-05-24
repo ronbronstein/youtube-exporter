@@ -346,5 +346,32 @@ export class StorageService {
     }
 }
 
-// Create singleton instance
-export const storageService = new StorageService(); 
+// Create singleton instance with environment detection
+// Only create the instance if we're in a browser environment
+function createStorageService() {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        return new StorageService();
+    } else {
+        // Return a mock for Node.js environment
+        return {
+            isAvailable: false,
+            checkLocalStorageAvailability: () => false,
+            saveAnalysis: () => false,
+            loadAnalysis: () => null,
+            clearAnalysis: () => false,
+            getSavedSearches: () => [],
+            saveSearch: () => false,
+            deleteSavedSearch: () => false,
+            getSavedSearch: () => null,
+            clearAllSavedSearches: () => false,
+            saveApiKey: () => false,
+            loadSavedApiKey: () => null,
+            clearApiKey: () => false,
+            getStorageInfo: () => ({ available: false }),
+            clearAllData: () => false
+        };
+    }
+}
+
+export const storageService = createStorageService(); 

@@ -304,4 +304,25 @@ if (typeof window !== 'undefined' && window.location.search.includes('test=true'
     });
 }
 
+// Auto-run in Node.js environment
+if (typeof window === 'undefined' && typeof process !== 'undefined') {
+    // We're in Node.js, run the tests
+    const tester = new IntegrationTest();
+    tester.runAllTests().then(results => {
+        const { totalTests, passedTests, failedTests } = results;
+        const successRate = Math.round((passedTests / totalTests) * 100);
+        
+        if (successRate === 100) {
+            console.log('✅ All integration tests passed!');
+            process.exit(0);
+        } else {
+            console.log(`❌ Tests failed: ${failedTests}/${totalTests}`);
+            process.exit(1);
+        }
+    }).catch(error => {
+        console.error('❌ Test execution failed:', error);
+        process.exit(1);
+    });
+}
+
 export default IntegrationTest; 
