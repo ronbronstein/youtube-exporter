@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node test-server.js",
     "dev": "node test-server.js",
-    "test": "echo \"Open http://localhost:3000 after running npm start\" && exit 0"
+    "test": "echo \"Open http://localhost:3000 after running npm start\" && exit 0",
+    "vite:dev": "vite",
+    "vite:build": "vite build",
+    "vite:preview": "vite preview"
   },
   "keywords": [
     "youtube",
@@ -41,7 +44,9 @@
   "dependencies": {
     "dotenv": "^16.3.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
   "files": [
     "test-server.js",
     "youtube_video_exporter.html",
@@ -49,4 +54,4 @@
     "README.md",
     "docs/"
   ]
-} 
+}

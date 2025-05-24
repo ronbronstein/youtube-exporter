@@ -1,0 +1,9 @@
+/* YouTube Research Hub - Modular CSS */
+/* This will eventually contain the extracted CSS from the monolith */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+    background: #ece9d8;
+} 

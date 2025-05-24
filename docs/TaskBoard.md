@@ -23,7 +23,7 @@
 - [STORY-1.3: Input Validation](#-story-13-input-validation-framework) - 📋 Not Started
 
 #### 🟠 P1 - High (Core Functionality)
-- [STORY-2.1: Module System](#️-story-21-module-system-implementation) - 📐 In Planning
+- [STORY-2.1: Module System](#️-story-21-module-system-implementation) - 🚧 In Progress
 - [STORY-2.2: State Management](#️-story-22-state-management-implementation) - 📋 Not Started
 - [STORY-4.1: Unit Testing Setup](#-story-41-unit-testing-setup) - 📋 Not Started
 
@@ -225,11 +225,13 @@
 **Epic Lead**: Architecture Team
 
 #### 🏗️ STORY-2.1: Module System Implementation
-- **Status**: 📐 In Planning
+- **Status**: 🚧 In Progress
 - **Priority**: P1 - High
-- **Assignee**: TBD
+- **Assignee**: @ron.b
 - **Size**: XL (13 points)
 - **Description**: Break monolithic file into ES6 modules
+- **Detailed Plan**: See [MODULE_MIGRATION_PLAN.md](working/MODULE_MIGRATION_PLAN.md) for 16-step implementation guide
+- **Current Step**: STEP 1 - Build system setup
 - **Technical Approach**:
   ```
   /src
