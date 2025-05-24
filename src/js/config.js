@@ -42,11 +42,12 @@ export const CONFIG = {
         CACHE_EXPIRY_HOURS: 24
     },
     DEMO: {
-        ENABLED: false, // Will be set by server/environment
-        MAX_VIDEOS_PER_ANALYSIS: 100,
-        MAX_ANALYSES_PER_IP_PER_DAY: 3,
-        GLOBAL_DAILY_LIMIT: 100,
-        RATE_LIMIT_STORAGE_KEY: 'yt_demo_usage'
+        ENABLED: false, // Will be set by environment detection
+        MAX_VIDEOS_PER_ANALYSIS: 50, // Reduced from 100 for demo
+        MAX_ANALYSES_PER_IP_PER_DAY: 5, // Increased from 3 for better demo experience
+        GLOBAL_DAILY_LIMIT: 200, // Increased from 100
+        RATE_LIMIT_STORAGE_KEY: 'yt_demo_usage',
+        API_QUOTA_PER_ANALYSIS: 150 // Estimate: channel(1) + search(100) + videos(50)
     }
 };
 

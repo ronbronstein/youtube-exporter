@@ -8,15 +8,21 @@ import { debugLog } from './debug.js';
 
 /**
  * Detect the current deployment environment
- * @returns {string} Environment type: 'github-pages', 'local-file', 'local-server', 'custom-domain'
+ * @returns {string} Environment type: 'demo', 'live', 'local-server', 'local-file'
  */
 export function detectEnvironment() {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    const searchParams = new URLSearchParams(window.location.search);
     
-    // Check if running on GitHub Pages
+    // Check for demo mode via URL parameter
+    if (searchParams.has('demo') || searchParams.get('mode') === 'demo') {
+        return 'demo';
+    }
+    
+    // Check if running on GitHub Pages (live environment)
     if (CONFIG.ENVIRONMENT.GITHUB_PAGES_DOMAINS.some(domain => hostname.includes(domain))) {
-        return 'github-pages';
+        return 'live';
     }
     
     // Check if running as local file
@@ -29,8 +35,8 @@ export function detectEnvironment() {
         return 'local-server';
     }
     
-    // Custom domain deployment
-    return 'custom-domain';
+    // Default to live for any other domain
+    return 'live';
 }
 
 /**
@@ -44,35 +50,66 @@ export function initializeEnvironment() {
     debugLog(`Environment detected: ${currentEnvironment}`);
     
     switch (currentEnvironment) {
-        case 'github-pages':
-            initializeGitHubPages();
+        case 'demo':
+            initializeDemoEnvironment();
             break;
-        case 'local-file':
-            initializeLocalFile();
+        case 'live':
+            initializeLiveEnvironment();
             break;
         case 'local-server':
             initializeLocalServer();
             break;
-        case 'custom-domain':
-            initializeCustomDomain();
+        case 'local-file':
+            initializeLocalFile();
             break;
         default:
-            console.warn('Unknown environment, defaulting to local-file mode');
-            initializeLocalFile();
+            console.warn('Unknown environment, defaulting to live mode');
+            initializeLiveEnvironment();
     }
 }
 
 /**
- * Initialize GitHub Pages environment (simplified)
+ * Initialize demo environment with built-in API key
  */
-function initializeGitHubPages() {
-    // Disable OAuth for GitHub Pages - use manual API key entry only
+function initializeDemoEnvironment() {
+    CONFIG.DEMO.ENABLED = true;
     CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
     
-    // Show environment indicator
-    showEnvironmentBanner('🌐 Live Demo - Powered by GitHub Pages');
+    // Set demo API key from environment variable (will be set in GitHub secrets)
+    const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
+    if (demoApiKey) {
+        updateGlobalState('youtubeApiKey', demoApiKey);
+        updateGlobalState('apiMode', 'demo');
+        debugLog('✅ Demo mode initialized with built-in API key');
+    } else {
+        console.warn('⚠️ Demo mode enabled but no API key found');
+    }
     
-    debugLog('GitHub Pages mode initialized (manual API key only)');
+    showEnvironmentBanner('🎭 Demo Mode - Limited functionality with built-in API key');
+}
+
+/**
+ * Initialize live environment (user brings own API key)
+ */
+function initializeLiveEnvironment() {
+    CONFIG.DEMO.ENABLED = false;
+    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+    updateGlobalState('apiMode', 'live');
+    
+    showEnvironmentBanner('🌐 Live Version - Enter your YouTube API key to get started');
+    debugLog('✅ Live environment initialized');
+}
+
+/**
+ * Initialize local server environment
+ */
+function initializeLocalServer() {
+    CONFIG.DEMO.ENABLED = false;
+    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+    updateGlobalState('apiMode', 'local');
+    
+    showEnvironmentBanner('🔧 Local Server - Development Mode');
+    debugLog('Local server mode initialized');
 }
 
 /**
@@ -85,39 +122,11 @@ function initializeLocalFile() {
 }
 
 /**
- * Initialize local server environment  
- */
-function initializeLocalServer() {
-    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-    showEnvironmentBanner('🔧 Local Server - Development Mode');
-    debugLog('Local server mode initialized');
-}
-
-/**
- * Initialize custom domain environment
- */
-function initializeCustomDomain() {
-    // Disable OAuth for static hosting - use manual API key entry
-    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-    
-    showEnvironmentBanner('🌍 Custom Domain - Production Mode');
-    debugLog('Custom domain mode initialized (manual API key only)');
-}
-
-/**
  * Show environment banner (temporary implementation - will be moved to UI component)
  * @param {string} message - Banner message to display
  */
 function showEnvironmentBanner(message) {
-    // This is a temporary implementation
-    // In the future, this will be handled by a proper UI component
+    // For now, just log to console
+    // This will be replaced with proper UI banner in the App component
     console.log(`🏷️ Environment Banner: ${message}`);
-    
-    // For now, we'll just add it to the page title if possible
-    if (typeof document !== 'undefined') {
-        const title = document.title;
-        if (!title.includes('|')) {
-            document.title = `${title} | ${message}`;
-        }
-    }
 } 
