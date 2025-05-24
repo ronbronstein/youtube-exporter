@@ -991,6 +991,32 @@
             }
         }
         
+        // URL sanitization function to prevent XSS via javascript: URLs
+        function sanitizeURL(url) {
+            if (!url || typeof url !== 'string') {
+                return '#';
+            }
+            
+            // Allow only safe URL schemes
+            const allowedSchemes = ['http:', 'https:', 'mailto:'];
+            try {
+                const parsedUrl = new URL(url);
+                if (allowedSchemes.includes(parsedUrl.protocol)) {
+                    return url;
+                }
+            } catch (e) {
+                // Invalid URL format
+            }
+            
+            // If URL doesn't start with safe scheme, treat as relative or invalid
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            
+            // Block dangerous schemes like javascript:, data:, etc.
+            return '#';
+        }
+        
         // Demo mode rate limiting functions
         function checkDemoRateLimit() {
             if (!isDemoMode) return { allowed: true, remaining: Infinity };
@@ -2794,39 +2820,100 @@
                 return;
             }
             
-            const tableHTML = `
-                <div class="list-container">
-                    <table class="video-table">
-                        <thead>
-                            <tr>
-                                <th data-column="title" onclick="sortTable('title')">Title</th>
-                                <th data-column="publishedDate" onclick="sortTable('publishedDate')">Date</th>
-                                <th data-column="viewCount" onclick="sortTable('viewCount')">Views</th>
-                                <th data-column="likeCount" onclick="sortTable('likeCount')">Likes</th>
-                                <th data-column="commentCount" onclick="sortTable('commentCount')">Comments</th>
-                                <th data-column="duration">Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${videos.map(video => `
-                                <tr>
-                                    <td class="video-title-cell">
-                                        <a href="${video.url}" target="_blank" class="video-title-link">${video.title}</a>
-                                        <div class="video-meta-small">${video.description}</div>
-                                    </td>
-                                    <td class="date-cell">${video.publishedAt}</td>
-                                    <td class="stats-cell">${formatViewCount(video.viewCount)}</td>
-                                    <td class="stats-cell">${formatViewCount(video.likeCount)}</td>
-                                    <td class="stats-cell">${formatViewCount(video.commentCount)}</td>
-                                    <td class="date-cell">${video.duration}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            // Create table structure safely
+            const listContainer = document.createElement('div');
+            listContainer.className = 'list-container';
             
-            container.innerHTML = tableHTML;
+            const table = document.createElement('table');
+            table.className = 'video-table';
+            
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            const columns = [
+                { key: 'title', label: 'Title', sortable: true },
+                { key: 'publishedDate', label: 'Date', sortable: true },
+                { key: 'viewCount', label: 'Views', sortable: true },
+                { key: 'likeCount', label: 'Likes', sortable: true },
+                { key: 'commentCount', label: 'Comments', sortable: true },
+                { key: 'duration', label: 'Duration', sortable: false }
+            ];
+            
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                if (col.sortable) {
+                    th.setAttribute('data-column', col.key);
+                    th.onclick = () => sortTable(col.key);
+                    th.style.cursor = 'pointer';
+                }
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create table body
+            const tbody = document.createElement('tbody');
+            
+            videos.forEach(video => {
+                const row = document.createElement('tr');
+                
+                // Title cell with link
+                const titleCell = document.createElement('td');
+                titleCell.className = 'video-title-cell';
+                
+                const titleLink = document.createElement('a');
+                titleLink.href = sanitizeURL(video.url);
+                titleLink.target = '_blank';
+                titleLink.className = 'video-title-link';
+                titleLink.textContent = video.title;
+                
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'video-meta-small';
+                metaDiv.textContent = video.description;
+                
+                titleCell.appendChild(titleLink);
+                titleCell.appendChild(metaDiv);
+                row.appendChild(titleCell);
+                
+                // Date cell
+                const dateCell = document.createElement('td');
+                dateCell.className = 'date-cell';
+                dateCell.textContent = video.publishedAt;
+                row.appendChild(dateCell);
+                
+                // Stats cells
+                const viewsCell = document.createElement('td');
+                viewsCell.className = 'stats-cell';
+                viewsCell.textContent = formatViewCount(video.viewCount);
+                row.appendChild(viewsCell);
+                
+                const likesCell = document.createElement('td');
+                likesCell.className = 'stats-cell';
+                likesCell.textContent = formatViewCount(video.likeCount);
+                row.appendChild(likesCell);
+                
+                const commentsCell = document.createElement('td');
+                commentsCell.className = 'stats-cell';
+                commentsCell.textContent = formatViewCount(video.commentCount);
+                row.appendChild(commentsCell);
+                
+                const durationCell = document.createElement('td');
+                durationCell.className = 'date-cell';
+                durationCell.textContent = video.duration;
+                row.appendChild(durationCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            listContainer.appendChild(table);
+            
+            // Clear and append safely
+            container.innerHTML = '';
+            container.appendChild(listContainer);
         }
         
         // Display videos in grid card format
@@ -2839,24 +2926,69 @@
                 return;
             }
             
-            const cardsHTML = videos.map(video => `
-                <div class="video-card">
-                    <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail" loading="lazy">
-                    <div class="video-title">${video.title}</div>
-                    <div class="video-meta">
-                        <div>📅 ${video.publishedAt}</div>
-                        <div>⏱️ ${video.duration}</div>
-                        <div>👀 ${formatViewCount(video.viewCount)}</div>
-                        <div>👍 ${formatViewCount(video.likeCount)}</div>
-                    </div>
-                    <div class="video-stats">
-                        <span>💬 ${formatViewCount(video.commentCount)}</span>
-                        <a href="${video.url}" target="_blank" style="color: var(--xp-blue-start); text-decoration: none; font-weight: bold;">▶️ Watch</a>
-                    </div>
-                </div>
-            `).join('');
+            // Clear container and create cards safely
+            container.innerHTML = '';
             
-            container.innerHTML = cardsHTML;
+            videos.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                
+                // Thumbnail image
+                const thumbnail = document.createElement('img');
+                thumbnail.src = sanitizeURL(video.thumbnail);
+                thumbnail.alt = 'Thumbnail';
+                thumbnail.className = 'video-thumbnail';
+                thumbnail.loading = 'lazy';
+                card.appendChild(thumbnail);
+                
+                // Video title
+                const title = document.createElement('div');
+                title.className = 'video-title';
+                title.textContent = video.title;
+                card.appendChild(title);
+                
+                // Video metadata
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'video-meta';
+                
+                const publishedDiv = document.createElement('div');
+                publishedDiv.textContent = `📅 ${video.publishedAt}`;
+                metaDiv.appendChild(publishedDiv);
+                
+                const durationDiv = document.createElement('div');
+                durationDiv.textContent = `⏱️ ${video.duration}`;
+                metaDiv.appendChild(durationDiv);
+                
+                const viewsDiv = document.createElement('div');
+                viewsDiv.textContent = `👀 ${formatViewCount(video.viewCount)}`;
+                metaDiv.appendChild(viewsDiv);
+                
+                const likesDiv = document.createElement('div');
+                likesDiv.textContent = `👍 ${formatViewCount(video.likeCount)}`;
+                metaDiv.appendChild(likesDiv);
+                
+                card.appendChild(metaDiv);
+                
+                // Video stats and watch link
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'video-stats';
+                
+                const commentsSpan = document.createElement('span');
+                commentsSpan.textContent = `💬 ${formatViewCount(video.commentCount)}`;
+                statsDiv.appendChild(commentsSpan);
+                
+                const watchLink = document.createElement('a');
+                watchLink.href = sanitizeURL(video.url);
+                watchLink.target = '_blank';
+                watchLink.style.color = 'var(--xp-blue-start)';
+                watchLink.style.textDecoration = 'none';
+                watchLink.style.fontWeight = 'bold';
+                watchLink.textContent = '▶️ Watch';
+                statsDiv.appendChild(watchLink);
+                
+                card.appendChild(statsDiv);
+                container.appendChild(card);
+            });
         }
         
         // Real-time search filtering
