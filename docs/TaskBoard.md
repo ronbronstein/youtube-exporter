@@ -57,14 +57,15 @@
 | [EPIC-5: Developer Experience](#-epic-5-developer-experience-priority-low) | LOW | 3 | 13 | 🟡 33% |
 | [EPIC-6: Accessibility](#-epic-6-accessibility--ux-priority-low) | LOW | 1 | 8 | 🔴 0% |
 | [EPIC-7: Future Enhancements](#-epic-7-future-enhancements-priority-backlog) | BACKLOG | 3 | - | ⚪ 0% |
+| [EPIC-8: Multi-Environment Deployment Strategy](#-epic-8-multi-environment-deployment-strategy-priority-high) | HIGH | 3 | - | ⚪ 0% |
 
 ### 🚀 Sprint Overview
 
 | Sprint | Focus | Duration | Stories | Status |
 |--------|-------|----------|---------|--------|
 | [Sprint 1](#sprint-1-weeks-1-2-security-sprint) | Security | Weeks 1-2 | 1.1, 1.2, 1.3 | 🚧 Active |
-| [Sprint 2](#sprint-2-weeks-3-4-architecture-foundation) | Architecture Foundation | Weeks 3-4 | 2.1, 4.1 | 📅 Planned |
-| [Sprint 3](#sprint-3-weeks-5-6-architecture-completion) | Architecture Complete | Weeks 5-6 | 2.2, 2.3, 3.1 | 📅 Planned |
+| [Sprint 2](#sprint-2-weeks-3-4-architecture-foundation) | Architecture Foundation | Weeks 3-4 | 2.1, 4.1, 8.1 | 📅 Planned |
+| [Sprint 3](#sprint-3-weeks-5-6-architecture-completion) | Architecture Complete | Weeks 5-6 | 2.2, 2.3, 3.1, 8.2 | 📅 Planned |
 | [Sprint 4](#sprint-4-weeks-7-8-performance--quality) | Performance & Quality | Weeks 7-8 | 3.2, 3.3, 4.2 | 📅 Planned |
 | [Sprint 5](#sprint-5-weeks-9-10-polish--ship) | Polish & Ship | Weeks 9-10 | 5.1, 5.3, 6.1 | 📅 Planned |
 
@@ -725,6 +726,175 @@
 
 ---
 
+### 📦 EPIC-8: Multi-Environment Deployment Strategy [PRIORITY: HIGH]
+
+**Goal**: Professional multi-tier deployment with demo, live, and local environments  
+**Timeline**: Sprint 2-4 (Week 3-8)  
+**Epic Lead**: Architecture Team
+
+#### 📋 **Requirements Background & User Vision**
+
+**Original Request (from @ron.b)**:
+> "I think we should have the following:
+> 1. A published demo version of the tool, with my private API key (encrypted), but with a limit of 100 videos per request. It will say in the UI that this is a demo version.
+> 2. A live version of the tool, where users can just input their API key. Like we have now on GitHub pages.
+> 3. A local version, that works based on the .env file, and in the UI you don't need to input the key."
+
+**Business Rationale**:
+- **Professional positioning**: "My OKR is to have a professionally assembled code and repo and security and privacy based on the code audit report"
+- **Lower barrier to entry**: Demo version allows users to try before committing to API key setup
+- **Multiple use cases**: Developers (local), end users (live), prospects (demo)
+- **Security & Privacy**: Different trust levels for different deployment scenarios
+
+**Key Requirements**:
+1. **Demo Environment**: 
+   - Use owner's encrypted private API key (server-side encryption)
+   - Hard limit: 100 videos per request/session
+   - Clear UI indication this is demo mode
+   - Call-to-action to upgrade to full version
+
+2. **Live Environment**:
+   - Current GitHub Pages behavior (user-provided API keys)
+   - No video limits
+   - No server-side key storage
+
+3. **Local Development**:
+   - .env file for API key (no UI input needed)
+   - Developer-friendly features enabled
+   - No limits or restrictions
+
+**Architecture Constraint**: Single codebase that intelligently adapts to environment
+
+**Questions for Clarification** (to be resolved during Sprint 2 planning):
+- [ ] Demo rate limiting: per IP, per session, or per browser fingerprint?
+- [ ] Demo usage analytics: what metrics should we track?
+- [ ] Environment switching: should users be able to easily switch between demo/live?
+- [ ] Subdomain strategy: demo.* vs live on main domain?
+- [ ] Error handling: how should demo limits be communicated to users?
+
+#### 🌐 STORY-8.1: Environment Detection & Configuration System
+- **Status**: 📋 Not Started
+- **Priority**: P1 - High
+- **Assignee**: TBD
+- **Size**: Medium (5 points)
+- **Description**: Smart environment detection and configuration management
+- **Dependencies**: STORY-2.1 (Module System)
+- **Acceptance Criteria**:
+  - [ ] Environment auto-detection (localhost, demo subdomain, live domain)
+  - [ ] Centralized configuration per environment
+  - [ ] Environment-specific UI components
+  - [ ] Graceful fallbacks for detection failures
+- **Technical Design**:
+  ```javascript
+  // Environment configuration
+  const ENV_CONFIG = {
+    DEMO: {
+      maxVideos: 100,
+      showDemoBanner: true,
+      apiKeySource: 'encrypted',
+      rateLimits: { requests: 50, window: 3600 }
+    },
+    LIVE: {
+      maxVideos: null,
+      showDemoBanner: false,
+      apiKeySource: 'user',
+      rateLimits: null
+    },
+    LOCAL: {
+      maxVideos: null,
+      showDemoBanner: false,
+      apiKeySource: 'env',
+      debugMode: true
+    }
+  };
+  ```
+- **Git Commits**:
+  - [ ] `feat: Add environment detection system`
+  - [ ] `feat: Centralized configuration management`
+  - [ ] `feat: Environment-specific UI components`
+
+#### 🔐 STORY-8.2: Demo Environment with Encrypted API Key
+- **Status**: 📋 Not Started
+- **Priority**: P1 - High
+- **Assignee**: TBD
+- **Size**: Large (8 points)
+- **Description**: Secure demo environment with encrypted private API key
+- **Dependencies**: STORY-8.1, STORY-1.2 (API Key Encryption)
+- **Acceptance Criteria**:
+  - [ ] Server-side encrypted API key storage
+  - [ ] 100 video limit enforcement
+  - [ ] Clear demo UI indicators and messaging
+  - [ ] Rate limiting and abuse prevention
+  - [ ] Privacy-compliant usage tracking
+- **Security Requirements**:
+  ```javascript
+  // Demo API key encryption (server-side)
+  class SecureAPIKeyManager {
+    async getEncryptedDemoKey() {
+      const key = process.env.DEMO_YOUTUBE_API_KEY;
+      const serverSalt = process.env.ENCRYPTION_SALT;
+      return await this.encrypt(key, serverSalt);
+    }
+    
+    // Rate limiting per session/IP
+    enforceRateLimit(sessionId, action) {
+      const limits = { requests: 50, videosPerHour: 100 };
+      return this.checkLimits(sessionId, action, limits);
+    }
+  }
+  ```
+- **UI Components**:
+  - [ ] Demo banner with clear messaging
+  - [ ] Video counter (X/100 videos analyzed)
+  - [ ] "Upgrade to full version" call-to-action
+  - [ ] Environment switcher
+- **Git Commits**:
+  - [ ] `feat: Add demo environment infrastructure`
+  - [ ] `feat: Implement 100 video limit enforcement`
+  - [ ] `feat: Add demo UI components and messaging`
+  - [ ] `security: Server-side API key encryption for demo`
+
+#### 🚀 STORY-8.3: Multi-Environment Build & Deployment
+- **Status**: 📋 Not Started
+- **Priority**: P1 - High
+- **Assignee**: TBD
+- **Size**: Medium (5 points)
+- **Description**: Automated build and deployment for all environments
+- **Dependencies**: STORY-8.1, STORY-8.2, STORY-5.3 (CI/CD)
+- **Acceptance Criteria**:
+  - [ ] Single codebase deploys to multiple environments
+  - [ ] Environment-specific build configurations
+  - [ ] Automated testing across all environments
+  - [ ] Subdomain setup (demo.youtubetool.com)
+  - [ ] Environment health checks
+- **Deployment Strategy**:
+  ```yaml
+  # Multi-environment deployment
+  environments:
+    demo:
+      domain: demo.youtubetool.com
+      config: DEMO
+      features: [rate_limiting, usage_tracking]
+    live:
+      domain: youtubetool.com  
+      config: LIVE
+      features: [analytics, error_tracking]
+    local:
+      domain: localhost:3000
+      config: LOCAL
+      features: [hot_reload, debug_tools]
+  ```
+- **Infrastructure**:
+  - [ ] CloudFlare for security headers and rate limiting
+  - [ ] Environment-specific analytics
+  - [ ] Health monitoring and alerts
+- **Git Commits**:
+  - [ ] `build: Multi-environment deployment pipeline`
+  - [ ] `infra: Add subdomain and DNS configuration`
+  - [ ] `ci: Environment-specific testing and deployment`
+
+---
+
 ## 📅 Sprint Planning
 
 ### Sprint 1 (Weeks 1-2): Security Sprint
@@ -734,21 +904,21 @@
 - **Status**: 🚧 Active
 
 ### Sprint 2 (Weeks 3-4): Architecture Foundation
-- **Goal**: Begin modularization
-- **Stories**: 2.1, 4.1 (testing setup)
-- **Success Metrics**: Module system implemented, 50% code coverage
+- **Goal**: Begin modularization + environment system foundation
+- **Stories**: 2.1, 4.1 (testing setup), 8.1 (environment detection)
+- **Success Metrics**: Module system implemented, environment detection working
 - **Status**: 📅 Planned
 
-### Sprint 3 (Weeks 5-6): Architecture Completion
-- **Goal**: Complete refactoring
-- **Stories**: 2.2, 2.3, 3.1
-- **Success Metrics**: No global variables, component architecture
+### Sprint 3 (Weeks 5-6): Architecture Completion + Multi-Environment
+- **Goal**: Complete refactoring + implement demo environment
+- **Stories**: 2.2, 2.3, 3.1, 8.2 (demo environment)
+- **Success Metrics**: No global variables, component architecture, demo site live
 - **Status**: 📅 Planned
 
-### Sprint 4 (Weeks 7-8): Performance & Quality
-- **Goal**: Optimize performance
-- **Stories**: 3.2, 3.3, 4.2
-- **Success Metrics**: <100ms render time, 80% test coverage
+### Sprint 4 (Weeks 7-8): Performance & Quality + Deployment
+- **Goal**: Optimize performance + complete multi-environment deployment
+- **Stories**: 3.2, 3.3, 4.2, 8.3 (multi-environment deployment)
+- **Success Metrics**: <100ms render time, 80% test coverage, all environments live
 - **Status**: 📅 Planned
 
 ### Sprint 5 (Weeks 9-10): Polish & Ship
@@ -767,6 +937,7 @@
 - **Performance**: 🔴 0% (0/3 stories complete)
 - **Testing**: 🔴 0% (0/3 stories complete)
 - **DevEx**: 🟡 33% (1/3 stories complete)
+- **Multi-Environment**: 🔴 0% (0/3 stories complete)
 
 ### Velocity Tracking
 - **Sprint 0**: 15 points completed (previous board items)
@@ -797,6 +968,10 @@
 - **State Management**: Custom lightweight solution (no Redux overhead)
 - **Testing**: Jest + Playwright (industry standard)
 - **Build Tool**: Vite over Webpack (faster, simpler)
+- **Multi-Environment Strategy**: Single codebase with smart environment detection (EPIC-8)
+  - Demo: Encrypted private API key, 100 video limit, conversion-focused UI
+  - Live: User-provided API keys, no limits, current GitHub Pages approach
+  - Local: .env file, developer features, no restrictions
 
 ### Deferred Items Rationale
 - **Advanced Analytics**: Core security/architecture more important
