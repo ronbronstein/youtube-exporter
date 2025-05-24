@@ -31,8 +31,7 @@ export default defineConfig({
     devSourcemap: false
   },
   define: {
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
-    __VERSION__: JSON.stringify(process.env.npm_package_version || '2.0.0')
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
   },
   plugins: []
 }) 

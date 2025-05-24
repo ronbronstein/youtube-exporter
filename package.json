@@ -1,6 +1,5 @@
 {
   "name": "youtube-research-hub",
-  "version": "2.0.0",
   "description": "Professional YouTube Channel Analytics & Research Tool",
   "type": "module",
   "scripts": {

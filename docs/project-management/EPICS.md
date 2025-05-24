@@ -3,7 +3,7 @@
 *High-level objectives and goals for the YouTube Research Hub project*
 
 **Last Updated**: December 2024  
-**Project**: YouTube Research Hub v2.0  
+**Project**: YouTube Research Hub  
 
 ---
 

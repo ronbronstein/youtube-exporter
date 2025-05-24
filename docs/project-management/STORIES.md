@@ -3,7 +3,7 @@
 *Detailed user stories and acceptance criteria for development*
 
 **Last Updated**: December 2024  
-**Project**: YouTube Research Hub v2.0  
+**Project**: YouTube Research Hub  
 
 ---
 
