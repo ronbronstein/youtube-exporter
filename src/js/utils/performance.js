@@ -1,6 +1,6 @@
 /**
  * Performance Monitoring Utilities
- * Production optimization and performance tracking
+ * Tracks render times, API calls, memory usage, and user interactions
  */
 
 export class PerformanceMonitor {
@@ -11,17 +11,21 @@ export class PerformanceMonitor {
             memoryUsage: [],
             userInteractions: []
         };
-        this.startTime = performance.now();
-        this.isProduction = !window.__DEV__;
+        
+        // Environment detection - works in both browser and Node.js
+        const isBrowser = typeof window !== 'undefined';
+        this.startTime = isBrowser ? performance.now() : Date.now();
+        this.isProduction = isBrowser ? !window.__DEV__ : process.env.NODE_ENV === 'production';
+        this.isBrowser = isBrowser;
     }
     
     // Track component render performance
     trackRender(componentName, renderFn) {
         if (!this.shouldTrack()) return renderFn();
         
-        const start = performance.now();
+        const start = this.isBrowser ? performance.now() : Date.now();
         const result = renderFn();
-        const duration = performance.now() - start;
+        const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
         
         this.metrics.renderTimes.push({
             component: componentName,
@@ -41,12 +45,12 @@ export class PerformanceMonitor {
     trackApiCall(endpoint, promise) {
         if (!this.shouldTrack()) return promise;
         
-        const start = performance.now();
+        const start = this.isBrowser ? performance.now() : Date.now();
         const callId = Math.random().toString(36).substr(2, 9);
         
         return promise
             .then(result => {
-                const duration = performance.now() - start;
+                const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
                 this.metrics.apiCalls.push({
                     id: callId,
                     endpoint,
@@ -63,7 +67,7 @@ export class PerformanceMonitor {
                 return result;
             })
             .catch(error => {
-                const duration = performance.now() - start;
+                const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
                 this.metrics.apiCalls.push({
                     id: callId,
                     endpoint,
@@ -76,9 +80,9 @@ export class PerformanceMonitor {
             });
     }
     
-    // Track memory usage
+    // Track memory usage (browser only)
     trackMemoryUsage() {
-        if (!this.shouldTrack() || !performance.memory) return;
+        if (!this.shouldTrack() || !this.isBrowser || !performance.memory) return;
         
         const memory = {
             used: performance.memory.usedJSHeapSize,
@@ -177,9 +181,9 @@ export class PerformanceMonitor {
         return summary;
     }
     
-    // Start periodic monitoring
+    // Start periodic monitoring (browser only)
     startMonitoring() {
-        if (!this.shouldTrack()) return;
+        if (!this.shouldTrack() || !this.isBrowser) return;
         
         // Track memory usage every 30 seconds
         this.memoryInterval = setInterval(() => {
@@ -192,16 +196,20 @@ export class PerformanceMonitor {
         }, 300000);
         
         // Track page visibility changes
-        document.addEventListener('visibilitychange', () => {
-            this.trackUserInteraction('visibilityChange', {
-                hidden: document.hidden
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', () => {
+                this.trackUserInteraction('visibilityChange', {
+                    hidden: document.hidden
+                });
             });
-        });
+        }
         
         // Track beforeunload for session summary
-        window.addEventListener('beforeunload', () => {
-            this.logPerformanceReport();
-        });
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', () => {
+                this.logPerformanceReport();
+            });
+        }
     }
     
     // Stop monitoring

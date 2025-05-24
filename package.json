@@ -4,18 +4,19 @@
   "description": "Professional YouTube Channel Analytics & Research Tool",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5177",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "build:analyze": "vite build --mode analyze",
-    "test:integration": "node --experimental-modules test/integration.test.js",
-    "test:performance": "lighthouse http://localhost:4173 --output=html --output-path=./test-results/lighthouse.html",
+    "test": "node src/js/integration-test.js",
+    "test:design": "node test-design.js",
+    "test:all": "npm run test && npm run test:design",
+    "performance": "npx lighthouse http://localhost:4173 --only-categories=performance --quiet",
+    "bundle-size": "npx bundlesize",
+    "security-audit": "npm audit --audit-level moderate",
+    "deploy": "npm run build && npm run test:all && echo 'Ready for deployment'",
     "deploy:gh-pages": "npm run build && gh-pages -d dist",
-    "deploy:demo": "npm run build && echo 'Demo deployment configured'",
     "clean": "rm -rf dist node_modules/.vite",
-    "validate": "npm run build && npm run preview",
-    "security:audit": "npm audit --audit-level=moderate",
-    "size:check": "npm run build && bundlesize"
+    "validate": "npm run build && npm run preview"
   },
   "keywords": [
     "youtube",
