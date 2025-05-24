@@ -3598,6 +3598,70 @@
                 };
             }
         }
+
+        /* ===== MODULE SYSTEM BRIDGE ===== */
+        
+        // Import and integrate our extracted ES6 modules with the existing monolith
+        // This allows gradual migration while maintaining all functionality
+        
+        // Check if we're in a module-supporting environment
+        if (typeof window !== 'undefined' && 'type' in document.createElement('script')) {
+            // Dynamically import our modules and make them available globally
+            Promise.all([
+                import('./src/js/utils/formatter.js'),
+                import('./src/js/utils/security.js'), 
+                import('./src/js/utils/debug.js'),
+                import('./src/js/config.js'),
+                import('./src/js/utils/rateLimiter.js'),
+                import('./src/js/utils/environment.js')
+            ]).then(([formatter, security, debug, config, rateLimiter, environment]) => {
+                
+                // Bridge formatter functions (replace existing ones)
+                window.formatViewCount = formatter.formatViewCount;
+                window.formatDuration = formatter.formatDuration;
+                
+                // Bridge security functions (replace existing ones) 
+                window.sanitizeURL = security.sanitizeURL;
+                window.validateApiKey = security.validateApiKey;
+                
+                // Bridge debug function (replace existing one)
+                window.debugLog = debug.debugLog;
+                
+                // Bridge configuration (merge with existing CONFIG)
+                Object.assign(CONFIG, config.CONFIG);
+                
+                // Bridge rate limiter (replace existing functions)
+                const demoRateLimiter = new rateLimiter.DemoRateLimiter(CONFIG);
+                demoRateLimiter.setDemoMode(isDemoMode);
+                
+                window.checkDemoRateLimit = () => demoRateLimiter.checkRateLimit();
+                window.incrementDemoUsage = () => demoRateLimiter.incrementUsage();
+                window.getDemoUsage = () => demoRateLimiter.getUsage();
+                window.getUserIP = () => demoRateLimiter.getUserIP();
+                
+                // Bridge environment functions (replace existing ones)
+                window.detectEnvironment = environment.detectEnvironment;
+                window.initializeEnvironment = environment.initializeEnvironment;
+                
+                // Sync global state with module state
+                config.updateGlobalState('videosData', videosData);
+                config.updateGlobalState('filteredData', filteredData);
+                config.updateGlobalState('youtubeApiKey', youtubeApiKey);
+                config.updateGlobalState('currentView', currentView);
+                config.updateGlobalState('currentSort', currentSort);
+                config.updateGlobalState('apiMode', apiMode);
+                config.updateGlobalState('isDemoMode', isDemoMode);
+                config.updateGlobalState('currentEnvironment', currentEnvironment);
+                
+                console.log('🔗 Module system bridge activated! Functions now using modular implementations.');
+                
+            }).catch(error => {
+                console.warn('⚠️ Module system bridge failed, using legacy implementations:', error);
+                // Fallback: continue with existing inline functions
+            });
+        } else {
+            console.log('📦 Module system not supported in this environment, using legacy implementations.');
+        }
     </script>
 </body>
 </html>
