@@ -2105,6 +2105,9 @@
         function saveApiKey() {
             if (apiMode === 'local') return true; // Always valid in local mode
             
+            // Demo mode: API key already loaded from server
+            if (apiMode === 'demo' && youtubeApiKey) return true;
+            
             const keyInput = document.getElementById('apiKeyInput');
             if (!keyInput) return false;
             
