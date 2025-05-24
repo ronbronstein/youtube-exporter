@@ -11,15 +11,16 @@
 
 import { BaseComponent } from './BaseComponent.js';
 import { VideoList } from './VideoList.js';
+import { Results } from './Results.js';
 import { LoadingSpinner, GlobalLoading } from './LoadingSpinner.js';
 import { MessagePanel, GlobalMessages } from './MessagePanel.js';
 import { YouTubeApiService } from '../services/youtubeApi.js';
 import { storageService } from '../services/storage.js';
 import { analyticsService } from '../services/analytics.js';
-import { CONFIG, getGlobalState, updateGlobalState } from '../config.js';
 import { detectEnvironment } from '../utils/environment.js';
 import { validateApiKey } from '../utils/security.js';
 import { debugLog } from '../utils/debug.js';
+import { updateGlobalState } from '../config.js';
 import { formatViewCount, formatDuration } from '../utils/formatter.js';
 import { globalPerformanceMonitor } from '../utils/performance.js';
 
@@ -44,7 +45,8 @@ export class App extends BaseComponent {
         this.components = {
             videoList: null,
             loadingSpinner: null,
-            messagePanel: null
+            messagePanel: null,
+            results: null
         };
         
         // Service instances
@@ -116,9 +118,9 @@ export class App extends BaseComponent {
                 
                 <!-- Main Content Area -->
                 <div class="main-content">
-                    <!-- Videos Section -->
-                    <div class="videos-section">
-                        <div id="videoListContainer" class="video-list-container"></div>
+                    <!-- Results Section with integrated VideoList -->
+                    <div class="results-section">
+                        <div id="resultsContainer" class="results-container"></div>
                     </div>
                     
                     <!-- Analytics Section -->
@@ -147,10 +149,34 @@ export class App extends BaseComponent {
             { overlay: true, showProgress: true }
         );
         
-        this.components.videoList = new VideoList(
-            this.findElement('#videoListContainer'),
-            { enableViewSwitch: true, defaultView: 'list' }
+        // Initialize Results component (which will contain VideoList)
+        this.components.results = new Results(
+            this.findElement('#resultsContainer'),
+            { enableViewSwitch: true, enableExport: true, enableFilter: true, defaultView: 'list' }
         ).init();
+        
+        // Initialize VideoList inside Results component  
+        this.components.videoList = new VideoList(
+            this.components.results.findElement('#videoDisplayContainer'),
+            { enableViewSwitch: false, enableSorting: true, defaultView: 'list' }
+        ).init();
+        
+        // Connect Results and VideoList components
+        this.components.results.on('viewChanged', (data) => {
+            this.components.videoList.switchView(data.view);
+        });
+        
+        this.components.results.on('videosChanged', (data) => {
+            this.components.videoList.setVideos(data.videos);
+        });
+        
+        this.components.results.on('videosFiltered', (data) => {
+            this.components.videoList.setVideos(data.videos);
+        });
+        
+        this.components.results.on('error', (data) => {
+            this.showError(data.message);
+        });
         
         // Set up event listeners
         this.setupEventListeners();
@@ -281,6 +307,8 @@ export class App extends BaseComponent {
                 <div class="search-header">
                     <h3>🔍 Channel Analysis</h3>
                 </div>
+                
+                <!-- Channel Input -->
                 <div class="search-input-group">
                     <input 
                         type="text" 
@@ -292,7 +320,55 @@ export class App extends BaseComponent {
                         Analyze Channel
                     </button>
                 </div>
-                <div class="search-options">
+                
+                <!-- Keyword Filtering -->
+                <div class="keyword-filter-section" style="margin-top: 16px;">
+                    <div class="search-input-group">
+                        <input 
+                            type="text" 
+                            id="keywordInput" 
+                            placeholder="Filter videos by keywords: tutorial, AI, security (optional)"
+                            class="keyword-input"
+                        >
+                        <button id="applyFilterBtn" class="filter-btn" disabled>
+                            Apply Filter
+                        </button>
+                    </div>
+                    
+                    <!-- Search Options -->
+                    <div class="filter-options">
+                        <div class="filter-group">
+                            <label><strong>Search in:</strong></label>
+                            <label class="radio-option">
+                                <input type="radio" name="searchScope" value="both" checked> 
+                                Title & Description
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="searchScope" value="title"> 
+                                Title Only
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="searchScope" value="description"> 
+                                Description Only
+                            </label>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label><strong>Logic:</strong></label>
+                            <label class="radio-option">
+                                <input type="radio" name="searchLogic" value="OR" checked> 
+                                Any keyword (OR)
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="searchLogic" value="AND"> 
+                                All keywords (AND)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Video Options -->
+                <div class="video-options">
                     <label>
                         <input type="checkbox" id="includeShorts"> Include YouTube Shorts
                     </label>
@@ -338,6 +414,23 @@ export class App extends BaseComponent {
         
         if (analyzeBtn) {
             this.addListener(analyzeBtn, 'click', this.handleAnalyzeChannel.bind(this));
+        }
+        
+        // Keyword filtering events
+        const keywordInput = this.findElement('#keywordInput');
+        const applyFilterBtn = this.findElement('#applyFilterBtn');
+        
+        if (keywordInput) {
+            this.addListener(keywordInput, 'input', this.handleKeywordInput.bind(this));
+            this.addListener(keywordInput, 'keydown', (e) => {
+                if (e.key === 'Enter' && !applyFilterBtn.disabled) {
+                    this.handleApplyFilter();
+                }
+            });
+        }
+        
+        if (applyFilterBtn) {
+            this.addListener(applyFilterBtn, 'click', this.handleApplyFilter.bind(this));
         }
     }
     
@@ -388,6 +481,97 @@ export class App extends BaseComponent {
     
     handleChannelInput(event) {
         this.updateAnalyzeButtonState();
+    }
+    
+    handleKeywordInput(event) {
+        const hasKeywords = event.target.value.trim().length > 0;
+        const hasVideos = this.appState.videos && this.appState.videos.length > 0;
+        
+        const applyFilterBtn = this.findElement('#applyFilterBtn');
+        if (applyFilterBtn) {
+            applyFilterBtn.disabled = !hasKeywords || !hasVideos;
+        }
+    }
+    
+    handleApplyFilter() {
+        const keywordInput = this.findElement('#keywordInput');
+        if (!keywordInput || !this.appState.videos) return;
+        
+        const keywords = keywordInput.value.trim();
+        if (!keywords) {
+            // Reset to all videos if no keywords
+            this.appState.filteredVideos = [...this.appState.videos];
+        } else {
+            this.applyKeywordFilter(keywords);
+        }
+        
+        // Update the Results component with filtered videos
+        const channelName = this.appState.channelData?.channelTitle || 
+                           this.appState.channelData?.snippet?.title || 
+                           'Unknown Channel';
+        this.components.results.setVideos(this.appState.filteredVideos, channelName);
+        
+        // Update analytics based on filtered results
+        this.services.analytics.setVideosData(this.appState.filteredVideos);
+        this.renderAnalytics();
+        
+        this.showSuccess(`Filter applied: ${this.appState.filteredVideos.length} videos match your criteria`);
+    }
+    
+    applyKeywordFilter(query) {
+        if (!query || !this.appState.videos) return;
+        
+        // Get filter settings
+        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'both';
+        const searchLogic = this.findElement('input[name="searchLogic"]:checked')?.value || 'OR';
+        
+        // Parse keywords
+        let keywords = [];
+        if (query.includes(',')) {
+            keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
+        } else if (query.toLowerCase().includes(' and ')) {
+            keywords = query.toLowerCase().split(' and ').map(k => k.trim()).filter(k => k.length > 0);
+        } else {
+            keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+        }
+        
+        debugLog(`Filtering with keywords: [${keywords.join(', ')}] using ${searchLogic} logic in ${searchScope}`);
+        
+        const originalCount = this.appState.videos.length;
+        
+        this.appState.filteredVideos = this.appState.videos.filter(video => {
+            let searchText = '';
+            
+            // Build search text based on scope
+            switch (searchScope) {
+                case 'title':
+                    searchText = video.title.toLowerCase();
+                    break;
+                case 'description':
+                    searchText = (video.fullDescription || video.description || '').toLowerCase();
+                    break;
+                case 'both':
+                default:
+                    searchText = `${video.title} ${video.fullDescription || video.description || ''}`.toLowerCase();
+                    break;
+            }
+            
+            if (searchLogic === 'AND') {
+                const matches = keywords.every(keyword => searchText.includes(keyword));
+                if (matches) {
+                    debugLog(`✅ AND match: "${video.title}" - all keywords found in ${searchScope}`);
+                }
+                return matches;
+            } else {
+                const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
+                if (matchedKeywords.length > 0) {
+                    debugLog(`✅ OR match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
+                }
+                return matchedKeywords.length > 0;
+            }
+        });
+        
+        debugLog(`Keyword filter applied: ${originalCount} → ${this.appState.filteredVideos.length} videos`);
     }
     
     async handleAnalyzeChannel() {
@@ -467,30 +651,40 @@ export class App extends BaseComponent {
             this.appState.videos = videos;
             this.appState.filteredVideos = videos;
             
-            // Generate analytics
-            this.showProgress(80, 'Processing analytics...');
+            // Process videos with analytics
+            this.showProgress(80, 'Processing video analytics...');
             this.services.analytics.setVideosData(videos);
             
-            // Update UI
-            this.showProgress(90, 'Updating display...');
-            this.components.videoList.setVideos(videos);
+            // Update Results component with channel name
+            const channelName = channelData.channelTitle || channelData.snippet?.title || 'Unknown Channel';
+            this.components.results.setVideos(videos, channelName);
+            
+            // Update analytics display
+            this.showProgress(90, 'Generating insights...');
             this.renderAnalytics();
             
-            // Save analysis
-            this.showProgress(100, 'Complete!');
-            storageService.saveAnalysis(channelData.channelId, {
-                channelData,
-                videos,
-                timestamp: Date.now()
-            });
+            // Save analysis to storage
+            storageService.saveAnalysis(channelData.channelId, videos);
+            storageService.setLastAnalyzedChannel(channelData.channelId);
             
-            this.showSuccess(`Analysis complete! Found ${videos.length} videos.`);
-            debugLog('✅ Channel analysis complete', { videoCount: videos.length });
+            this.showProgress(100, 'Complete!');
+            
+            debugLog(`✅ Channel analysis complete: ${videos.length} videos`);
             
         } catch (error) {
-            debugLog('❌ Analysis error:', error);
-            this.showError(`Analysis failed: ${error.message}`);
-            throw error;
+            debugLog('❌ Channel analysis failed:', error);
+            
+            if (error.message.includes('quota')) {
+                this.showError('YouTube API quota exceeded. Please try again later or check your API key limits.');
+            } else if (error.message.includes('API key')) {
+                this.showError('Invalid API key. Please check your YouTube Data API v3 key.');
+            } else if (error.message.includes('not found')) {
+                this.showError('Channel not found. Please check the channel URL or handle.');
+            } else {
+                this.showError(`Analysis failed: ${error.message}`);
+            }
+            
+            throw error; // Re-throw for handleAnalyzeChannel to catch
         }
     }
     
