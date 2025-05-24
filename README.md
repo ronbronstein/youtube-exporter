@@ -82,7 +82,10 @@ npm start
 2. Create a new project or select existing
 3. Enable the **YouTube Data API v3**
 4. Create credentials (API Key)
-5. Add to your `.env` file
+5. **🔒 Important**: Restrict your key to YouTube API only and specific domains
+6. Add to your `.env` file
+
+> **Security Note**: We use a "bring your own API key" approach - you control your quota and costs. The only security concern is protecting your personal API key from theft, which we address through clear restriction guidance and best practices.
 
 ### Analyzing a Channel
 1. **Enter channel info**: URL, handle (@channel), or channel ID
