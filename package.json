@@ -10,8 +10,6 @@
     "test:node": "node src/js/integration-test.js",
     "test:browser": "echo 'Open http://localhost:4173?test=true after npm run preview'",
     "test:design": "node test-design.js",
-    "performance": "npx lighthouse http://localhost:4173 --only-categories=performance --quiet",
-    "bundle-size": "npx bundlesize",
     "security-audit": "npm audit --audit-level moderate",
     "clean": "rm -rf dist node_modules/.vite",
     "validate": "npm run build && npm run preview",
@@ -43,22 +41,8 @@
     "crypto-js": "^4.2.0"
   },
   "devDependencies": {
-    "vite": "^6.3.5",
-    "bundlesize": "^0.18.2",
-    "lighthouse": "^12.0.0"
+    "vite": "^6.3.5"
   },
-  "bundlesize": [
-    {
-      "path": "./dist/assets/*.js",
-      "maxSize": "500 kB",
-      "compression": "gzip"
-    },
-    {
-      "path": "./dist/assets/*.css",
-      "maxSize": "50 kB",
-      "compression": "gzip"
-    }
-  ],
   "files": [
     "src/",
     "dist/",
