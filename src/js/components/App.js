@@ -152,31 +152,34 @@ export class App extends BaseComponent {
         // Initialize Results component (which will contain VideoList)
         this.components.results = new Results(
             this.findElement('#resultsContainer'),
-            { enableViewSwitch: true, enableExport: true, enableFilter: true, defaultView: 'list' }
+            { enableViewToggle: true, enableExport: true, enableFilter: true, defaultView: 'list' }
         ).init();
         
-        // Initialize VideoList inside Results component  
-        this.components.videoList = new VideoList(
-            this.components.results.findElement('#videoDisplayContainer'),
-            { enableViewSwitch: false, enableSorting: true, defaultView: 'list' }
-        ).init();
-        
-        // Connect Results and VideoList components
-        this.components.results.on('viewChanged', (data) => {
-            this.components.videoList.switchView(data.view);
-        });
-        
-        this.components.results.on('videosChanged', (data) => {
-            this.components.videoList.setVideos(data.videos);
-        });
-        
-        this.components.results.on('videosFiltered', (data) => {
-            this.components.videoList.setVideos(data.videos);
-        });
-        
-        this.components.results.on('error', (data) => {
-            this.showError(data.message);
-        });
+        // Wait for Results to be fully mounted before initializing VideoList
+        setTimeout(() => {
+            // Initialize VideoList inside Results component  
+            this.components.videoList = new VideoList(
+                this.components.results.findElement('#videoDisplayContainer'),
+                { enableViewSwitch: false, enableSorting: true, defaultView: 'list' }
+            ).init();
+            
+            // Connect Results and VideoList components
+            this.components.results.on('viewChanged', (data) => {
+                this.components.videoList.switchView(data.view);
+            });
+            
+            this.components.results.on('videosChanged', (data) => {
+                this.components.videoList.setVideos(data.videos);
+            });
+            
+            this.components.results.on('videosFiltered', (data) => {
+                this.components.videoList.setVideos(data.videos);
+            });
+            
+            this.components.results.on('error', (data) => {
+                this.showError(data.message);
+            });
+        }, 0);
         
         // Set up event listeners
         this.setupEventListeners();
