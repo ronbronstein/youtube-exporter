@@ -2,12 +2,11 @@
   "name": "youtube-research-hub",
   "version": "1.2.0",
   "description": "Comprehensive YouTube channel analysis tool with Windows XP nostalgia and cutting-edge analytics",
-  "main": "server.js",
+  "main": "test-server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "build:web": "node scripts/build-web.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node test-server.js",
+    "dev": "node test-server.js",
+    "test": "echo \"Open http://localhost:3000 after running npm start\" && exit 0"
   },
   "keywords": [
     "youtube",
@@ -24,33 +23,30 @@
   "author": {
     "name": "Ron Bronstein",
     "email": "ron@example.com",
-    "url": "https://github.com/your-username"
+    "url": "https://github.com/ronbronstein"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/youtube-research-hub.git"
+    "url": "https://github.com/ronbronstein/youtube-exporter.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/youtube-research-hub/issues"
+    "url": "https://github.com/ronbronstein/youtube-exporter/issues"
   },
-  "homepage": "https://github.com/your-username/youtube-research-hub#readme",
+  "homepage": "https://ronbronstein.github.io/youtube-exporter/",
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "dotenv": "^16.3.1",
-    "chart.js": "^4.4.0"
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {},
   "files": [
-    "server.js",
+    "test-server.js",
     "youtube_video_exporter.html",
-    ".env.template",
+    "config.template",
     "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
+    "docs/"
   ]
 } 

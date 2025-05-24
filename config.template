@@ -1,3 +1,12 @@
-# YouTube Data API v3 Key
+# YouTube Data API v3 Key for Local Development
 # Get yours from: https://console.cloud.google.com/apis/credentials
+# 
+# Instructions:
+# 1. Copy this file to `.env`
+# 2. Replace the placeholder with your actual API key
+# 3. Run `npm start` to start the local development server
+# 
+# Note: This is only needed for local development.
+# The GitHub Pages version uses manual API key entry.
+#
 YOUTUBE_API_KEY=your_youtube_api_key_here 
