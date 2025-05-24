@@ -21,6 +21,14 @@ export class AnalyticsService {
     }
 
     /**
+     * Initialize the analytics service (App.js expects this)
+     */
+    initialize() {
+        debugLog('📊 Analytics service initialized');
+        return true;
+    }
+
+    /**
      * Set the video data for analysis
      * @param {Array} videos - Array of video objects
      */
@@ -39,30 +47,33 @@ export class AnalyticsService {
 
         debugLog('Generating content analysis for', this.videosData.length, 'videos');
 
-        // Calculate core metrics
-        const totalViews = this.videosData.reduce((sum, video) => sum + video.viewCount, 0);
+        // Calculate core metrics with safe property access
+        const totalViews = this.videosData.reduce((sum, video) => sum + (video.viewCount || 0), 0);
         const avgViews = Math.round(totalViews / this.videosData.length);
         const topVideo = this.videosData.reduce((max, video) => 
-            video.viewCount > max.viewCount ? video : max
+            (video.viewCount || 0) > (max.viewCount || 0) ? video : max
         );
         const totalVideos = this.videosData.length;
 
         // Upload frequency calculation
-        const sortedByDate = [...this.videosData].sort((a, b) => b.publishedDate - a.publishedDate);
+        const sortedByDate = [...this.videosData].sort((a, b) => (b.publishedDate || 0) - (a.publishedDate || 0));
         const oldestDate = sortedByDate[sortedByDate.length - 1]?.publishedDate;
         const newestDate = sortedByDate[0]?.publishedDate;
         const monthsDiff = oldestDate ? (newestDate - oldestDate) / (1000 * 60 * 60 * 24 * 30) : 1;
         const videosPerMonth = Math.round(totalVideos / monthsDiff);
 
-        // Title analysis
+        // Title analysis with safe property access
         const avgTitleLength = Math.round(
-            this.videosData.reduce((sum, video) => sum + video.title.length, 0) / this.videosData.length
+            this.videosData.reduce((sum, video) => sum + ((video.title || '').length), 0) / this.videosData.length
         );
 
-        // Engagement rate calculation
+        // Engagement rate calculation with safe property access
         const avgEngagement = this.videosData.length > 0 ? 
             (this.videosData.reduce((sum, video) => {
-                return sum + (video.viewCount > 0 ? (video.likeCount + video.commentCount) / video.viewCount : 0);
+                const views = video.viewCount || 0;
+                const likes = video.likeCount || 0;
+                const comments = video.commentCount || 0;
+                return sum + (views > 0 ? (likes + comments) / views : 0);
             }, 0) / this.videosData.length * 100).toFixed(2) : '0.00';
 
         return {
@@ -73,9 +84,9 @@ export class AnalyticsService {
             avgTitleLength,
             avgEngagement,
             topVideo: {
-                title: topVideo.title,
-                views: topVideo.viewCount,
-                viewsFormatted: formatViewCount(topVideo.viewCount)
+                title: topVideo.title || 'Untitled',
+                views: topVideo.viewCount || 0,
+                viewsFormatted: formatViewCount(topVideo.viewCount || 0)
             }
         };
     }
@@ -128,12 +139,12 @@ export class AnalyticsService {
     identifyViralContent() {
         if (this.videosData.length === 0) return [];
 
-        const avgViews = this.videosData.reduce((sum, v) => sum + v.viewCount, 0) / this.videosData.length;
+        const avgViews = this.videosData.reduce((sum, v) => sum + (v.viewCount || 0), 0) / this.videosData.length;
         const viralThreshold = avgViews * 3;
 
         const viralVideos = this.videosData
-            .filter(video => video.viewCount >= viralThreshold)
-            .sort((a, b) => b.viewCount - a.viewCount)
+            .filter(video => (video.viewCount || 0) >= viralThreshold)
+            .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
             .slice(0, 5); // Top 5 viral videos
 
         debugLog('Viral content analysis', {
@@ -154,7 +165,7 @@ export class AnalyticsService {
             return { avgLength: 0, commonWords: [], questionPercent: 0 };
         }
 
-        const titles = this.videosData.map(v => v.title);
+        const titles = this.videosData.map(v => v.title || 'Untitled');
         const avgLength = Math.round(titles.reduce((sum, title) => sum + title.length, 0) / titles.length);
 
         // Find common words (excluding stop words)

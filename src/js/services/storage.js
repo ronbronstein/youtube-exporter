@@ -405,6 +405,7 @@ function createStorageService() {
         // Return a mock for Node.js environment
         return {
             isAvailable: false,
+            initialize: () => false,
             checkLocalStorageAvailability: () => false,
             saveAnalysis: () => false,
             loadAnalysis: () => null,
@@ -416,7 +417,10 @@ function createStorageService() {
             clearAllSavedSearches: () => false,
             saveApiKey: () => false,
             loadSavedApiKey: () => null,
+            getApiKey: () => null,
             clearApiKey: () => false,
+            getLastAnalyzedChannel: () => null,
+            setLastAnalyzedChannel: () => false,
             getStorageInfo: () => ({ available: false }),
             clearAllData: () => false
         };
