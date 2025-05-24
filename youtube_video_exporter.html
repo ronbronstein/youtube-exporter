@@ -1250,19 +1250,20 @@
             const error = urlParams.get('error');
             
             if (error) {
-                showError(`GitHub authentication failed: ${error}`);
+                showOAuthErrorGuidance(`GitHub authentication failed: ${error}`);
                 return false;
             }
             
             if (code && state) {
                 const savedState = localStorage.getItem('oauth_state');
                 if (state !== savedState) {
-                    showError('Invalid authentication state. Please try again.');
+                    showOAuthErrorGuidance('Invalid authentication state. Please try again.');
                     return false;
                 }
                 
-                // Exchange code for access token (GitHub Pages - client-side only)
+                // Exchange code for access token 
                 try {
+                    showLoading('Completing GitHub authentication...');
                     const tokenData = await exchangeCodeForToken(code);
                     if (tokenData.access_token) {
                         await completeGitHubAuthentication(tokenData.access_token);
@@ -1271,10 +1272,16 @@
                         const cleanUrl = window.location.origin + window.location.pathname;
                         window.history.replaceState({}, document.title, cleanUrl);
                         
+                        hideLoading();
                         return true;
                     }
                 } catch (error) {
-                    showError('Failed to complete GitHub authentication: ' + error.message);
+                    hideLoading();
+                    showOAuthErrorGuidance('GitHub OAuth is not available on GitHub Pages hosting. ' + error.message);
+                    
+                    // Clean up URL even on error
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
                 }
             }
             
@@ -1283,12 +1290,34 @@
         
         /**
          * Exchange OAuth code for access token
-         * Note: In production, this should be done server-side for security
+         * For GitHub Pages, we'll use a serverless proxy or show helpful guidance
          */
         async function exchangeCodeForToken(code) {
-            // For GitHub Pages deployment, we need a proxy service
-            // This is a simplified approach - in production, use a secure backend
-            throw new Error('Token exchange requires server-side implementation');
+            // Try using a simple OAuth proxy service for GitHub Pages
+            try {
+                // You can replace this with your own serverless function URL
+                const proxyUrl = 'https://github-oauth-proxy.vercel.app/api/oauth';
+                
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client_id: CONFIG.AUTH.CLIENT_ID,
+                        code: code,
+                        redirect_uri: CONFIG.AUTH.REDIRECT_URI
+                    })
+                });
+                
+                if (response.ok) {
+                    return await response.json();
+                }
+                
+                throw new Error('OAuth proxy service unavailable');
+                
+            } catch (error) {
+                // If proxy fails, provide helpful guidance instead of hard error
+                throw new Error('GitHub OAuth requires a server component. Please use the manual API key option instead, or set up your own OAuth proxy service.');
+            }
         }
         
         /**
@@ -2726,6 +2755,41 @@
             messages.forEach(msg => msg.remove());
         }
         
+        /**
+         * Show OAuth-specific error guidance
+         */
+        function showOAuthErrorGuidance(message) {
+            clearMessages();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message error';
+            errorDiv.style.background = '#fff3cd';
+            errorDiv.style.color = '#856404';
+            errorDiv.style.borderColor = '#ffeaa7';
+            errorDiv.innerHTML = `
+                <div style="margin-bottom: 12px;">
+                    <strong>🔐 GitHub OAuth Limitation:</strong> ${message}
+                </div>
+                <div style="font-size: 12px; line-height: 1.4;">
+                    <strong>✨ Quick Solution:</strong> Use "Option 2: Quick Start" below to enter your API key directly.<br>
+                    <strong>🔒 For secure OAuth:</strong> Download and run this tool locally, or deploy to a platform with server-side functions.
+                </div>
+            `;
+            
+            const mainSection = document.querySelector('.main-section');
+            const controlPanel = document.querySelector('.control-panel');
+            controlPanel.insertAdjacentElement('afterend', errorDiv);
+            
+            debugLog(`⚠️ OAuth Error: ${message}`);
+            
+            // Auto-hide after 10 seconds (longer for guidance)
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 10000);
+        }
+        
         /* ===== DISPLAY & VIEW FUNCTIONS ===== */
         
         // Main video rendering dispatcher
@@ -3019,11 +3083,14 @@
                             </div>
                             <div style="font-size: 12px; color: var(--xp-text); margin-bottom: 12px; line-height: 1.4;">
                                 Sign in with GitHub to securely encrypt and store your YouTube API key. Your key never leaves your browser.
+                                <div style="background: #fff3cd; padding: 6px; border-radius: 4px; margin-top: 8px; font-size: 11px; color: #856404;">
+                                    <strong>⚠️ GitHub Pages Note:</strong> OAuth requires server-side components. For now, use Option 2 below, or run locally for full OAuth.
+                                </div>
                             </div>
                             <button onclick="authenticateWithGitHub()" style="
                                 width: 100%; 
                                 padding: 10px 16px; 
-                                background: #24292e; 
+                                background: #6c757d; 
                                 color: white; 
                                 border: none; 
                                 border-radius: 6px; 
@@ -3034,8 +3101,9 @@
                                 align-items: center;
                                 justify-content: center;
                                 gap: 8px;
+                                opacity: 0.7;
                             ">
-                                <span>🐱</span> Sign in with GitHub
+                                <span>🐱</span> Sign in with GitHub (Limited)
                             </button>
                         </div>
                         
