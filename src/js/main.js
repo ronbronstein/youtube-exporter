@@ -11,6 +11,8 @@ import { CONFIG, globalState, updateGlobalState, getGlobalState } from './config
 import { DemoRateLimiter } from './utils/rateLimiter.js';
 import { detectEnvironment, initializeEnvironment } from './utils/environment.js';
 import { YouTubeApiService } from './services/youtubeApi.js';
+import { youtubeApiService } from './services/youtubeApi.js';
+import { storageService } from './services/storage.js';
 
 // Initialize the application
 debugLog('YouTube Research Hub - Modular version loading...');
@@ -70,6 +72,46 @@ debugLog('Testing YouTubeApiService', {
     hasGetChannelData: typeof youtubeApi.getChannelData === 'function',
     hasValidateApiKey: typeof youtubeApi.validateApiKey === 'function'
 });
+
+// Test all modules
+console.log('🧪 Testing all modules...');
+
+// Test storage service
+console.log('📦 Testing storage service...');
+const storageInfo = storageService.getStorageInfo();
+console.log('Storage info:', storageInfo);
+
+// Test saving/loading a mock analysis
+const mockAnalysis = [
+    { title: 'Test Video 1', views: 1000 },
+    { title: 'Test Video 2', views: 2000 }
+];
+storageService.saveAnalysis('test_channel', mockAnalysis);
+const loaded = storageService.loadAnalysis('test_channel');
+console.log('Storage test - saved and loaded:', loaded?.length === 2 ? '✅' : '❌');
+
+// Test saved searches
+const mockSearch = {
+    name: 'Test Search',
+    channel: '@testchannel',
+    keywords: 'test keywords',
+    logic: 'OR',
+    order: 'date',
+    videoCount: 2
+};
+const savedSearch = storageService.saveSearch(mockSearch);
+console.log('Search save test:', savedSearch ? '✅' : '❌');
+
+const searches = storageService.getSavedSearches();
+console.log('Saved searches count:', searches.length);
+
+// Clean up test data
+storageService.clearAnalysis('test_channel');
+if (savedSearch) {
+    storageService.deleteSavedSearch(savedSearch.id);
+}
+
+console.log('✅ All modules loaded and tested successfully!');
 
 // Initialize environment
 initializeEnvironment();

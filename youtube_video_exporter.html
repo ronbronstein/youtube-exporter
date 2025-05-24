@@ -3613,8 +3613,10 @@
                 import('./src/js/utils/debug.js'),
                 import('./src/js/config.js'),
                 import('./src/js/utils/rateLimiter.js'),
-                import('./src/js/utils/environment.js')
-            ]).then(([formatter, security, debug, config, rateLimiter, environment]) => {
+                import('./src/js/utils/environment.js'),
+                import('./src/js/services/youtubeApi.js'),
+                import('./src/js/services/storage.js')
+            ]).then(([formatter, security, debug, config, rateLimiter, environment, youtubeApi, storage]) => {
                 
                 // Bridge formatter functions (replace existing ones)
                 window.formatViewCount = formatter.formatViewCount;
@@ -3643,6 +3645,59 @@
                 window.detectEnvironment = environment.detectEnvironment;
                 window.initializeEnvironment = environment.initializeEnvironment;
                 
+                // Bridge YouTube API service (replace existing functions)
+                const youtubeApiServiceInstance = new youtubeApi.YouTubeApiService();
+                window.getChannelData = (channelInput, apiKey) => youtubeApiServiceInstance.getChannelData(channelInput, apiKey);
+                window.getAllChannelVideos = (playlistId, apiKey, progressCallback) => youtubeApiServiceInstance.getAllChannelVideos(playlistId, apiKey, progressCallback);
+                window.processVideoDataBatched = (videos, apiKey, progressCallback) => youtubeApiServiceInstance.processVideoDataBatched(videos, apiKey, progressCallback);
+                
+                // Bridge storage service (replace existing functions)
+                window.saveAnalysis = (channelId, data) => storage.storageService.saveAnalysis(channelId, data);
+                window.loadAnalysis = (channelId) => storage.storageService.loadAnalysis(channelId);
+                window.getSavedSearches = () => storage.storageService.getSavedSearches();
+                window.deleteSavedSearch = (searchId) => {
+                    storage.storageService.deleteSavedSearch(searchId);
+                    loadSavedSearches(); // Refresh UI
+                };
+                
+                // Enhanced saveCurrentSearch that uses the storage service
+                window.saveCurrentSearchModular = () => {
+                    const saveSearchChecked = document.getElementById('saveSearch').checked;
+                    if (!saveSearchChecked) return;
+                    
+                    const channelInput = document.getElementById('channelInput').value.trim();
+                    const channelQuery = document.getElementById('channelQuery').value.trim();
+                    const searchLogic = document.getElementById('searchLogic').value;
+                    const order = document.getElementById('channelOrder').value;
+                    const searchName = document.getElementById('searchName').value.trim();
+                    
+                    if (!channelInput) return;
+                    
+                    const searchData = {
+                        name: searchName,
+                        channel: channelInput,
+                        keywords: channelQuery,
+                        logic: searchLogic,
+                        order: order,
+                        videoCount: videosData.length
+                    };
+                    
+                    const savedSearch = storage.storageService.saveSearch(searchData);
+                    
+                    if (savedSearch) {
+                        // Reset save checkbox and hide name input
+                        document.getElementById('saveSearch').checked = false;
+                        document.getElementById('searchName').value = '';
+                        document.getElementById('searchName').style.display = 'none';
+                        
+                        loadSavedSearches();
+                        showSuccess(`Search saved: "${savedSearch.name}"`);
+                    }
+                };
+                
+                // Replace the original saveCurrentSearch with the modular version
+                window.saveCurrentSearch = window.saveCurrentSearchModular;
+                
                 // Sync global state with module state
                 config.updateGlobalState('videosData', videosData);
                 config.updateGlobalState('filteredData', filteredData);
@@ -3654,6 +3709,8 @@
                 config.updateGlobalState('currentEnvironment', currentEnvironment);
                 
                 console.log('🔗 Module system bridge activated! Functions now using modular implementations.');
+                console.log('📦 Storage service bridged - analysis caching and saved searches now modular');
+                console.log('🎯 YouTube API service bridged - channel analysis now modular');
                 
             }).catch(error => {
                 console.warn('⚠️ Module system bridge failed, using legacy implementations:', error);
