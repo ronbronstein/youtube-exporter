@@ -11,12 +11,9 @@
     "test:node": "node src/js/integration-test.js",
     "test:browser": "echo 'Open http://localhost:4173?test=true after npm run preview'",
     "test:design": "node test-design.js",
-    "test:all": "npm run test && npm run test:design",
     "performance": "npx lighthouse http://localhost:4173 --only-categories=performance --quiet",
     "bundle-size": "npx bundlesize",
     "security-audit": "npm audit --audit-level moderate",
-    "deploy": "npm run build && npm run test:all && echo 'Ready for deployment'",
-    "deploy:gh-pages": "npm run build && gh-pages -d dist",
     "clean": "rm -rf dist node_modules/.vite",
     "validate": "npm run build && npm run preview"
   },
@@ -31,12 +28,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/youtube-research-hub.git"
+    "url": "https://github.com/ronbronstein/youtube-exporter.git"
   },
   "bugs": {
-    "url": "https://github.com/user/youtube-research-hub/issues"
+    "url": "https://github.com/ronbronstein/youtube-exporter/issues"
   },
-  "homepage": "https://github.com/user/youtube-research-hub",
+  "homepage": "https://github.com/ronbronstein/youtube-exporter",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
@@ -47,7 +44,6 @@
   },
   "devDependencies": {
     "vite": "^6.3.5",
-    "gh-pages": "^6.1.1",
     "bundlesize": "^0.18.2",
     "lighthouse": "^12.0.0"
   },
@@ -64,10 +60,11 @@
     }
   ],
   "files": [
-    "test-server.js",
-    "youtube_video_exporter.html",
-    "config.template",
+    "src/",
+    "dist/",
+    "docs/",
     "README.md",
-    "docs/"
+    "package.json",
+    "vite.config.js"
   ]
 }

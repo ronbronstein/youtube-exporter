@@ -15,7 +15,7 @@ export const CONFIG = {
         }
     },
     AUTH: {
-        GITHUB_OAUTH_ENABLED: false, // Will be enabled for GitHub Pages
+        GITHUB_OAUTH_ENABLED: false, // OAuth disabled for static hosting
         CLIENT_ID: '', // Will be set based on environment
         REDIRECT_URI: '', // Will be set based on environment
         SCOPES: 'read:user', // Minimal GitHub scopes needed
@@ -25,9 +25,8 @@ export const CONFIG = {
     },
     ENVIRONMENT: {
         DETECTED: null, // Will be set on initialization
-        GITHUB_PAGES_DOMAINS: ['github.io', 'github.dev'],
         LOCAL_DOMAINS: ['localhost', '127.0.0.1'],
-        SUPPORTED_ENVIRONMENTS: ['github-pages', 'local-file', 'local-server', 'custom-domain']
+        SUPPORTED_ENVIRONMENTS: ['live', 'demo', 'local-file', 'local-server']
     },
     UI: {
         CHART_COLORS: {

@@ -1,4 +1,4 @@
-import { A as App, Y as YouTubeApiService, s as storageService, a as analyticsService, C as CONFIG, d as detectEnvironment, f as formatViewCount, b as formatDuration, c as sanitizeURL, v as validateApiKey, B as BaseComponent, V as VideoList, L as LoadingSpinner, M as MessagePanel, u as updateGlobalState, g as getGlobalState, G as GlobalLoading, e as debugLog } from "./index-CNI4ZtoK.js";
+import { A as App, Y as YouTubeApiService, s as storageService, a as analyticsService, C as CONFIG, d as detectEnvironment, f as formatViewCount, b as formatDuration, c as sanitizeURL, v as validateApiKey, B as BaseComponent, V as VideoList, L as LoadingSpinner, M as MessagePanel, u as updateGlobalState, g as getGlobalState, G as GlobalLoading, e as debugLog } from "./index-2wBAZ2HQ.js";
 class IntegrationTest {
   constructor() {
     this.testResults = {

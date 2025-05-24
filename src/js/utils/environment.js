@@ -1,6 +1,6 @@
 /**
  * Environment Detection & Initialization Utilities
- * Handles different deployment environments (GitHub Pages, local, etc.)
+ * Handles different deployment environments (Live hosting, local, etc.)
  */
 
 import { CONFIG, updateGlobalState } from '../config.js';
@@ -20,11 +20,6 @@ export function detectEnvironment() {
         return 'demo';
     }
     
-    // Check if running on GitHub Pages (live environment)
-    if (CONFIG.ENVIRONMENT.GITHUB_PAGES_DOMAINS.some(domain => hostname.includes(domain))) {
-        return 'live';
-    }
-    
     // Check if running as local file
     if (protocol === 'file:') {
         return 'local-file';
@@ -35,7 +30,7 @@ export function detectEnvironment() {
         return 'local-server';
     }
     
-    // Default to live for any other domain
+    // Default to live for any hosted domain (Cloudways, custom domain, etc.)
     return 'live';
 }
 

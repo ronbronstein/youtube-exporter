@@ -983,7 +983,7 @@ const CONFIG = {
   },
   AUTH: {
     GITHUB_OAUTH_ENABLED: false,
-    // Will be enabled for GitHub Pages
+    // OAuth disabled for static hosting
     CLIENT_ID: "",
     // Will be set based on environment
     REDIRECT_URI: "",
@@ -998,9 +998,8 @@ const CONFIG = {
   ENVIRONMENT: {
     DETECTED: null,
     // Will be set on initialization
-    GITHUB_PAGES_DOMAINS: ["github.io", "github.dev"],
     LOCAL_DOMAINS: ["localhost", "127.0.0.1"],
-    SUPPORTED_ENVIRONMENTS: ["github-pages", "local-file", "local-server", "custom-domain"]
+    SUPPORTED_ENVIRONMENTS: ["live", "demo", "local-file", "local-server"]
   },
   UI: {
     CHART_COLORS: {
@@ -1016,11 +1015,16 @@ const CONFIG = {
   },
   DEMO: {
     ENABLED: false,
-    // Will be set by server/environment
-    MAX_VIDEOS_PER_ANALYSIS: 100,
-    MAX_ANALYSES_PER_IP_PER_DAY: 3,
-    GLOBAL_DAILY_LIMIT: 100,
-    RATE_LIMIT_STORAGE_KEY: "yt_demo_usage"
+    // Will be set by environment detection
+    MAX_VIDEOS_PER_ANALYSIS: 50,
+    // Reduced from 100 for demo
+    MAX_ANALYSES_PER_IP_PER_DAY: 5,
+    // Increased from 3 for better demo experience
+    GLOBAL_DAILY_LIMIT: 200,
+    // Increased from 100
+    RATE_LIMIT_STORAGE_KEY: "yt_demo_usage",
+    API_QUOTA_PER_ANALYSIS: 150
+    // Estimate: channel(1) + search(100) + videos(50)
   }
 };
 let globalState = {
@@ -1178,15 +1182,17 @@ class PerformanceMonitor {
       memoryUsage: [],
       userInteractions: []
     };
-    this.startTime = performance.now();
-    this.isProduction = !window.__DEV__;
+    const isBrowser = typeof window !== "undefined";
+    this.startTime = isBrowser ? performance.now() : Date.now();
+    this.isProduction = isBrowser ? !window.__DEV__ : true;
+    this.isBrowser = isBrowser;
   }
   // Track component render performance
   trackRender(componentName, renderFn) {
     if (!this.shouldTrack()) return renderFn();
-    const start = performance.now();
+    const start = this.isBrowser ? performance.now() : Date.now();
     const result = renderFn();
-    const duration = performance.now() - start;
+    const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
     this.metrics.renderTimes.push({
       component: componentName,
       duration,
@@ -1200,10 +1206,10 @@ class PerformanceMonitor {
   // Track API call performance
   trackApiCall(endpoint, promise) {
     if (!this.shouldTrack()) return promise;
-    const start = performance.now();
+    const start = this.isBrowser ? performance.now() : Date.now();
     const callId = Math.random().toString(36).substr(2, 9);
     return promise.then((result) => {
-      const duration = performance.now() - start;
+      const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
       this.metrics.apiCalls.push({
         id: callId,
         endpoint,
@@ -1216,7 +1222,7 @@ class PerformanceMonitor {
       }
       return result;
     }).catch((error) => {
-      const duration = performance.now() - start;
+      const duration = (this.isBrowser ? performance.now() : Date.now()) - start;
       this.metrics.apiCalls.push({
         id: callId,
         endpoint,
@@ -1228,9 +1234,9 @@ class PerformanceMonitor {
       throw error;
     });
   }
-  // Track memory usage
+  // Track memory usage (browser only)
   trackMemoryUsage() {
-    if (!this.shouldTrack() || !performance.memory) return;
+    if (!this.shouldTrack() || !this.isBrowser || !performance.memory) return;
     const memory = {
       used: performance.memory.usedJSHeapSize,
       total: performance.memory.totalJSHeapSize,
@@ -1309,23 +1315,27 @@ class PerformanceMonitor {
     console.groupEnd();
     return summary;
   }
-  // Start periodic monitoring
+  // Start periodic monitoring (browser only)
   startMonitoring() {
-    if (!this.shouldTrack()) return;
+    if (!this.shouldTrack() || !this.isBrowser) return;
     this.memoryInterval = setInterval(() => {
       this.trackMemoryUsage();
     }, 3e4);
     this.reportInterval = setInterval(() => {
       this.logPerformanceReport();
     }, 3e5);
-    document.addEventListener("visibilitychange", () => {
-      this.trackUserInteraction("visibilityChange", {
-        hidden: document.hidden
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        this.trackUserInteraction("visibilityChange", {
+          hidden: document.hidden
+        });
       });
-    });
-    window.addEventListener("beforeunload", () => {
-      this.logPerformanceReport();
-    });
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", () => {
+        this.logPerformanceReport();
+      });
+    }
   }
   // Stop monitoring
   stopMonitoring() {
@@ -1997,7 +2007,30 @@ class StorageService {
     }
   }
 }
-const storageService = new StorageService();
+function createStorageService() {
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    return new StorageService();
+  } else {
+    return {
+      isAvailable: false,
+      checkLocalStorageAvailability: () => false,
+      saveAnalysis: () => false,
+      loadAnalysis: () => null,
+      clearAnalysis: () => false,
+      getSavedSearches: () => [],
+      saveSearch: () => false,
+      deleteSavedSearch: () => false,
+      getSavedSearch: () => null,
+      clearAllSavedSearches: () => false,
+      saveApiKey: () => false,
+      loadSavedApiKey: () => null,
+      clearApiKey: () => false,
+      getStorageInfo: () => ({ available: false }),
+      clearAllData: () => false
+    };
+  }
+}
+const storageService = createStorageService();
 class AnalyticsService {
   constructor() {
     this.videosData = [];
@@ -2361,8 +2394,9 @@ const analyticsService = new AnalyticsService();
 function detectEnvironment() {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
-  if (CONFIG.ENVIRONMENT.GITHUB_PAGES_DOMAINS.some((domain) => hostname.includes(domain))) {
-    return "github-pages";
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has("demo") || searchParams.get("mode") === "demo") {
+    return "demo";
   }
   if (protocol === "file:") {
     return "local-file";
@@ -2370,7 +2404,7 @@ function detectEnvironment() {
   if (CONFIG.ENVIRONMENT.LOCAL_DOMAINS.includes(hostname)) {
     return "local-server";
   }
-  return "custom-domain";
+  return "live";
 }
 function initializeEnvironment() {
   const currentEnvironment = detectEnvironment();
@@ -2378,51 +2412,52 @@ function initializeEnvironment() {
   updateGlobalState("currentEnvironment", currentEnvironment);
   debugLog(`Environment detected: ${currentEnvironment}`);
   switch (currentEnvironment) {
-    case "github-pages":
-      initializeGitHubPages();
+    case "demo":
+      initializeDemoEnvironment();
       break;
-    case "local-file":
-      initializeLocalFile();
+    case "live":
+      initializeLiveEnvironment();
       break;
     case "local-server":
       initializeLocalServer();
       break;
-    case "custom-domain":
-      initializeCustomDomain();
+    case "local-file":
+      initializeLocalFile();
       break;
     default:
-      console.warn("Unknown environment, defaulting to local-file mode");
-      initializeLocalFile();
+      console.warn("Unknown environment, defaulting to live mode");
+      initializeLiveEnvironment();
   }
 }
-function initializeGitHubPages() {
+function initializeDemoEnvironment() {
+  CONFIG.DEMO.ENABLED = true;
   CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-  showEnvironmentBanner("🌐 Live Demo - Powered by GitHub Pages");
-  debugLog("GitHub Pages mode initialized (manual API key only)");
+  {
+    console.warn("⚠️ Demo mode enabled but no API key found");
+  }
+  showEnvironmentBanner("🎭 Demo Mode - Limited functionality with built-in API key");
+}
+function initializeLiveEnvironment() {
+  CONFIG.DEMO.ENABLED = false;
+  CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+  updateGlobalState("apiMode", "live");
+  showEnvironmentBanner("🌐 Live Version - Enter your YouTube API key to get started");
+  debugLog("✅ Live environment initialized");
+}
+function initializeLocalServer() {
+  CONFIG.DEMO.ENABLED = false;
+  CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+  updateGlobalState("apiMode", "local");
+  showEnvironmentBanner("🔧 Local Server - Development Mode");
+  debugLog("Local server mode initialized");
 }
 function initializeLocalFile() {
   CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
   showEnvironmentBanner("🏠 Local Development - Direct File Access");
   debugLog("Local file mode initialized");
 }
-function initializeLocalServer() {
-  CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-  showEnvironmentBanner("🔧 Local Server - Development Mode");
-  debugLog("Local server mode initialized");
-}
-function initializeCustomDomain() {
-  CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-  showEnvironmentBanner("🌍 Custom Domain - Production Mode");
-  debugLog("Custom domain mode initialized (manual API key only)");
-}
 function showEnvironmentBanner(message) {
   console.log(`🏷️ Environment Banner: ${message}`);
-  if (typeof document !== "undefined") {
-    const title = document.title;
-    if (!title.includes("|")) {
-      document.title = `${title} | ${message}`;
-    }
-  }
 }
 class App extends BaseComponent {
   constructor(container, options = {}) {
@@ -2909,7 +2944,7 @@ function initializeApp() {
 async function runIntegrationTests() {
   try {
     const { default: IntegrationTest } = await __vitePreload(async () => {
-      const { default: IntegrationTest2 } = await import("./integration-test-Bo3wNhuu.js");
+      const { default: IntegrationTest2 } = await import("./integration-test-CDj8j305.js");
       return { default: IntegrationTest2 };
     }, true ? [] : void 0);
     const appContainer = document.getElementById("app");
