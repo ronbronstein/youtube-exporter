@@ -39,7 +39,7 @@ git push origin main
 # → Automatic deployment via GitHub Actions
 ```
 
-**Live URL**: `https://ronbronstein.github.io/YoutubeExporter/`
+**Live URL**: `https://ronbronstein.github.io/youtube-exporter/`
 
 ### **GitHub Actions Workflow**
 
@@ -99,7 +99,7 @@ jobs:
 **Vite Configuration** (`vite.config.js`):
 ```javascript
 export default defineConfig({
-  base: '/YoutubeExporter/',  // GitHub Pages path
+  base: '/youtube-exporter/',  // GitHub Pages path
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -129,8 +129,8 @@ export default defineConfig({
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/ronbronstein/YoutubeExporter.git
-cd YoutubeExporter
+git clone https://github.com/ronbronstein/youtube-exporter.git
+cd youtube-exporter
 
 # 2. Install dependencies
 npm install
@@ -256,7 +256,7 @@ Application restrictions:
 ✅ HTTP referrer (web sites)
 
 Website restrictions:
-• https://ronbronstein.github.io/YoutubeExporter/*
+• https://ronbronstein.github.io/youtube-exporter/*
 • http://localhost:*/* (for development)
 
 API restrictions:
@@ -274,7 +274,7 @@ API restrictions:
 - name: Verify Deployment
   run: |
     sleep 30  # Wait for propagation
-    curl -f https://ronbronstein.github.io/YoutubeExporter/ || exit 1
+    curl -f https://ronbronstein.github.io/youtube-exporter/ || exit 1
     echo "✅ Deployment verified"
 ```
 
@@ -319,7 +319,7 @@ CNAME   youtube-hub.domain.com  ronbronstein.github.io
 ```javascript
 // vite.config.js
 base: process.env.NODE_ENV === 'production' 
-  ? (process.env.CUSTOM_DOMAIN ? '/' : '/YoutubeExporter/')
+  ? (process.env.CUSTOM_DOMAIN ? '/' : '/youtube-exporter/')
   : '/'
 ```
 

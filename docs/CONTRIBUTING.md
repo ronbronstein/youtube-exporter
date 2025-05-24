@@ -6,8 +6,8 @@ Welcome! We're excited you want to contribute to the YouTube Research Hub. This 
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/ronbronstein/YoutubeExporter.git
-cd YoutubeExporter
+git clone https://github.com/ronbronstein/youtube-exporter.git
+cd youtube-exporter
 npm install
 
 # 2. Start development
@@ -144,7 +144,7 @@ Our tests verify:
 ## 🎯 **Contribution Areas**
 
 ### **🐛 Bug Fixes**
-- Check [Issues](https://github.com/ronbronstein/YoutubeExporter/issues)
+- Check [Issues](https://github.com/ronbronstein/youtube-exporter/issues)
 - Small fixes: PR directly
 - Large fixes: Create issue first
 
@@ -204,7 +204,7 @@ Every merge to `main` automatically deploys via GitHub Actions:
 git push origin main
 # → Builds with Vite
 # → Deploys to GitHub Pages  
-# → Live at ronbronstein.github.io/YoutubeExporter/
+# → Live at ronbronstein.github.io/youtube-exporter/
 ```
 
 ### **Manual Testing**
@@ -217,8 +217,8 @@ npm run build && npm run preview
 
 ## 🙋 **Getting Help**
 
-- **Questions**: Create a [Discussion](https://github.com/ronbronstein/YoutubeExporter/discussions)
-- **Bugs**: Open an [Issue](https://github.com/ronbronstein/YoutubeExporter/issues)  
+- **Questions**: Create a [Discussion](https://github.com/ronbronstein/youtube-exporter/discussions)
+- **Bugs**: Open an [Issue](https://github.com/ronbronstein/youtube-exporter/issues)  
 - **Ideas**: Check [project-management/](./project-management/) or start a discussion
 
 ## 🎉 **Recognition**

@@ -10,7 +10,7 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 
 ## 🌐 **Live Demo**
 
-**🚀 [Try it now](https://ronbronstein.github.io/YoutubeExporter/)** - No installation required!
+**🚀 [Try it now](https://ronbronstein.github.io/youtube-exporter/)** - No installation required!
 
 *Just bring your own YouTube API key (free setup in 2 minutes)*
 
@@ -51,7 +51,7 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 
 ### **Option 1: Use Online (Recommended)**
 
-1. **Visit**: https://ronbronstein.github.io/YoutubeExporter/
+1. **Visit**: https://ronbronstein.github.io/youtube-exporter/
 2. **Get API Key**: [Google Cloud Console](https://console.cloud.google.com/) → Enable YouTube Data API v3
 3. **Analyze**: Enter any YouTube channel and start exploring!
 
@@ -59,8 +59,8 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 
 ```bash
 # Clone repository
-git clone https://github.com/ronbronstein/YoutubeExporter.git
-cd YoutubeExporter
+git clone https://github.com/ronbronstein/youtube-exporter.git
+cd youtube-exporter
 
 # Install dependencies
 npm install
@@ -177,8 +177,8 @@ git push origin main  # Automatic deployment
 ### **Development Setup**
 ```bash
 # Fork and clone
-git clone https://github.com/your-username/YoutubeExporter.git
-cd YoutubeExporter
+git clone https://github.com/your-username/youtube-exporter.git
+cd youtube-exporter
 
 # Install dependencies
 npm install
@@ -228,7 +228,7 @@ Every push to `main` automatically deploys via GitHub Actions:
 3. **Deploy** to GitHub Pages with custom domain support
 4. **Verify** deployment health
 
-Live at: https://ronbronstein.github.io/YoutubeExporter/
+Live at: https://ronbronstein.github.io/youtube-exporter/
 
 ### **Local Preview**
 ```bash
@@ -256,7 +256,7 @@ npm run preview  # Test locally at localhost:4173
 
 ## 📞 Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/ronbronstein/YoutubeExporter/issues)
+- **Issues**: [GitHub Issues](https://github.com/ronbronstein/youtube-exporter/issues)
 - **Documentation**: [Complete docs](./docs/)
 - **Creator**: Made with ❤️ by [Ron Bronstein](https://github.com/ronbronstein)
 
@@ -264,4 +264,4 @@ npm run preview  # Test locally at localhost:4173
 
 **⭐ Star this repo if it helps your YouTube strategy!** 
 
-*Modern architecture meets nostalgic design for powerful content insights.* 🚀✨ 
+*Modern architecture meets nostalgic design for powerful content insights.* 🚀✨

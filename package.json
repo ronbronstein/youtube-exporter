@@ -33,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/ronbronstein/youtube-exporter/issues"
   },
-  "homepage": "https://ronbronstein.github.io/YoutubeExporter",
+  "homepage": "https://ronbronstein.github.io/youtube-exporter",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"

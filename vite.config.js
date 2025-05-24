@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/YoutubeExporter/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/youtube-exporter/' : '/',
   root: 'src',
   build: {
     outDir: '../dist',
