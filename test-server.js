@@ -4,11 +4,12 @@ const path = require('path');
 
 const PORT = 3000;
 
-// Demo configuration
+// Demo configuration with abuse prevention
 const DEMO_CONFIG = {
     demoMode: true,
     demoApiKey: process.env.YOUTUBE_API_KEY || 'AIzaSyDemoKey123456789', // Use environment variable or placeholder
-    enabled: true
+    enabled: process.env.DEMO_ENABLED !== 'false', // Can be disabled via environment variable
+    adminDisabled: process.env.DEMO_ADMIN_DISABLED === 'true' // Admin kill switch
 };
 
 const server = http.createServer((req, res) => {
@@ -30,6 +31,27 @@ const server = http.createServer((req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.writeHead(200);
         res.end(JSON.stringify(DEMO_CONFIG));
+        return;
+    }
+    
+    // Admin endpoints for demo management
+    if (req.url === '/api/admin/disable-demo' && req.method === 'POST') {
+        DEMO_CONFIG.enabled = false;
+        DEMO_CONFIG.adminDisabled = true;
+        res.setHeader('Content-Type', 'application/json');
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, message: 'Demo disabled' }));
+        console.log('🛑 Demo disabled via admin API');
+        return;
+    }
+    
+    if (req.url === '/api/admin/enable-demo' && req.method === 'POST') {
+        DEMO_CONFIG.enabled = true;
+        DEMO_CONFIG.adminDisabled = false;
+        res.setHeader('Content-Type', 'application/json');
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, message: 'Demo enabled' }));
+        console.log('✅ Demo enabled via admin API');
         return;
     }
 
