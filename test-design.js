@@ -3,11 +3,16 @@
 /**
  * Design Verification Test for YouTube Research Hub
  * Tests that the application loads properly with Windows XP styling
+ * Supports both local preview and production deployment testing
  */
 
 import http from 'http';
+import https from 'https';
 
-const PREVIEW_URL = 'http://localhost:4173';
+// Environment-flexible URL - can test preview server or production
+const TEST_URL = process.env.TEST_URL || 'http://localhost:4173';
+const IS_HTTPS = TEST_URL.startsWith('https://');
+
 const TESTS = [
     {
         name: 'Application loads successfully',
@@ -22,7 +27,7 @@ const TESTS = [
         test: async () => {
             // Find the CSS file name from the HTML
             const html = await fetchContent('/');
-            const cssMatch = html.match(/href="\/assets\/(index-[^"]+\.css)"/);
+            const cssMatch = html.match(/href="[^"]*\/assets\/(index-[^"]+\.css)"/);
             if (!cssMatch) return false;
             
             const css = await fetchContent(`/assets/${cssMatch[1]}`);
@@ -35,7 +40,7 @@ const TESTS = [
         name: 'Windows XP button styling present',
         test: async () => {
             const html = await fetchContent('/');
-            const cssMatch = html.match(/href="\/assets\/(index-[^"]+\.css)"/);
+            const cssMatch = html.match(/href="[^"]*\/assets\/(index-[^"]+\.css)"/);
             if (!cssMatch) return false;
             
             const css = await fetchContent(`/assets/${cssMatch[1]}`);
@@ -47,7 +52,7 @@ const TESTS = [
         name: 'JavaScript module loads correctly',
         test: async () => {
             const html = await fetchContent('/');
-            const jsMatch = html.match(/src="\/assets\/(index-[^"]+\.js)"/);
+            const jsMatch = html.match(/src="[^"]*\/assets\/(index-[^"]+\.js)"/);
             if (!jsMatch) return false;
             
             const js = await fetchContent(`/assets/${jsMatch[1]}`);
@@ -60,12 +65,27 @@ const TESTS = [
             const html = await fetchContent('/');
             return html.includes('chart.js');
         }
+    },
+    {
+        name: 'Demo mode accessible',
+        test: async () => {
+            const html = await fetchContent('/?demo=true');
+            return html.includes('YouTube Content Research Hub');
+        }
     }
 ];
 
 async function fetchContent(path) {
     return new Promise((resolve, reject) => {
-        const req = http.get(`${PREVIEW_URL}${path}`, (res) => {
+        const client = IS_HTTPS ? https : http;
+        const url = new URL(path, TEST_URL);
+        
+        const req = client.get(url.toString(), (res) => {
+            // Handle redirects
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                return fetchContent(res.headers.location).then(resolve).catch(reject);
+            }
+            
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => resolve(data));
@@ -76,7 +96,7 @@ async function fetchContent(path) {
             reject(err);
         });
         
-        req.setTimeout(5000, () => {
+        req.setTimeout(10000, () => {
             req.destroy();
             reject(new Error('Request timeout'));
         });
@@ -85,8 +105,9 @@ async function fetchContent(path) {
 
 async function runTests() {
     console.log('🧪 Design Verification Test Suite\n');
-    console.log(`Testing application at: ${PREVIEW_URL}`);
-    console.log('─'.repeat(50));
+    console.log(`Testing application at: ${TEST_URL}`);
+    console.log(`Environment: ${IS_HTTPS ? 'Production (HTTPS)' : 'Local/Preview'}`);
+    console.log('─'.repeat(60));
     
     let passed = 0;
     let failed = 0;
@@ -107,27 +128,30 @@ async function runTests() {
         }
     }
     
-    console.log('─'.repeat(50));
+    console.log('─'.repeat(60));
     console.log(`📊 Results: ${passed} passed, ${failed} failed`);
     
     if (failed === 0) {
-        console.log('🎉 All design tests passed! Windows XP styling is working correctly.');
+        console.log('🎉 All design tests passed! Application is working correctly.');
         process.exit(0);
     } else {
-        console.log('⚠️  Some tests failed. Please check the preview server and styling.');
+        console.log('⚠️  Some tests failed. Please check the deployment.');
         process.exit(1);
     }
 }
 
-// Check if preview server is running first
+// Check if server/site is accessible
 async function checkServer() {
     try {
         await fetchContent('/');
-        console.log('✅ Preview server is running\n');
+        console.log(`✅ Application is accessible at ${TEST_URL}\n`);
         return true;
     } catch (error) {
-        console.error('❌ Preview server is not running. Please start it with: npm run preview');
-        console.error(`   Expected URL: ${PREVIEW_URL}`);
+        console.error(`❌ Application is not accessible at ${TEST_URL}`);
+        console.error(`   Error: ${error.message}`);
+        console.error('\n📋 Usage:');
+        console.error('   Local Preview: npm run test:design');
+        console.error('   Production: TEST_URL=https://yourdomain.com npm run test:design');
         process.exit(1);
     }
 }

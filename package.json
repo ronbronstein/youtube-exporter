@@ -15,7 +15,8 @@
     "bundle-size": "npx bundlesize",
     "security-audit": "npm audit --audit-level moderate",
     "clean": "rm -rf dist node_modules/.vite",
-    "validate": "npm run build && npm run preview"
+    "validate": "npm run build && npm run preview",
+    "deploy": "npm run build && echo 'Build complete! Push to main branch to deploy via GitHub Actions'"
   },
   "keywords": [
     "youtube",
@@ -33,7 +34,7 @@
   "bugs": {
     "url": "https://github.com/ronbronstein/youtube-exporter/issues"
   },
-  "homepage": "https://github.com/ronbronstein/youtube-exporter",
+  "homepage": "https://ronbronstein.github.io/YoutubeExporter",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
