@@ -3615,8 +3615,9 @@
                 import('./src/js/utils/rateLimiter.js'),
                 import('./src/js/utils/environment.js'),
                 import('./src/js/services/youtubeApi.js'),
-                import('./src/js/services/storage.js')
-            ]).then(([formatter, security, debug, config, rateLimiter, environment, youtubeApi, storage]) => {
+                import('./src/js/services/storage.js'),
+                import('./src/js/services/analytics.js')
+            ]).then(([formatter, security, debug, config, rateLimiter, environment, youtubeApi, storage, analytics]) => {
                 
                 // Bridge formatter functions (replace existing ones)
                 window.formatViewCount = formatter.formatViewCount;
@@ -3660,41 +3661,6 @@
                     loadSavedSearches(); // Refresh UI
                 };
                 
-                // Enhanced saveCurrentSearch that uses the storage service
-                window.saveCurrentSearchModular = () => {
-                    const saveSearchChecked = document.getElementById('saveSearch').checked;
-                    if (!saveSearchChecked) return;
-                    
-                    const channelInput = document.getElementById('channelInput').value.trim();
-                    const channelQuery = document.getElementById('channelQuery').value.trim();
-                    const searchLogic = document.getElementById('searchLogic').value;
-                    const order = document.getElementById('channelOrder').value;
-                    const searchName = document.getElementById('searchName').value.trim();
-                    
-                    if (!channelInput) return;
-                    
-                    const searchData = {
-                        name: searchName,
-                        channel: channelInput,
-                        keywords: channelQuery,
-                        logic: searchLogic,
-                        order: order,
-                        videoCount: videosData.length
-                    };
-                    
-                    const savedSearch = storage.storageService.saveSearch(searchData);
-                    
-                    if (savedSearch) {
-                        // Reset save checkbox and hide name input
-                        document.getElementById('saveSearch').checked = false;
-                        document.getElementById('searchName').value = '';
-                        document.getElementById('searchName').style.display = 'none';
-                        
-                        loadSavedSearches();
-                        showSuccess(`Search saved: "${savedSearch.name}"`);
-                    }
-                };
-                
                 // Replace the original saveCurrentSearch with the modular version
                 window.saveCurrentSearch = window.saveCurrentSearchModular;
                 
@@ -3711,6 +3677,91 @@
                 console.log('🔗 Module system bridge activated! Functions now using modular implementations.');
                 console.log('📦 Storage service bridged - analysis caching and saved searches now modular');
                 console.log('🎯 YouTube API service bridged - channel analysis now modular');
+                console.log('📊 Analytics service bridged - content analysis and charts now modular');
+                
+                // Replace the original saveCurrentSearch with the modular version
+                window.saveCurrentSearch = window.saveCurrentSearchModular;
+                
+                // Bridge analytics service (replace existing functions)
+                window.generateContentAnalysis = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    const analysisHTML = analytics.analyticsService.generateContentAnalysisHTML();
+                    
+                    // Insert analysis before results
+                    const results = document.getElementById('results');
+                    const existingAnalysis = document.querySelector('.analysis-panel[data-title*="Content Analysis"]');
+                    if (existingAnalysis) {
+                        existingAnalysis.remove();
+                    }
+                    if (analysisHTML) {
+                        results.insertAdjacentHTML('afterbegin', analysisHTML);
+                    }
+                };
+                
+                window.generateAdvancedAnalysis = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    const advancedHTML = analytics.analyticsService.generateAdvancedAnalysisHTML();
+                    
+                    // Insert after basic analysis panel
+                    const results = document.getElementById('results');
+                    const basicAnalysis = results.querySelector('.analysis-panel[data-title*="Content Analysis"]');
+                    const existingAdvanced = results.querySelector('.analysis-panel[data-title*="Advanced Content Insights"]');
+                    if (existingAdvanced) {
+                        existingAdvanced.remove();
+                    }
+                    if (basicAnalysis && advancedHTML) {
+                        basicAnalysis.insertAdjacentHTML('afterend', advancedHTML);
+                    }
+                };
+                
+                window.createUploadTimeline = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    const chartHTML = analytics.analyticsService.generateChartPanelHTML();
+                    
+                    // Remove existing chart to prevent duplicates
+                    const results = document.getElementById('results');
+                    const existingChart = results.querySelector('.chart-panel');
+                    if (existingChart) {
+                        existingChart.remove();
+                    }
+                    
+                    // Insert after advanced analysis panel
+                    const advancedAnalysis = results.querySelector('.analysis-panel[data-title*="Advanced Content Insights"]');
+                    if (advancedAnalysis && chartHTML) {
+                        advancedAnalysis.insertAdjacentHTML('afterend', chartHTML);
+                        
+                        // Create the chart after DOM insertion
+                        setTimeout(() => {
+                            analytics.analyticsService.createUploadTimelineChart();
+                        }, 100);
+                    }
+                };
+                
+                // Bridge individual analytics functions for advanced usage
+                window.identifyViralContent = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    return analytics.analyticsService.identifyViralContent();
+                };
+                
+                window.analyzeTitlePatterns = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    return analytics.analyticsService.analyzeTitlePatterns();
+                };
+                
+                window.analyzeUploadSchedule = () => {
+                    analytics.analyticsService.setVideosData(videosData);
+                    return analytics.analyticsService.analyzeUploadSchedule();
+                };
+                
+                // Sync global state with module state
+                config.updateGlobalState('videosData', videosData);
+                config.updateGlobalState('filteredData', filteredData);
+                config.updateGlobalState('youtubeApiKey', youtubeApiKey);
+                config.updateGlobalState('currentView', currentView);
+                config.updateGlobalState('currentSort', currentSort);
+                config.updateGlobalState('apiMode', apiMode);
+                config.updateGlobalState('isDemoMode', isDemoMode);
+                config.updateGlobalState('currentEnvironment', currentEnvironment);
                 
             }).catch(error => {
                 console.warn('⚠️ Module system bridge failed, using legacy implementations:', error);

@@ -13,6 +13,7 @@ import { detectEnvironment, initializeEnvironment } from './utils/environment.js
 import { YouTubeApiService } from './services/youtubeApi.js';
 import { youtubeApiService } from './services/youtubeApi.js';
 import { storageService } from './services/storage.js';
+import { analyticsService } from './services/analytics.js';
 
 // Initialize the application
 debugLog('YouTube Research Hub - Modular version loading...');
@@ -110,6 +111,51 @@ storageService.clearAnalysis('test_channel');
 if (savedSearch) {
     storageService.deleteSavedSearch(savedSearch.id);
 }
+
+// Test analytics service
+console.log('📊 Testing analytics service...');
+const mockVideosData = [
+    {
+        title: 'How to Build Amazing Apps',
+        publishedDate: new Date('2023-01-15'),
+        viewCount: 50000,
+        likeCount: 1500,
+        commentCount: 200
+    },
+    {
+        title: 'Advanced JavaScript Patterns',
+        publishedDate: new Date('2023-02-20'),
+        viewCount: 25000,
+        likeCount: 800,
+        commentCount: 150
+    },
+    {
+        title: 'Web Security Best Practices',
+        publishedDate: new Date('2023-03-10'),
+        viewCount: 75000,
+        likeCount: 2200,
+        commentCount: 400
+    }
+];
+
+analyticsService.setVideosData(mockVideosData);
+const contentAnalysis = analyticsService.generateContentAnalysis();
+console.log('Content analysis:', contentAnalysis);
+
+const viralContent = analyticsService.identifyViralContent();
+console.log('Viral content test:', viralContent.length > 0 ? '✅' : '❌');
+
+const titlePatterns = analyticsService.analyzeTitlePatterns();
+console.log('Title patterns:', titlePatterns);
+
+const uploadSchedule = analyticsService.analyzeUploadSchedule();
+console.log('Upload schedule:', uploadSchedule);
+
+// Test HTML generation
+const analysisHTML = analyticsService.generateContentAnalysisHTML();
+console.log('HTML generation test:', analysisHTML.includes('📊 Content Analysis') ? '✅' : '❌');
+
+analyticsService.clearAnalytics();
 
 console.log('✅ All modules loaded and tested successfully!');
 
