@@ -2695,7 +2695,12 @@
             
             const errorDiv = document.createElement('div');
             errorDiv.className = 'message error';
-            errorDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+            
+            // Safe DOM creation instead of innerHTML to prevent XSS
+            const strongElement = document.createElement('strong');
+            strongElement.textContent = 'Error:';
+            errorDiv.appendChild(strongElement);
+            errorDiv.appendChild(document.createTextNode(` ${message}`));
             
             const mainSection = document.querySelector('.main-section');
             const controlPanel = document.querySelector('.control-panel');
@@ -2718,7 +2723,12 @@
             
             const successDiv = document.createElement('div');
             successDiv.className = 'message success';
-            successDiv.innerHTML = `<strong>Success:</strong> ${message}`;
+            
+            // Safe DOM creation instead of innerHTML to prevent XSS
+            const strongElement = document.createElement('strong');
+            strongElement.textContent = 'Success:';
+            successDiv.appendChild(strongElement);
+            successDiv.appendChild(document.createTextNode(` ${message}`));
             
             const mainSection = document.querySelector('.main-section');
             const controlPanel = document.querySelector('.control-panel');
