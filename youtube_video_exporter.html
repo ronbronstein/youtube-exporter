@@ -3665,6 +3665,37 @@
                     loadSavedSearches(); // Refresh UI
                 };
                 
+                // Bridge saveCurrentSearch function with modular implementation
+                window.saveCurrentSearchModular = () => {
+                    const channelInput = document.getElementById('channelInput')?.value || '';
+                    const keywordInput = document.getElementById('keywordInput')?.value || '';
+                    const searchLogic = document.querySelector('input[name="searchLogic"]:checked')?.value || 'OR';
+                    const sortOrder = document.getElementById('sortOrder')?.value || 'date';
+                    
+                    if (!channelInput) {
+                        showError('Please enter a channel to save this search');
+                        return;
+                    }
+                    
+                    const searchData = {
+                        name: `${channelInput} - ${keywordInput || 'All Videos'}`,
+                        channel: channelInput,
+                        keywords: keywordInput,
+                        logic: searchLogic,
+                        order: sortOrder,
+                        videoCount: videosData?.length || 0,
+                        timestamp: Date.now()
+                    };
+                    
+                    const saved = storage.storageService.saveSearch(searchData);
+                    if (saved) {
+                        showSuccess(`Search saved: ${searchData.name}`);
+                        loadSavedSearches(); // Refresh UI
+                    } else {
+                        showError('Failed to save search');
+                    }
+                };
+                
                 // Replace the original saveCurrentSearch with the modular version
                 window.saveCurrentSearch = window.saveCurrentSearchModular;
                 
