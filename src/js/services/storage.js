@@ -16,6 +16,13 @@ export class StorageService {
         this.isAvailable = this.checkLocalStorageAvailability();
     }
 
+    // Initialize method (App.js expects this)
+    initialize() {
+        // Just a no-op since constructor already handles initialization
+        debugLog('📦 Storage service initialized');
+        return this.isAvailable;
+    }
+
     // Check if localStorage is available
     checkLocalStorageAvailability() {
         try {
@@ -250,6 +257,14 @@ export class StorageService {
     }
 
     /**
+     * Alias for loadSavedApiKey (App.js expects this method name)
+     * @returns {string|null} API key or null if not found
+     */
+    getApiKey() {
+        return this.loadSavedApiKey();
+    }
+
+    /**
      * Clear saved API key
      */
     clearApiKey() {
@@ -261,6 +276,40 @@ export class StorageService {
             return true;
         } catch (error) {
             debugLog('Failed to clear API key', error);
+            return false;
+        }
+    }
+
+    /* ===== LAST ANALYZED CHANNEL ===== */
+
+    /**
+     * Get the last analyzed channel ID
+     * @returns {string|null} Channel ID or null if not found
+     */
+    getLastAnalyzedChannel() {
+        if (!this.isAvailable) return null;
+
+        try {
+            return localStorage.getItem('lastAnalyzedChannel');
+        } catch (error) {
+            debugLog('Failed to get last analyzed channel', error);
+            return null;
+        }
+    }
+
+    /**
+     * Set the last analyzed channel ID
+     * @param {string} channelId - Channel ID to store
+     */
+    setLastAnalyzedChannel(channelId) {
+        if (!this.isAvailable) return false;
+
+        try {
+            localStorage.setItem('lastAnalyzedChannel', channelId);
+            debugLog('Last analyzed channel set', { channelId });
+            return true;
+        } catch (error) {
+            debugLog('Failed to set last analyzed channel', error);
             return false;
         }
     }

@@ -18,6 +18,9 @@ export class BaseComponent {
         this.childComponents = new Set();
         this.isDestroyed = false;
         
+        // Event emitter functionality
+        this.eventHandlers = new Map();
+        
         debugLog(`🏗️ Creating component: ${this.constructor.name}`);
     }
     
@@ -99,6 +102,49 @@ export class BaseComponent {
         }
     }
     
+    // Event Emitter Methods
+    on(eventName, handler) {
+        if (!this.eventHandlers.has(eventName)) {
+            this.eventHandlers.set(eventName, []);
+        }
+        this.eventHandlers.get(eventName).push(handler);
+        return this;
+    }
+
+    off(eventName, handler = null) {
+        if (!this.eventHandlers.has(eventName)) return this;
+        
+        if (handler === null) {
+            // Remove all handlers for this event
+            this.eventHandlers.delete(eventName);
+        } else {
+            // Remove specific handler
+            const handlers = this.eventHandlers.get(eventName);
+            const index = handlers.indexOf(handler);
+            if (index > -1) {
+                handlers.splice(index, 1);
+                if (handlers.length === 0) {
+                    this.eventHandlers.delete(eventName);
+                }
+            }
+        }
+        return this;
+    }
+
+    emit(eventName, data = null) {
+        if (!this.eventHandlers.has(eventName)) return this;
+        
+        const handlers = this.eventHandlers.get(eventName);
+        handlers.forEach(handler => {
+            try {
+                handler(data);
+            } catch (error) {
+                debugLog(`Error in event handler for ${eventName}:`, error);
+            }
+        });
+        return this;
+    }
+    
     // Child Component Management
     addChild(component) {
         if (this.isDestroyed) return;
@@ -163,6 +209,9 @@ export class BaseComponent {
         this.eventListeners.forEach((listener, key) => {
             this.removeListener(key);
         });
+        
+        // Clear event handlers
+        this.eventHandlers.clear();
         
         // Call custom cleanup
         this.onDestroy();
