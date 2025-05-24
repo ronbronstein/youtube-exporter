@@ -685,7 +685,7 @@
         
         <div class="main-section">
             <div class="control-panel">
-                <!-- API Key Security Panel -->
+                <!-- API Key Input Panel -->
                 <div id="apiKeyPanel" style="background: #fffbf0; border: 2px inset var(--xp-button-face); border-radius: 4px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #f0ad4e; display: none;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <span style="font-size: 16px;">🔐</span>
@@ -702,15 +702,20 @@
                     </div>
                     
                     <details style="margin-top: 8px;">
-                        <summary style="cursor: pointer; font-size: 12px; color: var(--xp-blue-start); font-weight: bold;">🛡️ Security Setup (Important - Click to expand)</summary>
+                        <summary style="cursor: pointer; font-size: 12px; color: var(--xp-blue-start); font-weight: bold;">🆓 Get your FREE API key in 2 minutes</summary>
                         <div style="margin-top: 8px; padding: 8px; background: white; border: 1px inset var(--xp-button-face); border-radius: 3px; font-size: 11px; line-height: 1.4;">
-                            <p style="margin: 0 0 8px 0;"><strong>After creating your API key, secure it:</strong></p>
+                            <p style="margin: 0 0 8px 0;"><strong>Quick setup guide:</strong></p>
                             <ol style="margin: 0; padding-left: 16px;">
-                                <li><strong>Application restrictions:</strong> HTTP referrers → Add: <code style="background: #f0f0f0; padding: 1px 4px;">yourdomain.github.io/*</code></li>
-                                <li><strong>API restrictions:</strong> Restrict to "YouTube Data API v3" only</li>
-                                <li><strong>Quotas:</strong> Set daily limit 1,000-5,000 units (prevents overuse)</li>
+                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--xp-blue-start);">Google Cloud Console</a></li>
+                                <li>Create a new project (or select existing)</li>
+                                <li>Enable "YouTube Data API v3"</li>
+                                <li>Go to Credentials → Create Credentials → API key</li>
+                                <li><strong>Important:</strong> Restrict your key to this domain and YouTube API only</li>
+                                <li>Copy your API key and paste it above</li>
                             </ol>
-                            <p style="margin: 8px 0 0 0; color: var(--xp-text-disabled);"><strong>Note:</strong> Your key is visible in browser tools (not 100% secure). Restrict it properly for safety.</p>
+                            <div style="margin-top: 8px; padding: 6px; background: #e8f5e8; border-radius: 3px; font-size: 10px;">
+                                <strong>🔒 Security tip:</strong> Always restrict your API keys to specific websites and APIs for security.
+                            </div>
                         </div>
                     </details>
                 </div>
@@ -1140,24 +1145,16 @@
         }
         
         /**
-         * Initialize GitHub Pages environment with OAuth
+         * Initialize GitHub Pages environment (simplified)
          */
         function initializeGitHubPages() {
-            // Enable GitHub OAuth
-            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = true;
-            CONFIG.AUTH.CLIENT_ID = 'Ov23liR7Q5oJpOx15qT9'; // Real GitHub OAuth Client ID
-            CONFIG.AUTH.REDIRECT_URI = window.location.origin + window.location.pathname;
+            // Disable OAuth for GitHub Pages - use manual API key entry only
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
             
             // Show environment indicator
             showEnvironmentBanner('🌐 Live Demo - Powered by GitHub Pages');
             
-            // Check for OAuth callback
-            handleOAuthCallback();
-            
-            // Try to restore authenticated session
-            restoreAuthenticatedSession();
-            
-            debugLog('GitHub Pages mode initialized with OAuth support');
+            debugLog('GitHub Pages mode initialized (manual API key only)');
         }
         
         /**
@@ -1182,15 +1179,11 @@
          * Initialize custom domain environment
          */
         function initializeCustomDomain() {
-            // Enable GitHub OAuth for custom domains too
-            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = true;
-            CONFIG.AUTH.CLIENT_ID = 'Ov23liR7Q5oJpOx15qT9'; // Real GitHub OAuth Client ID
-            CONFIG.AUTH.REDIRECT_URI = window.location.origin + window.location.pathname;
+            // Disable OAuth for static hosting - use manual API key entry
+            CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
             
             showEnvironmentBanner('🌍 Custom Domain - Production Mode');
-            handleOAuthCallback();
-            restoreAuthenticatedSession();
-            debugLog('Custom domain mode initialized with OAuth support');
+            debugLog('Custom domain mode initialized (manual API key only)');
         }
         
         /**
@@ -1658,40 +1651,14 @@
                 debugLog('Server not available, checking for authenticated user...');
             }
             
-            // Check for authenticated GitHub user with encrypted API key
-            if (isAuthenticated) {
-                try {
-                    const encryptedKey = await loadEncryptedApiKey();
-                    if (encryptedKey) {
-                        youtubeApiKey = encryptedKey;
-                        apiMode = currentEnvironment === 'github-pages' ? 'github-pages' : 'authenticated';
-                        isDemoMode = false;
-                        hideApiKeyPanel();
-                        showAuthenticatedUserInfo();
-                        debugLog('✅ Authenticated mode: API key loaded from encrypted storage');
-                        console.log(`🔐 Authenticated mode: Welcome back ${githubUser.login}!`);
-                        return 'authenticated';
-                    }
-                } catch (error) {
-                    debugLog('Failed to load encrypted API key', error);
-                    // Fall through to show key input
-                }
-            }
-            
-            // Web mode - show appropriate UI based on environment
+            // Web mode - always use simple API key input now
             apiMode = 'web';
             isDemoMode = false;
             
-            if (CONFIG.AUTH.GITHUB_OAUTH_ENABLED) {
-                showGitHubAuthPanel();
-                debugLog('🌐 GitHub Pages mode: Authentication available');
-                console.log('🌐 GitHub Pages mode: Please authenticate or enter API key');
-            } else {
-                showApiKeyPanel();
-                loadSavedClientKey(); // Legacy plain text storage for local development
-                debugLog('🏠 Local mode: Direct API key input');
-                console.log('🏠 Local mode: Please enter your API key');
-            }
+            showApiKeyPanel();
+            loadSavedClientKey(); // Try to load previously saved API key
+            debugLog('🌐 Web mode: Direct API key input');
+            console.log('🌐 Web mode: Please enter your API key');
             
             return 'web';
         }
@@ -2095,17 +2062,20 @@
             }
         }
         
-        // Save API key to localStorage when user enters it (web mode only)
+        // Save API key to localStorage when user enters it
         function saveApiKey() {
             if (apiMode === 'local') return true; // Always valid in local mode
             
             const keyInput = document.getElementById('apiKeyInput');
+            if (!keyInput) return false;
+            
             const key = keyInput.value.trim();
             
             if (key && key.startsWith('AIza')) {
                 youtubeApiKey = key;
                 localStorage.setItem('youtubeApiKey', key);
-                debugLog('✅ Client API key saved to localStorage');
+                debugLog('✅ API key saved to localStorage');
+                hideApiKeyPanel(); // Hide panel once key is saved
                 return true;
             }
             return false;
@@ -2755,40 +2725,7 @@
             messages.forEach(msg => msg.remove());
         }
         
-        /**
-         * Show OAuth-specific error guidance
-         */
-        function showOAuthErrorGuidance(message) {
-            clearMessages();
-            
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'message error';
-            errorDiv.style.background = '#fff3cd';
-            errorDiv.style.color = '#856404';
-            errorDiv.style.borderColor = '#ffeaa7';
-            errorDiv.innerHTML = `
-                <div style="margin-bottom: 12px;">
-                    <strong>🔐 GitHub OAuth Limitation:</strong> ${message}
-                </div>
-                <div style="font-size: 12px; line-height: 1.4;">
-                    <strong>✨ Quick Solution:</strong> Use "Option 2: Quick Start" below to enter your API key directly.<br>
-                    <strong>🔒 For secure OAuth:</strong> Download and run this tool locally, or deploy to a platform with server-side functions.
-                </div>
-            `;
-            
-            const mainSection = document.querySelector('.main-section');
-            const controlPanel = document.querySelector('.control-panel');
-            controlPanel.insertAdjacentElement('afterend', errorDiv);
-            
-            debugLog(`⚠️ OAuth Error: ${message}`);
-            
-            // Auto-hide after 10 seconds (longer for guidance)
-            setTimeout(() => {
-                if (errorDiv.parentNode) {
-                    errorDiv.remove();
-                }
-            }, 10000);
-        }
+
         
         /* ===== DISPLAY & VIEW FUNCTIONS ===== */
         
@@ -3049,118 +2986,7 @@
         
         /* ===== AUTHENTICATION UI FUNCTIONS ===== */
         
-        /**
-         * Show GitHub authentication panel for GitHub Pages environment
-         */
-        function showGitHubAuthPanel() {
-            const panel = document.getElementById('apiKeyPanel');
-            if (!panel) return;
-            
-            panel.style.display = 'block';
-            panel.style.background = '#f8f9fa';
-            panel.style.borderLeft = '4px solid #0078d4';
-            
-            if (isAuthenticated) {
-                // User is authenticated, show their info
-                showAuthenticatedUserInfo();
-            } else {
-                // User needs to authenticate
-                panel.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <span style="font-size: 20px;">🔐</span>
-                        <div>
-                            <strong style="color: var(--xp-text); font-size: 16px;">Secure API Key Management</strong>
-                            <div style="color: var(--xp-text-disabled); font-size: 12px; margin-top: 2px;">
-                                Your API key is encrypted and stored securely in your browser
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-                        <div style="padding: 16px; background: white; border: 2px inset var(--xp-button-face); border-radius: 6px;">
-                            <div style="font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                                <span>🔑</span> Option 1: Secure Login
-                            </div>
-                            <div style="font-size: 12px; color: var(--xp-text); margin-bottom: 12px; line-height: 1.4;">
-                                Sign in with GitHub to securely encrypt and store your YouTube API key. Your key never leaves your browser.
-                                <div style="background: #fff3cd; padding: 6px; border-radius: 4px; margin-top: 8px; font-size: 11px; color: #856404;">
-                                    <strong>⚠️ GitHub Pages Note:</strong> OAuth requires server-side components. For now, use Option 2 below, or run locally for full OAuth.
-                                </div>
-                            </div>
-                            <button onclick="authenticateWithGitHub()" style="
-                                width: 100%; 
-                                padding: 10px 16px; 
-                                background: #6c757d; 
-                                color: white; 
-                                border: none; 
-                                border-radius: 6px; 
-                                cursor: pointer; 
-                                font-size: 13px; 
-                                font-weight: bold;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 8px;
-                                opacity: 0.7;
-                            ">
-                                <span>🐱</span> Sign in with GitHub (Limited)
-                            </button>
-                        </div>
-                        
-                        <div style="padding: 16px; background: white; border: 2px inset var(--xp-button-face); border-radius: 6px;">
-                            <div style="font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                                <span>⚡</span> Option 2: Quick Start
-                            </div>
-                            <div style="font-size: 12px; color: var(--xp-text); margin-bottom: 12px; line-height: 1.4;">
-                                Enter your API key directly. It will be stored in plain text in your browser's localStorage.
-                            </div>
-                            <div style="display: flex; gap: 6px;">
-                                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." style="
-                                    flex: 1; 
-                                    padding: 8px 10px; 
-                                    border: 2px inset var(--xp-button-face); 
-                                    border-radius: 4px; 
-                                    font-size: 12px;
-                                    font-family: 'Courier New', monospace;
-                                ">
-                                <button onclick="handleManualApiKey()" style="
-                                    padding: 8px 12px; 
-                                    background: var(--xp-button-face); 
-                                    color: var(--xp-text); 
-                                    border: 2px outset var(--xp-button-face); 
-                                    border-radius: 4px; 
-                                    cursor: pointer; 
-                                    font-size: 12px;
-                                    white-space: nowrap;
-                                ">
-                                    Save
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <details style="margin-top: 12px;">
-                        <summary style="cursor: pointer; font-size: 13px; color: var(--xp-blue-start); font-weight: bold;">
-                            🆓 Need a YouTube API key? Get one free in 2 minutes
-                        </summary>
-                        <div style="margin-top: 12px; padding: 12px; background: white; border: 1px inset var(--xp-button-face); border-radius: 3px; font-size: 12px; line-height: 1.4;">
-                            <p style="margin: 0 0 10px 0;"><strong>Quick setup guide:</strong></p>
-                            <ol style="margin: 0; padding-left: 20px;">
-                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--xp-blue-start);">Google Cloud Console</a></li>
-                                <li>Create a new project (or select existing)</li>
-                                <li>Enable "YouTube Data API v3"</li>
-                                <li>Go to Credentials → Create Credentials → API key</li>
-                                <li><strong>Important:</strong> Restrict your key to this domain and YouTube API only</li>
-                                <li>Copy your API key and paste it above</li>
-                            </ol>
-                            <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 4px; font-size: 11px;">
-                                <strong>⚠️ Security tip:</strong> Always restrict your API keys to specific websites and APIs for security.
-                            </div>
-                        </div>
-                    </details>
-                `;
-            }
-        }
+
         
         /**
          * Show authenticated user information panel
@@ -3258,54 +3084,7 @@
             `;
         }
         
-        /**
-         * Handle manual API key entry in authenticated environment
-         */
-        async function handleManualApiKey() {
-            const keyInput = document.getElementById('apiKeyInput');
-            if (!keyInput) return;
-            
-            const key = keyInput.value.trim();
-            
-            if (!key || !key.startsWith('AIza')) {
-                showError('Please enter a valid YouTube API key (starts with "AIza...")');
-                return;
-            }
-            
-            try {
-                // Validate the API key first
-                const isValid = await validateApiKey(key);
-                if (!isValid.valid) {
-                    showError(`API key validation failed: ${isValid.error}`);
-                    return;
-                }
-                
-                if (isAuthenticated) {
-                    // Save encrypted API key
-                    await saveEncryptedApiKey(key);
-                    youtubeApiKey = key;
-                    showSuccess('API key encrypted and saved securely!');
-                } else {
-                    // Save as plain text for non-authenticated users
-                    youtubeApiKey = key;
-                    localStorage.setItem('youtubeApiKey', key);
-                    showSuccess('API key saved!');
-                }
-                
-                // Update UI
-                if (isAuthenticated) {
-                    showAuthenticatedUserInfo();
-                } else {
-                    hideApiKeyPanel();
-                }
-                
-                debugLog('API key configured successfully');
-                
-            } catch (error) {
-                showError('Failed to save API key: ' + error.message);
-                debugLog('Error saving API key', error);
-            }
-        }
+
         
         /**
          * Show API key management modal
