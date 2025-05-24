@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Single deploy job since we're using a static site
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Create Pages structure
+        run: |
+          # Copy main HTML file as index.html for GitHub Pages
+          cp youtube_video_exporter.html index.html
+          
+          # Create a simple docs/index.html that redirects to main tool
+          mkdir -p docs/_site
+          cat > docs/_site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <meta http-equiv="refresh" content="0; url=../index.html">
+              <title>YouTube Research Hub - Redirecting...</title>
+          </head>
+          <body>
+              <p>Redirecting to <a href="../index.html">YouTube Research Hub</a>...</p>
+          </body>
+          </html>
+          EOF
+          
+          # Ensure all static files are ready
+          echo "✅ GitHub Pages deployment prepared"
+          ls -la
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repository for GitHub Pages
+          path: '.'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
