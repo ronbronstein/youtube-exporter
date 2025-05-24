@@ -13,13 +13,15 @@ import { BaseComponent } from './BaseComponent.js';
 import { VideoList } from './VideoList.js';
 import { LoadingSpinner, GlobalLoading } from './LoadingSpinner.js';
 import { MessagePanel, GlobalMessages } from './MessagePanel.js';
-import { youtubeApiService } from '../services/youtubeApi.js';
+import { YouTubeApiService } from '../services/youtubeApi.js';
 import { storageService } from '../services/storage.js';
 import { analyticsService } from '../services/analytics.js';
 import { CONFIG, getGlobalState, updateGlobalState } from '../config.js';
 import { detectEnvironment } from '../utils/environment.js';
 import { validateApiKey } from '../utils/security.js';
 import { debugLog } from '../utils/debug.js';
+import { formatViewCount, formatDuration } from '../utils/formatter.js';
+import { globalPerformanceMonitor } from '../utils/performance.js';
 
 export class App extends BaseComponent {
     constructor(container, options = {}) {
@@ -45,19 +47,30 @@ export class App extends BaseComponent {
             messagePanel: null
         };
         
+        // Service instances
+        this.services = {
+            youtube: null, // Will be created when API key is set
+            storage: storageService,
+            analytics: analyticsService
+        };
+        
         // Service ready flags
         this.servicesReady = {
             youtube: false,
             storage: false,
             analytics: false
         };
+        
+        // Performance monitoring
+        this.performanceMonitor = this.options.enablePerformanceMonitoring ? globalPerformanceMonitor : null;
     }
     
     get defaultOptions() {
         return {
             autoInit: true,
             enableDemoMode: true,
-            enableAnalytics: true
+            enableAnalytics: true,
+            enablePerformanceMonitoring: true
         };
     }
     
@@ -155,7 +168,7 @@ export class App extends BaseComponent {
             debugLog('📦 Storage service ready');
             
             // Initialize analytics service
-            analyticsService.initialize();
+            this.services.analytics.initialize();
             this.servicesReady.analytics = true;
             debugLog('📊 Analytics service ready');
             
@@ -341,30 +354,36 @@ export class App extends BaseComponent {
     
     // Event Handlers
     handleApiKeyInput(event) {
+        // Track user interaction
+        if (this.performanceMonitor) {
+            this.performanceMonitor.trackUserInteraction('apiKeyInput', {
+                hasValue: !!event.target.value,
+                isValid: validateApiKey(event.target.value)
+            });
+        }
+        
         const apiKey = event.target.value.trim();
         const saveBtn = this.findElement('#saveApiKeyBtn');
-        const analyzeBtn = this.findElement('#analyzeBtn');
         
-        const isValid = validateApiKey(apiKey);
-        if (saveBtn) {
-            saveBtn.disabled = !isValid;
+        if (validateApiKey(apiKey)) {
+            this.appState.apiKey = apiKey;
+            saveBtn?.removeAttribute('disabled');
+            saveBtn?.classList.add('valid');
+        } else {
+            this.appState.apiKey = null;
+            saveBtn?.setAttribute('disabled', 'true');
+            saveBtn?.classList.remove('valid');
         }
         
         this.updateAnalyzeButtonState();
     }
     
     handleSaveApiKey() {
-        const apiKeyInput = this.findElement('#apiKeyInput');
-        if (!apiKeyInput) return;
-        
-        const apiKey = apiKeyInput.value.trim();
-        if (!validateApiKey(apiKey)) {
-            this.showError('Please enter a valid YouTube API key');
-            return;
+        if (this.appState.apiKey && validateApiKey(this.appState.apiKey)) {
+            this.setApiKey(this.appState.apiKey);
+            storageService.saveApiKey(this.appState.apiKey);
+            this.showSuccess('API key saved successfully');
         }
-        
-        this.setApiKey(apiKey);
-        this.showSuccess('API key saved successfully');
     }
     
     handleChannelInput(event) {
@@ -372,90 +391,118 @@ export class App extends BaseComponent {
     }
     
     async handleAnalyzeChannel() {
+        // Track user interaction
+        if (this.performanceMonitor) {
+            this.performanceMonitor.trackUserInteraction('channelAnalysis', {
+                environment: this.appState.currentEnvironment,
+                hasApiKey: !!this.appState.apiKey
+            });
+        }
+        
         const channelInput = this.findElement('#channelInput');
         if (!channelInput) return;
         
         const channelQuery = channelInput.value.trim();
         if (!channelQuery) {
-            this.showError('Please enter a channel to analyze');
+            this.showError('Please enter a channel URL or handle');
             return;
         }
         
-        if (!this.appState.apiKey) {
-            this.showError('Please provide a YouTube API key first');
+        if (!this.services.youtube) {
+            this.showError('Please save your API key first');
             return;
         }
         
-        await this.analyzeChannel(channelQuery);
+        this.setLoadingState(true, 'Analyzing channel...');
+        
+        try {
+            await this.analyzeChannel(channelQuery);
+        } catch (error) {
+            // Error handling is done in analyzeChannel
+        } finally {
+            this.setLoadingState(false);
+        }
     }
     
     // Core Functionality
     setApiKey(apiKey) {
         this.appState.apiKey = apiKey;
+        updateGlobalState('apiKey', apiKey);
         
-        // Initialize YouTube API service
-        youtubeApiService.setApiKey(apiKey);
+        // Create or update YouTube API service instance
+        this.services.youtube = new YouTubeApiService(apiKey);
+        
+        // Check for demo mode
+        if (this.appState.currentEnvironment === 'demo') {
+            this.services.youtube.setDemoMode(true);
+        }
+        
         this.servicesReady.youtube = true;
+        debugLog('🔑 YouTube API service ready with new key');
         
-        // Store encrypted
-        storageService.saveApiKey(apiKey);
-        
+        // Update UI state
         this.updateAnalyzeButtonState();
-        debugLog('🔑 API key set and YouTube service initialized');
     }
     
     async analyzeChannel(channelQuery) {
+        if (!this.services.youtube) {
+            throw new Error('YouTube API service not initialized');
+        }
+        
         try {
-            this.setLoadingState(true, 'Analyzing channel...');
+            debugLog('🔍 Starting channel analysis', { query: channelQuery });
             
             // Get channel data
-            const channelData = await youtubeApiService.getChannelData(channelQuery);
+            this.showProgress(20, 'Getting channel information...');
+            const channelData = await this.services.youtube.getChannelData(channelQuery);
             this.appState.channelData = channelData;
             
-            this.showProgress(25, 'Fetching videos...');
-            
             // Get all videos
-            const videos = await youtubeApiService.getAllChannelVideos(channelData.uploadsPlaylistId);
+            this.showProgress(40, 'Fetching video library...');
+            const videos = await this.services.youtube.getAllChannelVideos(
+                channelData.uploadsPlaylistId,
+                (message) => this.showProgress(60, message)
+            );
+            
             this.appState.videos = videos;
             this.appState.filteredVideos = videos;
             
-            this.showProgress(75, 'Generating analytics...');
-            
             // Generate analytics
-            if (this.options.enableAnalytics) {
-                analyticsService.setVideosData(videos);
-                const analysis = analyticsService.generateContentAnalysis();
-                this.appState.lastAnalysis = analysis;
-            }
+            this.showProgress(80, 'Processing analytics...');
+            this.services.analytics.setVideosData(videos);
             
             // Update UI
+            this.showProgress(90, 'Updating display...');
             this.components.videoList.setVideos(videos);
             this.renderAnalytics();
             
             // Save analysis
+            this.showProgress(100, 'Complete!');
             storageService.saveAnalysis(channelData.channelId, {
                 channelData,
                 videos,
-                analysis: this.appState.lastAnalysis,
                 timestamp: Date.now()
             });
             
-            this.setLoadingState(false);
             this.showSuccess(`Analysis complete! Found ${videos.length} videos.`);
+            debugLog('✅ Channel analysis complete', { videoCount: videos.length });
             
         } catch (error) {
-            this.setLoadingState(false);
+            debugLog('❌ Analysis error:', error);
             this.showError(`Analysis failed: ${error.message}`);
-            debugLog('❌ Channel analysis error:', error);
+            throw error;
         }
     }
     
     renderAnalytics() {
         const analyticsSection = this.findElement('#analyticsSection');
-        if (!analyticsSection || !this.appState.lastAnalysis) return;
+        if (!analyticsSection || !this.appState.videos.length) return;
         
-        const analysisHTML = analyticsService.generateContentAnalysisHTML();
+        // Generate analytics HTML
+        const analysisHTML = this.services.analytics.generateContentAnalysisHTML();
         analyticsSection.innerHTML = analysisHTML;
+        
+        debugLog('📊 Analytics rendered');
     }
     
     // UI State Management
@@ -537,6 +584,11 @@ export class App extends BaseComponent {
         
         // Clear state
         this.appState = null;
+        
+        // Final performance report before cleanup
+        if (this.performanceMonitor) {
+            this.performanceMonitor.logPerformanceReport();
+        }
         
         debugLog('🗑️ App component destroyed');
     }

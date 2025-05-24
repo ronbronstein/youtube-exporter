@@ -1,52 +1,65 @@
 {
   "name": "youtube-research-hub",
-  "version": "1.2.0",
-  "description": "Comprehensive YouTube channel analysis tool with Windows XP nostalgia and cutting-edge analytics",
-  "main": "test-server.js",
+  "version": "2.0.0",
+  "description": "Professional YouTube Channel Analytics & Research Tool",
+  "type": "module",
   "scripts": {
-    "start": "node test-server.js",
-    "dev": "node test-server.js",
-    "test": "echo \"Open http://localhost:3000 after running npm start\" && exit 0",
-    "vite:dev": "vite",
-    "vite:build": "vite build",
-    "vite:preview": "vite preview"
+    "dev": "vite --port 5177",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "build:analyze": "vite build --mode analyze",
+    "test:integration": "node --experimental-modules test/integration.test.js",
+    "test:performance": "lighthouse http://localhost:4173 --output=html --output-path=./test-results/lighthouse.html",
+    "deploy:gh-pages": "npm run build && gh-pages -d dist",
+    "deploy:demo": "npm run build && echo 'Demo deployment configured'",
+    "clean": "rm -rf dist node_modules/.vite",
+    "validate": "npm run build && npm run preview",
+    "security:audit": "npm audit --audit-level=moderate",
+    "size:check": "npm run build && bundlesize"
   },
   "keywords": [
     "youtube",
     "analytics",
-    "channel-analysis",
-    "content-strategy",
-    "windows-xp",
-    "retro-design",
-    "social-media",
-    "research-tool",
-    "nostalgia",
-    "viral-content"
+    "research",
+    "content-analysis",
+    "video-statistics"
   ],
-  "author": {
-    "name": "Ron Bronstein",
-    "email": "ron@example.com",
-    "url": "https://github.com/ronbronstein"
-  },
+  "author": "YouTube Research Hub Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ronbronstein/youtube-exporter.git"
+    "url": "https://github.com/user/youtube-research-hub.git"
   },
   "bugs": {
-    "url": "https://github.com/ronbronstein/youtube-exporter/issues"
+    "url": "https://github.com/user/youtube-research-hub/issues"
   },
-  "homepage": "https://ronbronstein.github.io/youtube-exporter/",
+  "homepage": "https://github.com/user/youtube-research-hub",
   "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "chart.js": "^4.4.0",
+    "crypto-js": "^4.2.0"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "gh-pages": "^6.1.1",
+    "bundlesize": "^0.18.2",
+    "lighthouse": "^12.0.0"
   },
+  "bundlesize": [
+    {
+      "path": "./dist/assets/*.js",
+      "maxSize": "500 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "./dist/assets/*.css",
+      "maxSize": "50 kB",
+      "compression": "gzip"
+    }
+  ],
   "files": [
     "test-server.js",
     "youtube_video_exporter.html",

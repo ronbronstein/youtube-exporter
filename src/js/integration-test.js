@@ -9,7 +9,7 @@
  */
 
 import { App } from './components/App.js';
-import { youtubeApiService } from './services/youtubeApi.js';
+import { YouTubeApiService } from './services/youtubeApi.js';
 import { storageService } from './services/storage.js';
 import { analyticsService } from './services/analytics.js';
 import { BaseComponent } from './components/BaseComponent.js';
@@ -65,7 +65,7 @@ export class IntegrationTest {
         
         // Test 1: Module Imports
         this.test('All modules import successfully', () => {
-            return !!(App && youtubeApiService && storageService && analyticsService);
+            return !!(App && YouTubeApiService && storageService && analyticsService);
         });
         
         // Test 2: Configuration
@@ -167,9 +167,10 @@ export class IntegrationTest {
         
         // Test 10: YouTube API Service Structure
         this.test('YouTube API service has required methods', () => {
-            return typeof youtubeApiService.setApiKey === 'function' &&
-                   typeof youtubeApiService.getChannelData === 'function' &&
-                   typeof youtubeApiService.getAllChannelVideos === 'function';
+            const testApiService = new YouTubeApiService('test-key');
+            return typeof testApiService.setApiKey === 'function' &&
+                   typeof testApiService.getChannelData === 'function' &&
+                   typeof testApiService.getAllChannelVideos === 'function';
         });
         
         // Test 11: Global Singletons

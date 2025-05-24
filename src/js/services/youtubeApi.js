@@ -6,11 +6,16 @@
 import { CONFIG } from '../config.js';
 import { debugLog } from '../utils/debug.js';
 import { formatDuration } from '../utils/formatter.js';
+import { DemoRateLimiter } from '../utils/rateLimiter.js';
+import { globalPerformanceMonitor } from '../utils/performance.js';
 
 export class YouTubeApiService {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.isDemoMode = false;
+        this.isInitialized = false;
+        this.performanceMonitor = globalPerformanceMonitor;
+        this.rateLimiter = new DemoRateLimiter(CONFIG);
     }
 
     /**
@@ -27,6 +32,7 @@ export class YouTubeApiService {
      */
     setDemoMode(enabled) {
         this.isDemoMode = enabled;
+        this.rateLimiter.setDemoMode(enabled);
     }
 
     /**
@@ -401,5 +407,33 @@ export class YouTubeApiService {
                 hasQAInTitle: /\b(q&a|questions|qa)\b/i.test(title)
             }
         };
+    }
+
+    async makeApiCall(endpoint, params = {}) {
+        if (!this.apiKey) {
+            throw new Error('API key not set');
+        }
+        
+        // Add default parameters
+        const allParams = {
+            key: this.apiKey,
+            ...params
+        };
+        
+        // Build URL
+        const url = `${CONFIG.API.BASE_URL}/${endpoint}?${new URLSearchParams(allParams)}`;
+        
+        // Make request with performance tracking
+        const fetchPromise = fetch(url).then(response => {
+            if (!response.ok) {
+                throw new Error(`YouTube API error: ${response.status}`);
+            }
+            return response.json();
+        });
+        
+        // Track performance if monitor is available
+        return this.performanceMonitor ? 
+            this.performanceMonitor.trackApiCall(endpoint, fetchPromise) :
+            fetchPromise;
     }
 } 

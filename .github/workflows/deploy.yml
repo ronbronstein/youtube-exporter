@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: 🚀 Production Build & Deploy
 
 on:
   push:
@@ -6,63 +6,192 @@ on:
   pull_request:
     branches: [ main ]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  # Single deploy job since we're using a static site
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # Quality Checks
+  lint-and-audit:
+    name: 🔍 Quality & Security Checks
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        
-      - name: Create Pages structure
-        run: |
-          # Copy main HTML file as index.html for GitHub Pages
-          cp youtube_video_exporter.html index.html
-          
-          # Create a simple docs/index.html that redirects to main tool
-          mkdir -p docs/_site
-          cat > docs/_site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <meta charset="UTF-8">
-              <meta http-equiv="refresh" content="0; url=../index.html">
-              <title>YouTube Research Hub - Redirecting...</title>
-          </head>
-          <body>
-              <p>Redirecting to <a href="../index.html">YouTube Research Hub</a>...</p>
-          </body>
-          </html>
-          EOF
-          
-          # Ensure all static files are ready
-          echo "✅ GitHub Pages deployment prepared"
-          ls -la
-          
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          # Upload entire repository for GitHub Pages
-          path: '.'
-          
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Security audit
+        run: npm run security:audit
+
+      - name: Check bundle size
+        run: npm run size:check
+
+  # Integration Testing
+  test:
+    name: 🧪 Integration Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-audit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start preview server
+        run: npm run preview &
+        
+      - name: Wait for server
+        run: npx wait-on http://localhost:4173
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Performance audit with Lighthouse
+        run: npm run test:performance
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+
+  # Production Build
+  build:
+    name: 🏗️ Production Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Validate build
+        run: |
+          # Check that critical files exist
+          test -f dist/index.html
+          test -f dist/assets/*.js
+          test -f dist/assets/*.css
+          echo "✅ Build validation passed"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: dist/
+          retention-days: 30
+
+  # Deploy to GitHub Pages (Live Environment)
+  deploy-live:
+    name: 🌐 Deploy Live Environment
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: live
+      url: https://${{ github.repository_owner }}.github.io/YoutubeExporter
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for live environment
+        run: npm run build
+        env:
+          NODE_ENV: production
+          VITE_ENVIRONMENT: live
+
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4 
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          cname: # Add custom domain if needed
+
+  # Deploy Demo Environment (Optional)
+  deploy-demo:
+    name: 🎭 Deploy Demo Environment
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: demo
+      url: https://demo.${{ github.repository_owner }}.github.io/YoutubeExporter
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for demo environment
+        run: npm run build
+        env:
+          NODE_ENV: production
+          VITE_ENVIRONMENT: demo
+          VITE_DEMO_API_KEY: ${{ secrets.DEMO_API_KEY }}
+
+      - name: Deploy to demo subdomain
+        run: npm run deploy:demo
+        env:
+          DEMO_DEPLOY_TOKEN: ${{ secrets.DEMO_DEPLOY_TOKEN }}
+
+  # Deployment Summary
+  deployment-summary:
+    name: 📋 Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-live, deploy-demo]
+    if: always()
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Status | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Live | ${{ needs.deploy-live.result == 'success' && '✅ Deployed' || '❌ Failed' }} | https://${{ github.repository_owner }}.github.io/YoutubeExporter |" >> $GITHUB_STEP_SUMMARY
+          echo "| Demo | ${{ needs.deploy-demo.result == 'success' && '✅ Deployed' || '❌ Failed' }} | https://demo.${{ github.repository_owner }}.github.io/YoutubeExporter |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY 
