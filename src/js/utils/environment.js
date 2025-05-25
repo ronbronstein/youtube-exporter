@@ -15,6 +15,12 @@ export function detectEnvironment() {
     const isGitHubPages = hostname.includes('github.io');
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('localhost');
     
+    // TEMPORARY: Force LIVE mode for testing
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'live' || urlParams.get('test') === 'live') {
+        return 'live';
+    }
+    
     // Local development - simple mode, no demo/live switching
     if (isLocalhost) {
         return 'local';

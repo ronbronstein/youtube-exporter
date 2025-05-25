@@ -79,31 +79,49 @@ export class YouTubeApiService {
      */
     async getChannelIdFromHandle(handle) {
         try {
-            const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=id&forHandle=${handle}&key=${this.apiKey}`);
+            debugLog(`🔍 Looking up channel handle: ${handle}`);
+            const url = `${CONFIG.API.BASE_URL}/channels?part=id&forHandle=${handle}&key=${this.apiKey}`;
+            debugLog(`📡 API call: ${url.replace(this.apiKey, 'HIDDEN')}`);
+            
+            const response = await fetch(url);
             const data = await response.json();
             
+            debugLog(`📡 API response:`, { status: response.status, hasError: !!data.error, itemCount: data.items?.length || 0 });
+            
             if (data.error) {
+                debugLog(`❌ API error:`, data.error);
                 throw new Error(data.error.message);
             }
             
             if (data.items && data.items.length > 0) {
+                debugLog(`✅ Found channel via forHandle: ${data.items[0].id}`);
                 return data.items[0].id;
             }
             
             // Try search if forHandle doesn't work
-            const searchResponse = await fetch(`${CONFIG.API.BASE_URL}/search?part=snippet&type=channel&q=${handle}&key=${this.apiKey}&maxResults=1`);
+            debugLog(`🔍 Trying search fallback for: ${handle}`);
+            const searchUrl = `${CONFIG.API.BASE_URL}/search?part=snippet&type=channel&q=${handle}&key=${this.apiKey}&maxResults=1`;
+            debugLog(`📡 Search API call: ${searchUrl.replace(this.apiKey, 'HIDDEN')}`);
+            
+            const searchResponse = await fetch(searchUrl);
             const searchData = await searchResponse.json();
             
+            debugLog(`📡 Search API response:`, { status: searchResponse.status, hasError: !!searchData.error, itemCount: searchData.items?.length || 0 });
+            
             if (searchData.error) {
+                debugLog(`❌ Search API error:`, searchData.error);
                 throw new Error(searchData.error.message);
             }
             
             if (searchData.items && searchData.items.length > 0) {
-                return searchData.items[0].id?.channelId || searchData.items[0].snippet?.channelId;
+                const channelId = searchData.items[0].id?.channelId || searchData.items[0].snippet?.channelId;
+                debugLog(`✅ Found channel via search: ${channelId}`);
+                return channelId;
             }
             
             throw new Error('Channel not found');
         } catch (error) {
+            debugLog(`❌ Handle lookup failed:`, error);
             throw new Error(`Handle lookup failed: ${error.message}`);
         }
     }

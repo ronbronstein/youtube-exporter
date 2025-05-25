@@ -147,56 +147,77 @@ export class App extends BaseComponent {
     onMount() {
         debugLog('🏗️ App onMount started');
         
-        // Initialize global components
-        this.components.messagePanel = GlobalMessages.init(
-            this.findElement('#globalMessages'),
-            { position: 'banner', maxMessages: 1, autoHideDelay: { success: 3000, error: 8000, warning: 5000, info: 4000 } }
-        );
+        // Initialize global components with better error handling
+        try {
+            this.components.messagePanel = GlobalMessages.init(
+                this.findElement('#globalMessages'),
+                { position: 'banner', maxMessages: 1, autoHideDelay: { success: 3000, error: 8000, warning: 5000, info: 4000 } }
+            );
+            debugLog('✅ GlobalMessages initialized');
+        } catch (error) {
+            debugLog('❌ GlobalMessages initialization failed:', error);
+        }
         
-        this.components.loadingSpinner = GlobalLoading.init(
-            this.findElement('#globalLoading'),
-            { overlay: true, showProgress: true }
-        );
+        try {
+            this.components.loadingSpinner = GlobalLoading.init(
+                this.findElement('#globalLoading'),
+                { overlay: true, showProgress: true }
+            );
+            debugLog('✅ GlobalLoading initialized');
+        } catch (error) {
+            debugLog('❌ GlobalLoading initialization failed:', error);
+        }
         
         // Initialize Results component (which will contain VideoList)
-        this.components.results = new Results(
-            this.findElement('#resultsContainer'),
-            { enableViewToggle: true, enableExport: true, enableFilter: true, defaultView: 'list' }
-        ).init();
+        try {
+            this.components.results = new Results(
+                this.findElement('#resultsContainer'),
+                { enableViewToggle: true, enableExport: true, enableFilter: true, defaultView: 'list' }
+            ).init();
+            debugLog('✅ Results component initialized');
+        } catch (error) {
+            debugLog('❌ Results component initialization failed:', error);
+        }
         
         // Wait for Results to be fully mounted before initializing VideoList
         setTimeout(() => {
-            // Initialize VideoList inside Results component  
-            this.components.videoList = new VideoList(
-                this.components.results.findElement('#videoDisplayContainer'),
-                { enableViewSwitch: false, enableSorting: true, defaultView: 'list' }
-            ).init();
-            
-            // Connect Results and VideoList components
-            this.components.results.on('viewChanged', (data) => {
-                if (this.components.videoList) {
-                    this.components.videoList.switchView(data.view);
-                }
-            });
-            
-            this.components.results.on('videosChanged', (data) => {
-                if (this.components.videoList) {
-                    this.components.videoList.setVideos(data.videos);
-                    debugLog(`📺 VideoList updated with ${data.videos.length} videos`);
-                }
-            });
-            
-            this.components.results.on('videosFiltered', (data) => {
-                if (this.components.videoList) {
-                    this.components.videoList.setVideos(data.videos);
-                    debugLog(`📺 VideoList filtered to ${data.videos.length} videos`);
-                }
-            });
-            
-            this.components.results.on('error', (data) => {
-                this.showError(data.message);
-            });
-        }, 0);
+            try {
+                // Initialize VideoList inside Results component  
+                this.components.videoList = new VideoList(
+                    this.components.results.findElement('#videoDisplayContainer'),
+                    { enableViewSwitch: false, enableSorting: true, defaultView: 'list' }
+                ).init();
+                debugLog('✅ VideoList component initialized');
+                
+                // Connect Results and VideoList components
+                this.components.results.on('viewChanged', (data) => {
+                    if (this.components.videoList) {
+                        this.components.videoList.switchView(data.view);
+                    }
+                });
+                
+                this.components.results.on('videosChanged', (data) => {
+                    if (this.components.videoList) {
+                        this.components.videoList.setVideos(data.videos);
+                        debugLog(`📺 VideoList updated with ${data.videos.length} videos`);
+                    }
+                });
+                
+                this.components.results.on('videosFiltered', (data) => {
+                    if (this.components.videoList) {
+                        this.components.videoList.setVideos(data.videos);
+                        debugLog(`📺 VideoList filtered to ${data.videos.length} videos`);
+                    }
+                });
+                
+                this.components.results.on('error', (data) => {
+                    this.showError(data.message);
+                });
+                
+            } catch (error) {
+                debugLog('❌ VideoList component initialization failed:', error);
+            }
+        }, 100); // Increased timeout to ensure DOM is ready
         
         // Set up event listeners
         this.setupEventListeners();
@@ -717,6 +738,7 @@ export class App extends BaseComponent {
             // Error handling is done in analyzeChannel
         } finally {
             this.setLoadingState(false);
+            debugLog('🏁 Unified search completed');
         }
     }
     
@@ -801,6 +823,9 @@ export class App extends BaseComponent {
         } catch (error) {
             debugLog('❌ Channel analysis failed:', error);
             
+            // Ensure loading state is cleared
+            this.setLoadingState(false);
+            
             if (error.message.includes('quota')) {
                 this.showError('YouTube API quota exceeded. Please try again later or check your API key limits.');
             } else if (error.message.includes('API key')) {
@@ -855,17 +880,95 @@ export class App extends BaseComponent {
     setLoadingState(isLoading, message = 'Loading...') {
         this.appState.isLoading = isLoading;
         
+        debugLog(`🔄 Setting loading state: ${isLoading ? 'ON' : 'OFF'} - ${message}`);
+        
         if (isLoading) {
-            GlobalLoading.show(message);
+            // Try GlobalLoading first, fallback to direct DOM manipulation
+            if (this.components.loadingSpinner && GlobalLoading) {
+                try {
+                    GlobalLoading.show(message);
+                    debugLog('✅ GlobalLoading.show() called');
+                } catch (error) {
+                    debugLog('❌ GlobalLoading.show() failed:', error);
+                    this.fallbackShowLoading(message);
+                }
+            } else {
+                debugLog('⚠️ GlobalLoading not available, using fallback');
+                this.fallbackShowLoading(message);
+            }
         } else {
-            GlobalLoading.hide();
+            // Try GlobalLoading first, fallback to direct DOM manipulation
+            if (this.components.loadingSpinner && GlobalLoading) {
+                try {
+                    GlobalLoading.hide();
+                    debugLog('✅ GlobalLoading.hide() called');
+                } catch (error) {
+                    debugLog('❌ GlobalLoading.hide() failed:', error);
+                    this.fallbackHideLoading();
+                }
+            } else {
+                debugLog('⚠️ GlobalLoading not available, using fallback');
+                this.fallbackHideLoading();
+            }
         }
         
         this.updateAnalyzeButtonState();
     }
     
-    showProgress(percent, message) {
-        GlobalLoading.setProgress(percent, message);
+    // Fallback loading methods (like legacy version)
+    fallbackShowLoading(message) {
+        debugLog('🔄 Fallback loading show:', message);
+        
+        // Create or update loading element
+        let loadingEl = this.findElement('#globalLoading');
+        if (!loadingEl) {
+            loadingEl = document.createElement('div');
+            loadingEl.id = 'globalLoading';
+            loadingEl.className = 'global-loading';
+            document.body.appendChild(loadingEl);
+        }
+        
+        loadingEl.innerHTML = `
+            <div class="loading-component loading-overlay" style="display: block;">
+                <div class="loading-content">
+                    <div class="loading-animation spinner">
+                        <div class="circle-spinner"></div>
+                    </div>
+                    <div class="loading-text">${message}</div>
+                </div>
+            </div>
+        `;
+        loadingEl.style.display = 'block';
+        
+        // Hide results while loading
+        const resultsEl = this.findElement('#resultsContainer');
+        if (resultsEl) {
+            resultsEl.style.display = 'none';
+        }
+    }
+    
+    fallbackHideLoading() {
+        debugLog('✅ Fallback loading hide');
+        
+        const loadingEl = this.findElement('#globalLoading');
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+        }
+        
+        // Show results if we have videos
+        if (this.appState.videos && this.appState.videos.length > 0) {
+            const resultsEl = this.findElement('#resultsContainer');
+            if (resultsEl) {
+                resultsEl.style.display = 'block';
+                debugLog('📊 Results container shown');
+            }
+            
+            // Ensure Results component is visible
+            if (this.components.results) {
+                this.components.results.show();
+                debugLog('📊 Results component shown');
+            }
+        }
     }
     
     // Message Methods
@@ -883,6 +986,20 @@ export class App extends BaseComponent {
     
     showInfo(message, persistent = false) {
         GlobalMessages.info(message, persistent);
+    }
+    
+    showProgress(percent, message) {
+        if (this.components.loadingSpinner && GlobalLoading) {
+            try {
+                GlobalLoading.setProgress(percent, message);
+            } catch (error) {
+                debugLog('❌ GlobalLoading.setProgress() failed:', error);
+                // Fallback to just updating the message
+                this.fallbackShowLoading(message);
+            }
+        } else {
+            this.fallbackShowLoading(message);
+        }
     }
     
     // Environment-specific initialization
