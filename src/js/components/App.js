@@ -285,64 +285,29 @@ export class App extends BaseComponent {
             `;
         }
         
-        // GitHub Pages mode selector (demo/live switching)
+        // GitHub Pages - minimal mode selector
         return `
-            <div class="mode-selector">
-                <div class="mode-selector-header">
-                    <h3>🎛️ Choose Your Mode</h3>
-                    <p>Select how you want to use the YouTube Research Hub</p>
+            <div class="mode-selector-minimal">
+                <div class="mode-toggle-compact">
+                    <button class="mode-btn-compact ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
+                        🎭 Demo (Built-in API)
+                    </button>
+                    <button class="mode-btn-compact ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
+                        🚀 Full (Your API)
+                    </button>
                 </div>
-                
-                <div class="mode-options">
-                    <div class="mode-option ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
-                        <div class="mode-icon">🎭</div>
-                        <div class="mode-content">
-                            <h4>Demo Mode</h4>
-                            <p><strong>Try it instantly!</strong></p>
-                            <ul>
-                                <li>✅ Built-in API key</li>
-                                <li>✅ No setup required</li>
-                                <li>⚠️ Limited to 100 videos</li>
-                                <li>⚠️ Shared quota</li>
-                            </ul>
-                            <button class="mode-btn ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
-                                ${currentMode === 'demo' ? '✅ Active' : '🎭 Try Demo'}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="mode-option ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
-                        <div class="mode-icon">🚀</div>
-                        <div class="mode-content">
-                            <h4>Full Version</h4>
-                            <p><strong>Unlimited power!</strong></p>
-                            <ul>
-                                <li>✅ Your own API key</li>
-                                <li>✅ Unlimited videos</li>
-                                <li>✅ Full functionality</li>
-                                <li>✅ Private quota</li>
-                            </ul>
-                            <button class="mode-btn ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
-                                ${currentMode === 'live' ? '✅ Active' : '🚀 Use Full Version'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mode-status">
-                    <div class="current-mode">
-                        <span class="status-icon">${currentMode === 'demo' ? '🎭' : '🚀'}</span>
-                        <span class="status-text">
-                            Currently in <strong>${currentMode === 'demo' ? 'Demo' : 'Full'} Mode</strong>
-                        </span>
-                    </div>
+                <div class="mode-description">
+                    ${currentMode === 'demo' ? 
+                        'Demo mode: Built-in API key, limited to 100 videos' : 
+                        'Full mode: Use your own API key, unlimited videos'
+                    }
                 </div>
             </div>
         `;
     }
 
     renderEnvironmentInfo() {
-        // This is now integrated into the mode selector above
+        // Remove this - no longer needed
         return '';
     }
 
@@ -370,67 +335,36 @@ export class App extends BaseComponent {
         }
         
         if (currentMode === 'demo') {
-            return `
-                <div class="demo-status-banner">
-                    <div class="banner-content">
-                        <div class="banner-icon">🎭</div>
-                        <div class="banner-text">
-                            <h3>Demo Mode Active</h3>
-                            <p>Using built-in API key • Limited to 100 videos per analysis • Perfect for trying the app!</p>
-                        </div>
-                        <div class="banner-action">
-                            <button class="upgrade-btn" data-mode="live">
-                                🚀 Upgrade to Full Version
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Demo mode - no banner needed, mode selector shows the status
+            return '';
         }
         
         // Live mode - show API key input
         return `
-            <div class="api-key-section">
-                <div class="api-key-header">
-                    <div class="header-content">
-                        <span class="key-icon">🔐</span>
-                        <div class="header-text">
-                            <h3>YouTube API Key Required</h3>
-                            <p>Enter your free YouTube Data API v3 key to unlock full functionality</p>
-                        </div>
-                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="get-key-btn">
-                            🆓 Get Free API Key
-                        </a>
-                    </div>
+            <div class="api-key-section-minimal">
+                <div class="api-key-header-minimal">
+                    <h3>🔐 Enter Your YouTube API Key</h3>
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="get-key-link">
+                        Get free API key →
+                    </a>
                 </div>
                 
-                <div class="api-key-input-section">
-                    <div class="input-group">
-                        <input 
-                            type="password" 
-                            id="apiKeyInput" 
-                            placeholder="AIza... (paste your YouTube Data API v3 key here)"
-                            class="api-key-input"
-                        >
-                        <button id="saveApiKeyBtn" class="save-key-btn">
-                            💾 Save Key
-                        </button>
-                    </div>
-                    
-                    <div class="api-key-help">
-                        <div class="help-item">
-                            <span class="help-icon">🔒</span>
-                            <span>Stored locally only • Never sent to our servers</span>
-                        </div>
-                        <div class="help-item">
-                            <span class="help-icon">🆓</span>
-                            <span>Free tier: 10,000 requests/day • More than enough for most users</span>
-                        </div>
-                        <div class="help-item">
-                            <span class="help-icon">⚡</span>
-                            <span>Takes 2 minutes to set up • Works immediately</span>
-                        </div>
-                    </div>
+                <div class="api-input-group">
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
+                        placeholder="AIza... (paste your YouTube Data API v3 key here)"
+                        class="api-key-input-large"
+                    >
+                    <button id="saveApiKeyBtn" class="save-key-btn-minimal">
+                        Save
+                    </button>
+                </div>
+                
+                <div class="api-help-minimal">
+                    <span>🔒 Stored locally only</span>
+                    <span>🆓 Free tier: 10,000 requests/day</span>
+                    <span>⚡ Takes 2 minutes to set up</span>
                 </div>
             </div>
         `;
@@ -438,87 +372,62 @@ export class App extends BaseComponent {
     
     renderSearchSection() {
         return `
-            <div class="search-section">
-                <div class="search-header">
-                    <h3>🔍 Channel Search & Analysis</h3>
-                    <p>Enter a channel and optional filters to analyze videos</p>
+            <div class="search-section-minimal">
+                <h3>🔍 Analyze YouTube Channel</h3>
+                
+                <!-- Large Input Fields -->
+                <div class="search-inputs-large">
+                    <input 
+                        type="text" 
+                        id="channelInput" 
+                        placeholder="Enter channel URL, @handle, or channel ID"
+                        class="channel-input-large"
+                    >
+                    <input 
+                        type="text" 
+                        id="keywordInput" 
+                        placeholder="Filter by keywords (optional): AI, tutorial, etc."
+                        class="keyword-input-large"
+                    >
                 </div>
                 
-                <!-- Main Search Input -->
-                <div class="search-input-group">
-                    <div class="input-row">
-                        <input 
-                            type="text" 
-                            id="channelInput" 
-                            placeholder="@channel, channel URL, or channel ID (required)"
-                            class="channel-input"
-                        >
+                <!-- Compact Options -->
+                <div class="search-options-compact">
+                    <div class="option-group-inline">
+                        <label>Search in:</label>
+                        <label class="radio-inline">
+                            <input type="radio" name="searchScope" value="both" checked> 
+                            Title & Description
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="searchScope" value="title"> 
+                            Title Only
+                        </label>
                     </div>
-                    <div class="input-row">
-                        <input 
-                            type="text" 
-                            id="keywordInput" 
-                            placeholder="Filter keywords: tutorial, AI, security (optional)"
-                            class="keyword-input"
-                        >
-                    </div>
-                </div>
-                
-                <!-- Search Options -->
-                <div class="search-options">
-                    <div class="options-row">
-                        <div class="option-group">
-                            <label class="group-label">Search in:</label>
-                            <label class="radio-option">
-                                <input type="radio" name="searchScope" value="both" checked> 
-                                Title & Description
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="searchScope" value="title"> 
-                                Title Only
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="searchScope" value="description"> 
-                                Description Only
-                            </label>
-                        </div>
-                        
-                        <div class="option-group">
-                            <label class="group-label">Keyword logic:</label>
-                            <label class="radio-option">
-                                <input type="radio" name="searchLogic" value="OR" checked> 
-                                Any keyword (OR)
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="searchLogic" value="AND"> 
-                                All keywords (AND)
-                            </label>
-                        </div>
-                        
-                        <div class="option-group">
-                            <label class="group-label">Content types:</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" id="includeShorts" checked> 
-                                YouTube Shorts
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" id="includeLiveStreams" checked> 
-                                Live Streams
-                            </label>
-                        </div>
+                    
+                    <div class="option-group-inline">
+                        <label>Keywords:</label>
+                        <label class="radio-inline">
+                            <input type="radio" name="searchLogic" value="OR" checked> 
+                            Any (OR)
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="searchLogic" value="AND"> 
+                            All (AND)
+                        </label>
                     </div>
                 </div>
                 
-                <!-- Single Search Button -->
-                <div class="search-action">
-                    <button id="searchBtn" class="search-btn" disabled>
-                        🔍 Search & Analyze Channel
+                <!-- Large Search Button -->
+                <div class="search-action-large">
+                    <button id="searchBtn" class="search-btn-large" disabled>
+                        🔍 Analyze Channel
                     </button>
-                    <div class="search-help">
+                    <div class="search-status">
                         ${this.appState.currentEnvironment === 'demo' ? 
-                            'Demo mode: 100 video limit, built-in API key' : 
+                            'Demo: 100 video limit' : 
                             this.appState.currentEnvironment === 'live' ? 
-                                'Live mode: Full access with your API key' : 
+                                'Full: Unlimited videos' : 
                                 'Development mode'
                         }
                     </div>
@@ -1011,15 +920,17 @@ export class App extends BaseComponent {
     }
     
     setupModeSpecificListeners() {
-        // Re-attach mode toggle listeners (new system)
-        const modeButtons = this.findElements('.mode-btn, .upgrade-btn');
+        // Re-attach mode toggle listeners (new compact system)
+        const modeButtons = this.findElements('.mode-btn-compact, .upgrade-btn');
         modeButtons.forEach(btn => {
             const mode = btn.getAttribute('data-mode');
             if (mode) {
                 this.addListener(btn, 'click', (e) => {
                     e.preventDefault();
+                    debugLog(`🖱️ Mode button clicked: ${mode}`);
                     this.switchMode(mode);
                 });
+                debugLog(`✅ Mode button listener attached for ${mode}`);
             }
         });
         
