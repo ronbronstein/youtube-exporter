@@ -30,13 +30,14 @@ export class MessagePanel extends BaseComponent {
             },
             allowDismiss: true,
             maxMessages: 5,
-            position: 'top' // 'top', 'bottom'
+            position: 'top' // 'top', 'bottom', 'banner'
         };
     }
     
     template() {
+        const panelClass = this.options.position === 'banner' ? 'message-panel-banner' : 'message-panel';
         return `
-            <div class="message-panel ${this.options.position}">
+            <div class="${panelClass} ${this.options.position}">
                 <div class="message-container" id="messageContainer"></div>
             </div>
         `;

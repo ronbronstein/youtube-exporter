@@ -9,6 +9,7 @@
  */
 
 import { debugLog } from '../utils/debug.js';
+import { globalPerformanceMonitor } from '../utils/performance.js';
 
 export class BaseComponent {
     constructor(container, options = {}) {
@@ -55,19 +56,23 @@ export class BaseComponent {
         // Override in subclasses for cleanup logic
     }
     
-    // Rendering
+    // Rendering with performance tracking
     render() {
         if (this.isDestroyed) return;
         
-        const content = this.template();
-        if (content) {
-            this.container.innerHTML = '';
-            if (typeof content === 'string') {
-                this.container.innerHTML = content;
-            } else {
-                this.container.appendChild(content);
+        const componentName = this.constructor.name;
+        globalPerformanceMonitor.trackRender(componentName, () => {
+            const content = this.template();
+            if (content) {
+                this.container.innerHTML = '';
+                if (typeof content === 'string') {
+                    this.container.innerHTML = content;
+                } else {
+                    this.container.appendChild(content);
+                }
             }
-        }
+        });
+        
         this.onUpdate({});
     }
     

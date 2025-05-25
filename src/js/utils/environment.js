@@ -25,9 +25,10 @@ export function detectEnvironment() {
         return 'local-file';
     }
     
-    // Check if running on local development server
-    if (CONFIG.ENVIRONMENT.LOCAL_DOMAINS.includes(hostname)) {
-        return 'local-server';
+    // Check if running on local development server (including Vite preview)
+    if (CONFIG.ENVIRONMENT.LOCAL_DOMAINS.includes(hostname) || hostname.startsWith('localhost')) {
+        // For localhost preview servers, default to demo mode for easier testing
+        return 'demo';
     }
     
     // Default to live for any hosted domain (Cloudways, custom domain, etc.)

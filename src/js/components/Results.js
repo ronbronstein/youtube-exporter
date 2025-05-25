@@ -233,6 +233,33 @@ export class Results extends BaseComponent {
         this.container.style.display = 'none';
     }
     
+    clearResults() {
+        this.videos = [];
+        this.filteredVideos = [];
+        this.channelName = '';
+        
+        // Clear search filter
+        const titleFilter = this.findElement('#titleFilter');
+        if (titleFilter) {
+            titleFilter.value = '';
+        }
+        
+        // Update UI
+        this.updateResultsCount();
+        this.updateExportButtons();
+        
+        // Hide the component
+        this.hide();
+        
+        // Emit clear event
+        this.emit('videosChanged', {
+            videos: [],
+            view: this.currentView
+        });
+        
+        debugLog('📊 Results cleared');
+    }
+    
     // Export Functions
     exportToCSV() {
         if (!this.filteredVideos || this.filteredVideos.length === 0) {
