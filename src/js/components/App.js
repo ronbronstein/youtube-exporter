@@ -516,34 +516,25 @@ export class App extends BaseComponent {
             debugLog('❌ Search button not found - this is critical!');
         }
         
-        // Mode toggle events
-        const demoModeBtn = this.findElement('#demoModeBtn');
-        const liveModeBtn = this.findElement('#liveModeBtn');
+        // Mode toggle events - FIXED to match actual HTML structure
+        const modeButtons = this.findElements('.mode-btn-compact');
+        modeButtons.forEach(btn => {
+            const mode = btn.getAttribute('data-mode');
+            if (mode) {
+                this.addListener(btn, 'click', (e) => {
+                    e.preventDefault();
+                    debugLog(`🖱️ Mode button clicked: ${mode}`);
+                    if (this.performanceMonitor) {
+                        this.performanceMonitor.trackUserInteraction('modeToggle', { mode });
+                    }
+                    this.switchMode(mode);
+                });
+                debugLog(`✅ Mode button listener attached for ${mode}`);
+            }
+        });
         
-        if (demoModeBtn) {
-            this.addListener(demoModeBtn, 'click', (e) => {
-                debugLog('🖱️ Demo mode button clicked');
-                if (this.performanceMonitor) {
-                    this.performanceMonitor.trackUserInteraction('modeToggle', { mode: 'demo' });
-                }
-                this.switchMode('demo');
-            });
-            debugLog('✅ Demo mode button listener attached');
-        } else {
-            debugLog('⚠️ Demo mode button not found');
-        }
-        
-        if (liveModeBtn) {
-            this.addListener(liveModeBtn, 'click', (e) => {
-                debugLog('🖱️ Live mode button clicked');
-                if (this.performanceMonitor) {
-                    this.performanceMonitor.trackUserInteraction('modeToggle', { mode: 'live' });
-                }
-                this.switchMode('live');
-            });
-            debugLog('✅ Live mode button listener attached');
-        } else {
-            debugLog('⚠️ Live mode button not found');
+        if (modeButtons.length === 0) {
+            debugLog('⚠️ No mode toggle buttons found');
         }
         
         debugLog('🔌 Event listeners setup complete');
@@ -953,13 +944,16 @@ export class App extends BaseComponent {
      */
     setupModeSpecificListeners() {
         // Re-attach mode toggle listeners (new compact system)
-        const modeButtons = this.findElements('.mode-btn-compact, .upgrade-btn');
+        const modeButtons = this.findElements('.mode-btn-compact');
         modeButtons.forEach(btn => {
             const mode = btn.getAttribute('data-mode');
             if (mode) {
                 this.addListener(btn, 'click', (e) => {
                     e.preventDefault();
                     debugLog(`🖱️ Mode button clicked: ${mode}`);
+                    if (this.performanceMonitor) {
+                        this.performanceMonitor.trackUserInteraction('modeToggle', { mode });
+                    }
                     this.switchMode(mode);
                 });
                 debugLog(`✅ Mode button listener attached for ${mode}`);
