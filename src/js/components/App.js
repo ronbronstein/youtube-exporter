@@ -397,7 +397,7 @@ export class App extends BaseComponent {
                         class="api-key-input-large"
                     >
                     <button id="saveApiKeyBtn" class="save-key-btn-minimal">
-                        Save
+                        Validate & Use
                     </button>
                 </div>
                 
@@ -709,6 +709,7 @@ export class App extends BaseComponent {
                 
                 if (this.components.results) {
                     this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                    this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.filteredVideos.length} filtered videos`);
                 }
                 
@@ -727,6 +728,7 @@ export class App extends BaseComponent {
                 
                 if (this.components.results) {
                     this.components.results.setVideos(this.appState.videos, channelName);
+                    this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
                 }
                 
@@ -807,6 +809,7 @@ export class App extends BaseComponent {
             
             if (this.components.results) {
                 this.components.results.setVideos(processedVideos, channelName);
+                this.components.results.show();
                 debugLog(`📊 Results component updated with ${processedVideos.length} videos from analyzeChannel`);
             }
             

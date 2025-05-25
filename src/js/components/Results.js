@@ -227,10 +227,13 @@ export class Results extends BaseComponent {
     
     show() {
         this.container.style.display = 'block';
+        this.container.style.visibility = 'visible';
+        debugLog('📊 Results component shown');
     }
     
     hide() {
         this.container.style.display = 'none';
+        debugLog('📊 Results component hidden');
     }
     
     clearResults() {
