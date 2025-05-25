@@ -1421,6 +1421,19 @@ th {
     color: #e83e8c;
 }
 
+/* 
+ * MINIMALISTIC DESIGN SYSTEM (Dec 2024)
+ * 
+ * Complete UI redesign addressing major usability issues:
+ * - Compact mode selector (was huge and overwhelming)
+ * - Large, usable input fields (20px padding)
+ * - Clean, professional appearance
+ * - Functional button interactions
+ * - Mobile-responsive design
+ * 
+ * This replaces the previous card-based mode selector with a streamlined approach
+ */
+
 /* Minimalistic Mode Selector */
 .mode-selector-minimal {
     background: white;

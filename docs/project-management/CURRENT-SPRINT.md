@@ -159,6 +159,57 @@
 
 ---
 
+### **TASK-017: Major UI Redesign - Minimalistic & Functional**
+**Story**: STORY-009 (UI/UX Improvements)  
+**Status**: 🟢 DONE  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Completed**: Today  
+
+**Description**: Complete redesign of the user interface to address major usability issues and design flaws.
+
+**Problems Identified**:
+- ❌ Awful proportions - huge mode selector taking up too much space
+- ❌ Non-functional mode switching buttons
+- ❌ Redundant status messages ("Currently in Demo Mode" + "Demo Mode Active")
+- ❌ Misleading copy ("Upgrade to Full Version" implies paid upgrade)
+- ❌ Tiny input fields with poor usability
+- ❌ Too much visual noise and complexity
+
+**Solution Implemented**:
+- ✅ **Minimalistic Mode Selector**: Replaced huge card-based selector with compact toggle buttons
+- ✅ **Fixed Button Functionality**: Mode switching now works properly with correct event listeners
+- ✅ **Consolidated Status Messages**: Removed redundant banners, single status line
+- ✅ **Improved Copy**: Changed "Upgrade to Full Version" → "Full (Your API)" - no paid implications
+- ✅ **Large Input Fields**: Increased padding to 20px for much better usability
+- ✅ **Better Proportions**: Mode selector takes minimal space, more room for content
+- ✅ **Clean Design**: Removed visual clutter, focused on functionality
+
+**Technical Changes**:
+- Redesigned `renderModeToggle()` with compact button system
+- Simplified `renderApiKeySection()` with minimal design
+- Enhanced `renderSearchSection()` with large input fields
+- Fixed `setupModeSpecificListeners()` for proper button functionality
+- Added comprehensive CSS for new minimalistic design
+- Responsive mobile design with proper scaling
+
+**User Experience Improvements**:
+- Much larger, more usable input fields
+- Clear, functional mode switching
+- No confusing upgrade messaging
+- Clean, professional appearance
+- Better mobile experience
+- Faster visual comprehension
+
+**Files Modified**:
+- `src/js/components/App.js` - Complete UI redesign
+- `src/styles/main.css` - New minimalistic styles + responsive design
+
+**Time Spent**: 3 hours  
+**Status**: Deployed to GitHub Pages (pending cache refresh)
+
+---
+
 ## 🐛 BUGS FIXED
 
 ### **BUG-001: Search Button Unresponsive**

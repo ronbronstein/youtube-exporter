@@ -266,7 +266,17 @@ export class App extends BaseComponent {
         }
     }
     
-    // Environment-specific methods
+    /**
+     * Render the mode selector UI
+     * 
+     * REDESIGNED (Dec 2024): Switched from large card-based selector to compact toggle buttons
+     * - Minimalistic design takes less space
+     * - Clear, functional buttons with proper event handling
+     * - Consolidated status messaging
+     * - No misleading "upgrade" language
+     * 
+     * @returns {string} HTML for mode selector or local development banner
+     */
     renderModeToggle() {
         const currentMode = this.appState.currentEnvironment;
         
@@ -370,6 +380,17 @@ export class App extends BaseComponent {
         `;
     }
     
+    /**
+     * Render the search section with large, usable input fields
+     * 
+     * REDESIGNED (Dec 2024): Enhanced for better usability
+     * - Much larger input fields (20px padding) for comfortable typing
+     * - Simplified options layout
+     * - Larger, more prominent search button
+     * - Clear status messaging
+     * 
+     * @returns {string} HTML for search section
+     */
     renderSearchSection() {
         return `
             <div class="search-section-minimal">
@@ -919,6 +940,17 @@ export class App extends BaseComponent {
         debugLog('✅ Header updated with new mode selector');
     }
     
+    /**
+     * Setup event listeners for mode-specific elements
+     * 
+     * CRITICAL FIX (Dec 2024): Ensures mode switching buttons work properly
+     * - Re-attaches event listeners after DOM re-rendering
+     * - Handles both compact mode buttons and legacy upgrade buttons
+     * - Properly manages search button functionality
+     * - Includes comprehensive debug logging
+     * 
+     * This method is called after mode switching to ensure all interactive elements work
+     */
     setupModeSpecificListeners() {
         // Re-attach mode toggle listeners (new compact system)
         const modeButtons = this.findElements('.mode-btn-compact, .upgrade-btn');

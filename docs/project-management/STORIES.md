@@ -190,6 +190,32 @@ As a **potential user**, I want to **try the application with a working demo** s
 
 ---
 
+### **STORY-009: UI/UX Improvements**
+**Epic**: EPIC-005 (User Experience Enhancement)  
+**Status**: 🟢 DONE  
+**Priority**: P0 (Critical)  
+**Story Points**: 8  
+**Assignee**: Development Team  
+**Completed**: Today  
+
+**User Story**:
+As a **user**, I want **a clean, intuitive interface with properly sized elements** so that **I can easily navigate and use the application without confusion**.
+
+**Acceptance Criteria**:
+- ✅ Mode selector is compact and doesn't dominate the interface
+- ✅ Mode switching buttons are functional and responsive
+- ✅ Input fields are large enough for comfortable typing (20px padding)
+- ✅ No redundant status messages or confusing indicators
+- ✅ Copy is clear and doesn't imply paid upgrades
+- ✅ Design is minimalistic and professional
+- ✅ Mobile responsive design works properly
+- ✅ Visual hierarchy guides user attention effectively
+
+**Related Tasks**: TASK-017  
+**Dependencies**: STORY-007 (Demo Mode Implementation)
+
+---
+
 ## 📋 BACKLOG STORIES
 
 ### **STORY-008: Add Multi-Channel Comparison**
@@ -255,7 +281,7 @@ As a **user**, I want **protection from malicious content** so that **my data an
 | STORY-003 | EPIC-001 | 📋 Todo | P0 | 5 | 0% |
 | STORY-004 | EPIC-002 | 🟡 In Progress | P1 | 2 | 60% |
 | STORY-005 | EPIC-002 | 📋 Todo | P1 | 3 | 0% |
-| STORY-006 | EPIC-002 | �� DONE | P0 | 5 | 100% |
+| STORY-006 | EPIC-002 | 🟢 DONE | P0 | 5 | 100% |
 | STORY-007 | EPIC-003 | 🟢 DONE | P0 | 8 | 100% |
 | STORY-008 | EPIC-004 | 📋 Backlog | P3 | 13 | 0% |
 | STORY-009 | EPIC-005 | 📋 Backlog | P2 | 8 | 0% |
