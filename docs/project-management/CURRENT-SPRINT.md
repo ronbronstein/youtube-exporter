@@ -300,33 +300,28 @@
 - ❌ Live mode not indicating locked state without API key
 - ❌ No visual feedback for API key validation
 - ❌ Confusing success popups instead of status updates
+- ❌ Demo mode not enforcing 100 video limit
+- ❌ Mode switching not working properly
+- ❌ API key detection logic using wrong environment variables
 
 **Solution Implemented**:
 - ✅ **Demo Mode**: Clean status panel with "Try Demo" naming, no API key input required
-- ✅ **Live Mode**: Gray out all inputs until API key is validated
-- ✅ **Progressive Disclosure**: Inputs unlock after API key validation
-- ✅ **Better Naming**: "Try Demo" instead of "Built-in API", "Full Version" instead of "Your API"
-- ✅ **Visual Feedback**: API key validation enables save button, shows validated state
-- ✅ **Status Updates**: Removed popups in favor of clean status panel updates
-- ✅ **Comprehensive CSS**: Added disabled states, demo panel, validation indicators
+- ✅ **Live Mode**: Gray out all inputs until API key validated, clear unlock feedback
+- ✅ **Mode Detection**: Fixed apiMode vs currentEnvironment logic throughout codebase
+- ✅ **Video Limiting**: Demo mode properly enforces 100 video limit via YouTube service
+- ✅ **Mode Persistence**: Save user's mode preference to localStorage
+- ✅ **UI Consistency**: Unified state management across all components
+- ✅ **API Key Logic**: Fixed setApiKey to properly enable demo mode on YouTube service
+- ✅ **Event Listeners**: Fixed mode-specific event listener attachment
 
 **Technical Changes**:
-- Updated `renderModeToggle()` with better naming and descriptions
-- Enhanced `renderApiKeySection()` with demo status panel and validation states
-- Modified `renderSearchSection()` to disable inputs in live mode without API key
-- Added `updateUIAfterApiKeyChange()` method for dynamic UI updates
-- Fixed `handleApiKeyInput()` validation and button state management
-- Added comprehensive CSS for disabled states and visual feedback
+- Fixed `setApiKey()` to check `apiMode` instead of `currentEnvironment` for demo mode
+- Fixed `switchMode()` to set `apiMode` instead of `currentEnvironment`
+- Fixed `setupModeSpecificListeners()` to check correct mode for API key inputs
+- Added mode preference persistence to localStorage
+- Ensured YouTube service properly receives demo mode flag for 100 video limit
 
-**User Experience**:
-- Demo mode: Immediate access, clear limitations, no setup required
-- Live mode: Clear progression from locked → API entry → validation → unlocked
-- No confusing popups or misleading terminology
-- Visual feedback at every step
-
-**Files Modified**:
-- `src/js/components/App.js` - UI state management and validation
-- `src/styles/main.css` - Disabled states and demo panel styling
+**Testing**: ✅ Verified on GitHub Pages - demo mode shows clean interface, live mode shows API input, mode switching works, 100 video limit enforced in demo mode.
 
 **Time Spent**: 2 hours  
 **Status**: Deployed to GitHub Pages

@@ -33,6 +33,11 @@ export class YouTubeApiService {
     setDemoMode(enabled) {
         this.isDemoMode = enabled;
         this.rateLimiter.setDemoMode(enabled);
+        debugLog(`🎭 YouTube API Service: Demo mode ${enabled ? 'ENABLED' : 'DISABLED'}`, {
+            isDemoMode: this.isDemoMode,
+            videoLimit: enabled ? 100 : 'unlimited',
+            maxPages: enabled ? 2 : 'unlimited'
+        });
     }
 
     /**

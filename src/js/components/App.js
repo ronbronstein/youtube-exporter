@@ -792,6 +792,13 @@ export class App extends BaseComponent {
         const isDemoMode = this.appState.apiMode === 'demo' || 
                           this.appState.currentEnvironment === 'demo';
         
+        debugLog(`🔑 Setting API key with mode detection:`, {
+            apiMode: this.appState.apiMode,
+            currentEnvironment: this.appState.currentEnvironment,
+            isDemoMode: isDemoMode,
+            apiKeyLength: apiKey ? apiKey.length : 0
+        });
+        
         if (isDemoMode) {
             this.services.youtube.setDemoMode(true);
             debugLog('🎭 Demo mode enabled on YouTube service - 100 video limit active');
