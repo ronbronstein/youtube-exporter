@@ -1350,7 +1350,7 @@ export class App extends BaseComponent {
                 this.setApiKey(apiKey);
                 this.appState.apiMode = 'local-auto';
                 debugLog('✅ Local development: API key auto-loaded from .env file');
-                this.showSuccess('API key loaded from .env file');
+                this.updateApiKeyStatus();
                 return 'local-auto';
             } else {
                 this.appState.apiMode = 'manual';
@@ -1396,5 +1396,38 @@ export class App extends BaseComponent {
                 }
             }
         }
+    }
+
+    /**
+     * Update the API key status display in the UI
+     */
+    updateApiKeyStatus() {
+        const currentEnvironment = this.appState.currentEnvironment;
+        
+        if (currentEnvironment === 'local') {
+            const statusSection = this.findElement('.api-key-status-local');
+            if (statusSection) {
+                const hasApiKey = !!this.appState.apiKey;
+                const apiKeySource = hasApiKey ? 'Found in .env file' : 'Not found in .env file';
+                
+                statusSection.innerHTML = `
+                    <div class="status-content">
+                        <span class="status-icon">🔐</span>
+                        <span class="status-text">API Key: ${apiKeySource}</span>
+                        <span class="status-indicator ${hasApiKey ? 'ready' : 'missing'}">
+                            ${hasApiKey ? '✅ Ready' : '⚠️ Missing'}
+                        </span>
+                    </div>
+                    ${!hasApiKey ? `
+                        <div class="env-help">
+                            <p>Add <code>VITE_DEMO_API_KEY=your_key_here</code> to your .env file</p>
+                        </div>
+                    ` : ''}
+                `;
+            }
+        }
+        
+        // Update button state as well
+        this.updateAnalyzeButtonState();
     }
 }
