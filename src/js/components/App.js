@@ -1433,6 +1433,18 @@ export class App extends BaseComponent {
             } else {
                 // Demo mode - use built-in API key
                 const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
+                debugLog('🔍 GitHub Pages Demo Mode Debug:', {
+                    demoApiKey: demoApiKey ? `${demoApiKey.substring(0, 10)}...` : 'null',
+                    demoApiKeyLength: demoApiKey ? demoApiKey.length : 0,
+                    allEnvVars: {
+                        VITE_DEMO_API_KEY: import.meta.env.VITE_DEMO_API_KEY ? 'present' : 'missing',
+                        NODE_ENV: import.meta.env.NODE_ENV,
+                        MODE: import.meta.env.MODE,
+                        PROD: import.meta.env.PROD,
+                        DEV: import.meta.env.DEV
+                    }
+                });
+                
                 if (demoApiKey) {
                     this.setApiKey(demoApiKey);
                     this.appState.apiMode = 'demo';
@@ -1441,6 +1453,7 @@ export class App extends BaseComponent {
                     return 'demo';
                 } else {
                     console.warn('⚠️ GitHub Pages: No demo API key found');
+                    debugLog('❌ GitHub Pages: VITE_DEMO_API_KEY is null or undefined');
                     this.appState.apiMode = 'live';
                     this.showWarning('Demo API key not available. Please enter your own.');
                     return 'live';
