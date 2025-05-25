@@ -311,6 +311,58 @@
 
 ---
 
+## Epic 4: Development Workflow Simplification 🔧
+
+**Status**: Planned  
+**Priority**: High  
+**Estimated Effort**: 2-3 sprints  
+**Target**: Q1 2025  
+
+### Problem Statement
+Current development setup has confusing dual-environment behavior:
+- Local development shows false "API missing" errors
+- Different behavior between local and GitHub Pages
+- Environment detection logic creates unnecessary complexity
+- Developers waste time fixing "bugs" that only exist locally
+
+### Solution Vision
+**Production-First Development Approach:**
+1. **Phase 1**: Remove local development complexity
+2. **Phase 2**: Stabilize GitHub Pages as primary development target
+3. **Phase 3**: Create dedicated local development setup (separate from production)
+
+### Success Criteria
+- ✅ Single source of truth: GitHub Pages deployment
+- ✅ No more false local development bugs
+- ✅ Streamlined commit-push-test workflow
+- ✅ Clear separation between production and local development
+- ✅ Faster development cycles
+
+### Stories Included
+- Remove environment detection logic
+- Simplify API key handling for production
+- Create production-only build configuration
+- Document GitHub Pages-first workflow
+- Create separate local development branch/setup (future)
+
+### Dependencies
+- Current analytics implementation completion
+- Stable GitHub Pages deployment
+
+### Risks & Mitigation
+- **Risk**: Slower feedback loop during development
+- **Mitigation**: GitHub Actions builds are fast (~2-3 minutes)
+- **Risk**: Need internet for testing
+- **Mitigation**: Most development work can be done offline, test online
+
+### Technical Approach
+1. **Remove local environment detection**
+2. **Simplify to single production configuration**
+3. **Use GitHub Pages as development environment**
+4. **Create separate local setup later when needed**
+
+---
+
 ## 📊 EPIC STATUS OVERVIEW
 
 | Epic ID | Name | Status | Priority | Progress | Target |

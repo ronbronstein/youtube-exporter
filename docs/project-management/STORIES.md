@@ -442,6 +442,83 @@ As a **user**, I want **protection from malicious content** so that **my data an
 
 ---
 
+## STORY-018: Remove Local Environment Detection Logic
+**Epic**: Development Workflow Simplification  
+**Priority**: High  
+**Effort**: 3 points  
+**Status**: Planned  
+
+**As a** developer  
+**I want** to remove confusing local environment detection  
+**So that** I can focus on production-ready code without false bugs  
+
+**Acceptance Criteria:**
+- [ ] Remove environment detection from App.js
+- [ ] Remove local/demo/live mode switching
+- [ ] Simplify to single production configuration
+- [ ] Remove local API key handling complexity
+- [ ] Update documentation for new workflow
+
+**Technical Tasks:**
+- Remove `detectEnvironment()` function
+- Remove mode switching UI components
+- Simplify API key initialization
+- Remove local development banners
+- Update build configuration
+
+---
+
+## STORY-019: Implement GitHub Pages-First Development Workflow
+**Epic**: Development Workflow Simplification  
+**Priority**: High  
+**Effort**: 2 points  
+**Status**: Planned  
+
+**As a** developer  
+**I want** to use GitHub Pages as my primary development environment  
+**So that** I can test real production behavior immediately  
+
+**Acceptance Criteria:**
+- [ ] Document commit-push-test workflow
+- [ ] Create development guidelines
+- [ ] Set up efficient GitHub Actions monitoring
+- [ ] Create testing checklist for GitHub Pages
+- [ ] Update README with new workflow
+
+**Technical Tasks:**
+- Document new development process
+- Create GitHub Pages testing guide
+- Set up workflow monitoring
+- Update contributor guidelines
+
+---
+
+## STORY-020: Create Future Local Development Setup (Backlog)
+**Epic**: Development Workflow Simplification  
+**Priority**: Low  
+**Effort**: 5 points  
+**Status**: Backlog  
+
+**As a** developer  
+**I want** a dedicated local development setup  
+**So that** I can work offline when needed (future enhancement)  
+
+**Acceptance Criteria:**
+- [ ] Create separate local development branch
+- [ ] Implement local-only configuration
+- [ ] Add local development documentation
+- [ ] Ensure no conflicts with production setup
+- [ ] Add local testing capabilities
+
+**Technical Tasks:**
+- Create `local-dev` branch
+- Implement local-specific configuration
+- Add local development scripts
+- Create local testing framework
+- Document local setup process
+
+---
+
 ## 📊 STORY STATUS OVERVIEW
 
 | Story ID | Epic | Status | Priority | Points | Progress |
@@ -459,10 +536,13 @@ As a **user**, I want **protection from malicious content** so that **my data an
 | STORY-011 | EPIC-004 | 🟢 DONE | P0 | 13 | 100% |
 | STORY-012 | EPIC-005 | 🟢 DONE | P0 | 8 | 100% |
 | STORY-013 | EPIC-006 | 🟢 DONE | P1 | 5 | 100% |
-| STORY-014 | EPIC-006 | �� DONE | P1 | 3 | 100% |
+| STORY-014 | EPIC-006 | 🟢 DONE | P1 | 3 | 100% |
 | STORY-015 | EPIC-007 | 🟢 DONE | P2 | 3 | 100% |
 | STORY-016 | EPIC-008 | 🟢 DONE | P3 | 1 | 100% |
 | STORY-017 | EPIC-009 | 🟢 DONE | P2 | 2 | 100% |
+| STORY-018 | Development Workflow Simplification | Planned | High | 3 | 0% |
+| STORY-019 | Development Workflow Simplification | Planned | High | 2 | 0% |
+| STORY-020 | Development Workflow Simplification | Backlog | Low | 5 | 0% |
 
 ---
 
