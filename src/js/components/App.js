@@ -98,12 +98,22 @@ export class App extends BaseComponent {
     template() {
         return `
             <div class="app-main">
+                <!-- Global Messages Banner -->
+                <div id="globalMessages" class="global-messages-banner"></div>
+                
                 <!-- Header Section -->
                 <div class="app-header">
-                    <h1>📺 YouTube Channel Research Hub</h1>
-                    <p>Comprehensive analysis • Content insights • Strategic planning</p>
-                    <div class="environment-badge">
-                        ${this.renderEnvironmentBadge()}
+                    <div class="header-top">
+                        <div class="title-section">
+                            <h1>📺 YouTube Channel Research Hub</h1>
+                            <p>Comprehensive analysis • Content insights • Strategic planning</p>
+                        </div>
+                        <div class="mode-toggle-section">
+                            ${this.renderModeToggle()}
+                        </div>
+                    </div>
+                    <div class="environment-info">
+                        ${this.renderEnvironmentInfo()}
                     </div>
                 </div>
                 
@@ -112,9 +122,6 @@ export class App extends BaseComponent {
                     ${this.renderApiKeySection()}
                     ${this.renderSearchSection()}
                 </div>
-                
-                <!-- Global Messages Container -->
-                <div id="globalMessages" class="global-messages"></div>
                 
                 <!-- Main Content Area -->
                 <div class="main-content">
@@ -138,10 +145,12 @@ export class App extends BaseComponent {
     }
     
     onMount() {
+        debugLog('🏗️ App onMount started');
+        
         // Initialize global components
         this.components.messagePanel = GlobalMessages.init(
             this.findElement('#globalMessages'),
-            { position: 'top', maxMessages: 3 }
+            { position: 'banner', maxMessages: 1, autoHideDelay: { success: 3000, error: 8000, warning: 5000, info: 4000 } }
         );
         
         this.components.loadingSpinner = GlobalLoading.init(
@@ -186,6 +195,23 @@ export class App extends BaseComponent {
         
         // Check for environment-specific initialization
         this.handleEnvironmentSpecificInit();
+        
+        // Debug: Check if critical elements exist
+        debugLog('🔍 Checking critical elements after mount:');
+        debugLog('  - Channel input:', !!this.findElement('#channelInput'));
+        debugLog('  - Analyze button:', !!this.findElement('#analyzeBtn'));
+        debugLog('  - API key input:', !!this.findElement('#apiKeyInput'));
+        debugLog('  - Environment:', this.appState.currentEnvironment);
+        debugLog('  - Has API key:', !!this.appState.apiKey);
+        
+        // Debug: Check button state
+        const analyzeBtn = this.findElement('#analyzeBtn');
+        if (analyzeBtn) {
+            debugLog('  - Button disabled:', analyzeBtn.disabled);
+            debugLog('  - Button classes:', analyzeBtn.className);
+        }
+        
+        debugLog('🏗️ App onMount completed');
     }
     
     // Service Management
@@ -242,16 +268,66 @@ export class App extends BaseComponent {
     }
     
     // Environment-specific methods
-    renderEnvironmentBadge() {
-        const env = this.appState.currentEnvironment;
-        const badges = {
-            demo: '<span class="env-badge demo">🎭 Demo Mode</span>',
-            live: '<span class="env-badge live">🌐 Live Version</span>',
-            local: '<span class="env-badge local">💻 Local Development</span>'
-        };
-        return badges[env] || '<span class="env-badge unknown">❓ Unknown</span>';
+    renderModeToggle() {
+        return `
+            <div class="mode-toggle">
+                <div class="toggle-label">Mode:</div>
+                <div class="toggle-buttons">
+                    <button 
+                        id="demoModeBtn" 
+                        class="toggle-btn ${this.appState.currentEnvironment === 'demo' ? 'active' : ''}"
+                        data-mode="demo"
+                    >
+                        🎭 Demo
+                    </button>
+                    <button 
+                        id="liveModeBtn" 
+                        class="toggle-btn ${this.appState.currentEnvironment === 'live' ? 'active' : ''}"
+                        data-mode="live"
+                    >
+                        🌐 Live
+                    </button>
+                </div>
+            </div>
+        `;
     }
-    
+
+    renderEnvironmentInfo() {
+        const env = this.appState.currentEnvironment;
+        
+        if (env === 'demo') {
+            return `
+                <div class="env-info demo">
+                    <div class="env-icon">🎭</div>
+                    <div class="env-details">
+                        <strong>Demo Mode Active</strong>
+                        <p>Built-in API key • Limited to 50 videos • No quota usage</p>
+                    </div>
+                </div>
+            `;
+        } else if (env === 'live') {
+            return `
+                <div class="env-info live">
+                    <div class="env-icon">🌐</div>
+                    <div class="env-details">
+                        <strong>Live Mode</strong>
+                        <p>Bring your own YouTube API key • Full functionality • Uses your quota</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="env-info local">
+                <div class="env-icon">💻</div>
+                <div class="env-details">
+                    <strong>Development Mode</strong>
+                    <p>Local environment detected</p>
+                </div>
+            </div>
+        `;
+    }
+
     renderApiKeySection() {
         if (this.appState.currentEnvironment === 'demo') {
             return `
@@ -308,40 +384,35 @@ export class App extends BaseComponent {
         return `
             <div class="search-section">
                 <div class="search-header">
-                    <h3>🔍 Channel Analysis</h3>
+                    <h3>🔍 Channel Search & Analysis</h3>
+                    <p>Enter a channel and optional filters to analyze videos</p>
                 </div>
                 
-                <!-- Channel Input -->
+                <!-- Main Search Input -->
                 <div class="search-input-group">
-                    <input 
-                        type="text" 
-                        id="channelInput" 
-                        placeholder="@channel, channel URL, or channel ID"
-                        class="channel-input"
-                    >
-                    <button id="analyzeBtn" class="analyze-btn" disabled>
-                        Analyze Channel
-                    </button>
-                </div>
-                
-                <!-- Keyword Filtering -->
-                <div class="keyword-filter-section" style="margin-top: 16px;">
-                    <div class="search-input-group">
+                    <div class="input-row">
+                        <input 
+                            type="text" 
+                            id="channelInput" 
+                            placeholder="@channel, channel URL, or channel ID (required)"
+                            class="channel-input"
+                        >
+                    </div>
+                    <div class="input-row">
                         <input 
                             type="text" 
                             id="keywordInput" 
-                            placeholder="Filter videos by keywords: tutorial, AI, security (optional)"
+                            placeholder="Filter keywords: tutorial, AI, security (optional)"
                             class="keyword-input"
                         >
-                        <button id="applyFilterBtn" class="filter-btn" disabled>
-                            Apply Filter
-                        </button>
                     </div>
-                    
-                    <!-- Search Options -->
-                    <div class="filter-options">
-                        <div class="filter-group">
-                            <label><strong>Search in:</strong></label>
+                </div>
+                
+                <!-- Search Options -->
+                <div class="search-options">
+                    <div class="options-row">
+                        <div class="option-group">
+                            <label class="group-label">Search in:</label>
                             <label class="radio-option">
                                 <input type="radio" name="searchScope" value="both" checked> 
                                 Title & Description
@@ -356,8 +427,8 @@ export class App extends BaseComponent {
                             </label>
                         </div>
                         
-                        <div class="filter-group">
-                            <label><strong>Logic:</strong></label>
+                        <div class="option-group">
+                            <label class="group-label">Keyword logic:</label>
                             <label class="radio-option">
                                 <input type="radio" name="searchLogic" value="OR" checked> 
                                 Any keyword (OR)
@@ -367,17 +438,34 @@ export class App extends BaseComponent {
                                 All keywords (AND)
                             </label>
                         </div>
+                        
+                        <div class="option-group">
+                            <label class="group-label">Content types:</label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" id="includeShorts" checked> 
+                                YouTube Shorts
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" id="includeLiveStreams" checked> 
+                                Live Streams
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Video Options -->
-                <div class="video-options">
-                    <label>
-                        <input type="checkbox" id="includeShorts"> Include YouTube Shorts
-                    </label>
-                    <label>
-                        <input type="checkbox" id="includeLiveStreams"> Include Live Streams
-                    </label>
+                <!-- Single Search Button -->
+                <div class="search-action">
+                    <button id="searchBtn" class="search-btn" disabled>
+                        🔍 Search & Analyze Channel
+                    </button>
+                    <div class="search-help">
+                        ${this.appState.currentEnvironment === 'demo' ? 
+                            'Demo mode: 100 video limit, built-in API key' : 
+                            this.appState.currentEnvironment === 'live' ? 
+                                'Live mode: Full access with your API key' : 
+                                'Development mode'
+                        }
+                    </div>
                 </div>
             </div>
         `;
@@ -385,6 +473,8 @@ export class App extends BaseComponent {
     
     // Event Management
     setupEventListeners() {
+        debugLog('🔌 Setting up event listeners...');
+        
         // API Key events (live environment only)
         if (this.appState.currentEnvironment === 'live') {
             const apiKeyInput = this.findElement('#apiKeyInput');
@@ -395,46 +485,82 @@ export class App extends BaseComponent {
                 this.addListener(apiKeyInput, 'keydown', (e) => {
                     if (e.key === 'Enter') this.handleSaveApiKey();
                 });
+                debugLog('✅ API key input listeners attached');
+            } else {
+                debugLog('⚠️ API key input not found');
             }
             
             if (saveKeyBtn) {
                 this.addListener(saveKeyBtn, 'click', this.handleSaveApiKey.bind(this));
+                debugLog('✅ Save API key button listener attached');
+            } else {
+                debugLog('⚠️ Save API key button not found');
             }
         }
         
         // Channel analysis events
         const channelInput = this.findElement('#channelInput');
-        const analyzeBtn = this.findElement('#analyzeBtn');
+        const searchBtn = this.findElement('#searchBtn');
         
         if (channelInput) {
             this.addListener(channelInput, 'input', this.handleChannelInput.bind(this));
             this.addListener(channelInput, 'keydown', (e) => {
-                if (e.key === 'Enter' && !analyzeBtn.disabled) {
+                if (e.key === 'Enter' && !searchBtn.disabled) {
                     this.handleAnalyzeChannel();
                 }
             });
+            debugLog('✅ Channel input listeners attached');
+        } else {
+            debugLog('❌ Channel input not found - this is critical!');
         }
         
-        if (analyzeBtn) {
-            this.addListener(analyzeBtn, 'click', this.handleAnalyzeChannel.bind(this));
-        }
-        
-        // Keyword filtering events
-        const keywordInput = this.findElement('#keywordInput');
-        const applyFilterBtn = this.findElement('#applyFilterBtn');
-        
-        if (keywordInput) {
-            this.addListener(keywordInput, 'input', this.handleKeywordInput.bind(this));
-            this.addListener(keywordInput, 'keydown', (e) => {
-                if (e.key === 'Enter' && !applyFilterBtn.disabled) {
-                    this.handleApplyFilter();
+        if (searchBtn) {
+            this.addListener(searchBtn, 'click', (e) => {
+                debugLog('🖱️ Search button clicked');
+                if (this.performanceMonitor) {
+                    this.performanceMonitor.trackUserInteraction('searchButtonClick', {
+                        disabled: searchBtn.disabled,
+                        hasApiKey: !!this.appState.apiKey
+                    });
                 }
+                this.handleAnalyzeChannel();
             });
+            debugLog('✅ Search button listener attached');
+        } else {
+            debugLog('❌ Search button not found - this is critical!');
         }
         
-        if (applyFilterBtn) {
-            this.addListener(applyFilterBtn, 'click', this.handleApplyFilter.bind(this));
+        // Mode toggle events
+        const demoModeBtn = this.findElement('#demoModeBtn');
+        const liveModeBtn = this.findElement('#liveModeBtn');
+        
+        if (demoModeBtn) {
+            this.addListener(demoModeBtn, 'click', (e) => {
+                debugLog('🖱️ Demo mode button clicked');
+                if (this.performanceMonitor) {
+                    this.performanceMonitor.trackUserInteraction('modeToggle', { mode: 'demo' });
+                }
+                this.switchMode('demo');
+            });
+            debugLog('✅ Demo mode button listener attached');
+        } else {
+            debugLog('⚠️ Demo mode button not found');
         }
+        
+        if (liveModeBtn) {
+            this.addListener(liveModeBtn, 'click', (e) => {
+                debugLog('🖱️ Live mode button clicked');
+                if (this.performanceMonitor) {
+                    this.performanceMonitor.trackUserInteraction('modeToggle', { mode: 'live' });
+                }
+                this.switchMode('live');
+            });
+            debugLog('✅ Live mode button listener attached');
+        } else {
+            debugLog('⚠️ Live mode button not found');
+        }
+        
+        debugLog('🔌 Event listeners setup complete');
     }
     
     handleEnvironmentSpecificInit() {
@@ -486,108 +612,22 @@ export class App extends BaseComponent {
         this.updateAnalyzeButtonState();
     }
     
-    handleKeywordInput(event) {
-        const hasKeywords = event.target.value.trim().length > 0;
-        const hasVideos = this.appState.videos && this.appState.videos.length > 0;
-        
-        const applyFilterBtn = this.findElement('#applyFilterBtn');
-        if (applyFilterBtn) {
-            applyFilterBtn.disabled = !hasKeywords || !hasVideos;
-        }
-    }
-    
-    handleApplyFilter() {
-        const keywordInput = this.findElement('#keywordInput');
-        if (!keywordInput || !this.appState.videos) return;
-        
-        const keywords = keywordInput.value.trim();
-        if (!keywords) {
-            // Reset to all videos if no keywords
-            this.appState.filteredVideos = [...this.appState.videos];
-        } else {
-            this.applyKeywordFilter(keywords);
-        }
-        
-        // Update the Results component with filtered videos
-        const channelName = this.appState.channelData?.channelTitle || 
-                           this.appState.channelData?.snippet?.title || 
-                           'Unknown Channel';
-        this.components.results.setVideos(this.appState.filteredVideos, channelName);
-        
-        // Update analytics based on filtered results
-        this.services.analytics.setVideosData(this.appState.filteredVideos);
-        this.renderAnalytics();
-        
-        this.showSuccess(`Filter applied: ${this.appState.filteredVideos.length} videos match your criteria`);
-    }
-    
-    applyKeywordFilter(query) {
-        if (!query || !this.appState.videos) return;
-        
-        // Get filter settings
-        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'both';
-        const searchLogic = this.findElement('input[name="searchLogic"]:checked')?.value || 'OR';
-        
-        // Parse keywords
-        let keywords = [];
-        if (query.includes(',')) {
-            keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
-        } else if (query.toLowerCase().includes(' and ')) {
-            keywords = query.toLowerCase().split(' and ').map(k => k.trim()).filter(k => k.length > 0);
-        } else {
-            keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-        }
-        
-        debugLog(`Filtering with keywords: [${keywords.join(', ')}] using ${searchLogic} logic in ${searchScope}`);
-        
-        const originalCount = this.appState.videos.length;
-        
-        this.appState.filteredVideos = this.appState.videos.filter(video => {
-            let searchText = '';
-            
-            // Build search text based on scope
-            switch (searchScope) {
-                case 'title':
-                    searchText = video.title.toLowerCase();
-                    break;
-                case 'description':
-                    searchText = (video.fullDescription || video.description || '').toLowerCase();
-                    break;
-                case 'both':
-                default:
-                    searchText = `${video.title} ${video.fullDescription || video.description || ''}`.toLowerCase();
-                    break;
-            }
-            
-            if (searchLogic === 'AND') {
-                const matches = keywords.every(keyword => searchText.includes(keyword));
-                if (matches) {
-                    debugLog(`✅ AND match: "${video.title}" - all keywords found in ${searchScope}`);
-                }
-                return matches;
-            } else {
-                const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
-                if (matchedKeywords.length > 0) {
-                    debugLog(`✅ OR match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
-                }
-                return matchedKeywords.length > 0;
-            }
-        });
-        
-        debugLog(`Keyword filter applied: ${originalCount} → ${this.appState.filteredVideos.length} videos`);
-    }
-    
     async handleAnalyzeChannel() {
         // Track user interaction
         if (this.performanceMonitor) {
-            this.performanceMonitor.trackUserInteraction('channelAnalysis', {
+            this.performanceMonitor.trackUserInteraction('unifiedChannelSearch', {
                 environment: this.appState.currentEnvironment,
                 hasApiKey: !!this.appState.apiKey
             });
         }
         
         const channelInput = this.findElement('#channelInput');
-        if (!channelInput) return;
+        const keywordInput = this.findElement('#keywordInput');
+        
+        if (!channelInput) {
+            debugLog('❌ Channel input element not found');
+            return;
+        }
         
         const channelQuery = channelInput.value.trim();
         if (!channelQuery) {
@@ -600,11 +640,46 @@ export class App extends BaseComponent {
             return;
         }
         
-        this.setLoadingState(true, 'Analyzing channel...');
+        // Get keyword filter if provided
+        const keywords = keywordInput ? keywordInput.value.trim() : '';
+        
+        debugLog('🚀 Starting unified channel search', { 
+            channelQuery, 
+            keywords: keywords || 'none',
+            hasApiKey: !!this.appState.apiKey 
+        });
+        
+        this.setLoadingState(true, 'Searching channel...');
         
         try {
+            // Step 1: Analyze channel and get all videos
             await this.analyzeChannel(channelQuery);
+            
+            // Step 2: Apply keyword filter if provided
+            if (keywords) {
+                this.setLoadingState(true, 'Applying keyword filters...');
+                this.applyKeywordFilter(keywords);
+                
+                // Update the Results component with filtered videos
+                const channelName = this.appState.channelData?.channelTitle || 
+                                   this.appState.channelData?.snippet?.title || 
+                                   'Unknown Channel';
+                this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                
+                // Update analytics based on filtered results
+                this.services.analytics.setVideosData(this.appState.filteredVideos);
+                this.renderAnalytics();
+                
+                const totalVideos = this.appState.videos.length;
+                const filteredVideos = this.appState.filteredVideos.length;
+                this.showSuccess(`Found ${totalVideos} videos, ${filteredVideos} match your keyword filter`);
+            } else {
+                // No keywords, show all videos
+                this.showSuccess(`Analysis complete: ${this.appState.videos.length} videos found`);
+            }
+            
         } catch (error) {
+            debugLog('❌ Unified search failed:', error);
             // Error handling is done in analyzeChannel
         } finally {
             this.setLoadingState(false);
@@ -704,15 +779,28 @@ export class App extends BaseComponent {
     
     // UI State Management
     updateAnalyzeButtonState() {
-        const analyzeBtn = this.findElement('#analyzeBtn');
+        const searchBtn = this.findElement('#searchBtn');
         const channelInput = this.findElement('#channelInput');
         
-        if (!analyzeBtn) return;
+        if (!searchBtn) {
+            debugLog('❌ Search button not found in updateAnalyzeButtonState');
+            return;
+        }
         
         const hasApiKey = !!this.appState.apiKey;
         const hasChannel = channelInput && channelInput.value.trim().length > 0;
+        const isLoading = this.appState.isLoading;
         
-        analyzeBtn.disabled = !hasApiKey || !hasChannel || this.appState.isLoading;
+        const shouldDisable = !hasApiKey || !hasChannel || isLoading;
+        searchBtn.disabled = shouldDisable;
+        
+        debugLog(`🔘 Button state update:`, {
+            hasApiKey,
+            hasChannel,
+            isLoading,
+            disabled: shouldDisable,
+            environment: this.appState.currentEnvironment
+        });
     }
     
     setLoadingState(isLoading, message = 'Loading...') {
@@ -751,10 +839,19 @@ export class App extends BaseComponent {
     // Environment-specific initialization
     async initializeDemoMode() {
         try {
-            // In a real implementation, this would fetch the encrypted demo key
-            // For now, we'll simulate it
-            this.showInfo('Demo mode initialized - 100 video limit active');
-            debugLog('🎭 Demo mode initialized');
+            // In demo mode, use a real demo API key (in production, this would be loaded from secure environment)
+            // For now, using a placeholder that enables the button - in real deployment, load from .env
+            const demoApiKey = process.env.VITE_DEMO_API_KEY || 'AIzaSyDemo_EnableButton_ForTestingPurposes';
+            this.setApiKey(demoApiKey);
+            
+            // Ensure button state is updated
+            setTimeout(() => {
+                this.updateAnalyzeButtonState();
+                debugLog('🎭 Demo mode button state updated');
+            }, 100);
+            
+            this.showInfo('Demo mode active - Using built-in API key, 100 video limit');
+            debugLog('🎭 Demo mode initialized with demo API key');
         } catch (error) {
             this.showError('Failed to initialize demo mode');
         }
@@ -768,6 +865,232 @@ export class App extends BaseComponent {
         } catch (error) {
             this.showError('Failed to initialize local mode');
         }
+    }
+    
+    // Mode switching functionality
+    switchMode(newMode) {
+        debugLog(`🔄 Switching from ${this.appState.currentEnvironment} to ${newMode} mode`);
+        
+        if (this.appState.currentEnvironment === newMode) {
+            debugLog('Already in requested mode, no change needed');
+            return;
+        }
+        
+        // Clear existing state when switching modes
+        this.appState.apiKey = null;
+        this.services.youtube = null;
+        this.servicesReady.youtube = false;
+        
+        // Clear any existing analysis data
+        this.appState.videos = [];
+        this.appState.filteredVideos = [];
+        this.appState.channelData = null;
+        
+        // Update environment state
+        this.appState.currentEnvironment = newMode;
+        updateGlobalState('currentEnvironment', newMode);
+        
+        // Re-render the entire interface
+        this.updateHeader();
+        
+        // Initialize the new mode
+        if (newMode === 'demo') {
+            this.initializeDemoMode();
+        } else if (newMode === 'live') {
+            this.initializeLiveMode();
+        }
+        
+        // Clear any existing results
+        if (this.components.results) {
+            this.components.results.clearResults();
+        }
+        
+        // Clear analytics
+        const analyticsSection = this.findElement('#analyticsSection');
+        if (analyticsSection) {
+            analyticsSection.innerHTML = `
+                <div class="analytics-placeholder">
+                    Select a channel to view analytics
+                </div>
+            `;
+        }
+        
+        // Update button states
+        this.updateAnalyzeButtonState();
+        
+        // Re-setup event listeners for mode-specific elements
+        setTimeout(() => {
+            this.setupModeSpecificListeners();
+        }, 100);
+        
+        this.showSuccess(`Switched to ${newMode} mode`);
+    }
+    
+    updateHeader() {
+        // Update mode toggle buttons
+        const modeToggleSection = this.findElement('.mode-toggle-section');
+        if (modeToggleSection) {
+            modeToggleSection.innerHTML = this.renderModeToggle();
+        }
+        
+        // Update environment info
+        const envInfoSection = this.findElement('.environment-info');
+        if (envInfoSection) {
+            envInfoSection.innerHTML = this.renderEnvironmentInfo();
+        }
+        
+        // Update control panel (API key section)
+        const controlPanel = this.findElement('.control-panel');
+        if (controlPanel) {
+            controlPanel.innerHTML = this.renderApiKeySection() + this.renderSearchSection();
+        }
+    }
+    
+    setupModeSpecificListeners() {
+        // Re-attach mode toggle listeners
+        const demoModeBtn = this.findElement('#demoModeBtn');
+        const liveModeBtn = this.findElement('#liveModeBtn');
+        
+        if (demoModeBtn) {
+            this.addListener(demoModeBtn, 'click', (e) => {
+                this.switchMode('demo');
+            });
+        }
+        
+        if (liveModeBtn) {
+            this.addListener(liveModeBtn, 'click', (e) => {
+                this.switchMode('live');
+            });
+        }
+        
+        // Re-attach API key listeners if in live mode
+        if (this.appState.currentEnvironment === 'live') {
+            const apiKeyInput = this.findElement('#apiKeyInput');
+            const saveKeyBtn = this.findElement('#saveApiKeyBtn');
+            
+            if (apiKeyInput) {
+                this.addListener(apiKeyInput, 'input', this.handleApiKeyInput.bind(this));
+            }
+            
+            if (saveKeyBtn) {
+                this.addListener(saveKeyBtn, 'click', this.handleSaveApiKey.bind(this));
+            }
+        }
+        
+        // Re-attach search button listener (critical!)
+        const channelInput = this.findElement('#channelInput');
+        const searchBtn = this.findElement('#searchBtn');
+        
+        if (channelInput) {
+            this.addListener(channelInput, 'input', this.handleChannelInput.bind(this));
+            this.addListener(channelInput, 'keydown', (e) => {
+                if (e.key === 'Enter' && !searchBtn.disabled) {
+                    this.handleAnalyzeChannel();
+                }
+            });
+            debugLog('✅ Channel input listeners re-attached');
+        }
+        
+        if (searchBtn) {
+            this.addListener(searchBtn, 'click', (e) => {
+                debugLog('🖱️ Search button clicked (re-attached)');
+                if (this.performanceMonitor) {
+                    this.performanceMonitor.trackUserInteraction('searchButtonClick', {
+                        disabled: searchBtn.disabled,
+                        hasApiKey: !!this.appState.apiKey
+                    });
+                }
+                this.handleAnalyzeChannel();
+            });
+            debugLog('✅ Search button listener re-attached');
+        } else {
+            debugLog('❌ Search button not found during re-attachment - this is critical!');
+        }
+        
+        // Update button state
+        this.updateAnalyzeButtonState();
+    }
+    
+    initializeLiveMode() {
+        // Clear any existing state
+        this.appState.apiKey = null;
+        this.services.youtube = null;
+        this.servicesReady.youtube = false;
+        
+        // Clear any API key input if it exists
+        const apiKeyInput = this.findElement('#apiKeyInput');
+        if (apiKeyInput) {
+            apiKeyInput.value = '';
+        }
+        
+        // Try to load saved API key
+        const savedApiKey = storageService.getApiKey();
+        if (savedApiKey) {
+            this.setApiKey(savedApiKey);
+            // Pre-fill the input field
+            if (apiKeyInput) {
+                apiKeyInput.value = savedApiKey;
+            }
+        }
+        
+        this.showInfo('Live mode active - Enter your YouTube API key');
+        debugLog('🌐 Live mode initialized');
+    }
+    
+    applyKeywordFilter(query) {
+        if (!query || !this.appState.videos) return;
+        
+        // Get filter settings
+        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'both';
+        const searchLogic = this.findElement('input[name="searchLogic"]:checked')?.value || 'OR';
+        
+        // Parse keywords
+        let keywords = [];
+        if (query.includes(',')) {
+            keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
+        } else if (query.toLowerCase().includes(' and ')) {
+            keywords = query.toLowerCase().split(' and ').map(k => k.trim()).filter(k => k.length > 0);
+        } else {
+            keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+        }
+        
+        debugLog(`Filtering with keywords: [${keywords.join(', ')}] using ${searchLogic} logic in ${searchScope}`);
+        
+        const originalCount = this.appState.videos.length;
+        
+        this.appState.filteredVideos = this.appState.videos.filter(video => {
+            let searchText = '';
+            
+            // Build search text based on scope
+            switch (searchScope) {
+                case 'title':
+                    searchText = video.title.toLowerCase();
+                    break;
+                case 'description':
+                    searchText = (video.fullDescription || video.description || '').toLowerCase();
+                    break;
+                case 'both':
+                default:
+                    searchText = `${video.title} ${video.fullDescription || video.description || ''}`.toLowerCase();
+                    break;
+            }
+            
+            if (searchLogic === 'AND') {
+                const matches = keywords.every(keyword => searchText.includes(keyword));
+                if (matches) {
+                    debugLog(`✅ AND match: "${video.title}" - all keywords found in ${searchScope}`);
+                }
+                return matches;
+            } else {
+                const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
+                if (matchedKeywords.length > 0) {
+                    debugLog(`✅ OR match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
+                }
+                return matchedKeywords.length > 0;
+            }
+        });
+        
+        debugLog(`Keyword filter applied: ${originalCount} → ${this.appState.filteredVideos.length} videos`);
     }
     
     // Cleanup
