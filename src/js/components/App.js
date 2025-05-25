@@ -788,9 +788,16 @@ export class App extends BaseComponent {
         // Create or update YouTube API service instance
         this.services.youtube = new YouTubeApiService(apiKey);
         
-        // Check for demo mode
-        if (this.appState.currentEnvironment === 'demo') {
+        // Check for demo mode - use apiMode instead of currentEnvironment
+        const isDemoMode = this.appState.apiMode === 'demo' || 
+                          this.appState.currentEnvironment === 'demo';
+        
+        if (isDemoMode) {
             this.services.youtube.setDemoMode(true);
+            debugLog('🎭 Demo mode enabled on YouTube service - 100 video limit active');
+        } else {
+            this.services.youtube.setDemoMode(false);
+            debugLog('🌐 Live mode enabled on YouTube service - no video limit');
         }
         
         this.servicesReady.youtube = true;
@@ -1101,9 +1108,9 @@ export class App extends BaseComponent {
     
     // Mode switching functionality
     switchMode(newMode) {
-        debugLog(`🔄 Switching from ${this.appState.currentEnvironment} to ${newMode} mode`);
+        debugLog(`🔄 Switching from ${this.appState.apiMode || this.appState.currentEnvironment} to ${newMode} mode`);
         
-        if (this.appState.currentEnvironment === newMode) {
+        if (this.appState.apiMode === newMode) {
             debugLog('Already in requested mode, no change needed');
             return;
         }
@@ -1118,9 +1125,12 @@ export class App extends BaseComponent {
         this.appState.filteredVideos = [];
         this.appState.channelData = null;
         
-        // Update environment state
-        this.appState.currentEnvironment = newMode;
-        updateGlobalState('currentEnvironment', newMode);
+        // Update mode state - use apiMode for GitHub Pages
+        this.appState.apiMode = newMode;
+        updateGlobalState('apiMode', newMode);
+        
+        // Save mode preference
+        localStorage.setItem('yt_hub_mode', newMode);
         
         // Re-render the entire interface
         this.updateHeader();
@@ -1155,7 +1165,7 @@ export class App extends BaseComponent {
             this.setupModeSpecificListeners();
         }, 100);
         
-        this.showSuccess(`Switched to ${newMode === 'demo' ? 'Demo' : 'Full'} mode`);
+        this.showSuccess(`Switched to ${newMode === 'demo' ? 'Demo' : 'Live'} mode`);
     }
     
     updateHeader() {
@@ -1204,7 +1214,8 @@ export class App extends BaseComponent {
         });
         
         // Re-attach API key listeners if in live mode
-        if (this.appState.currentEnvironment === 'live') {
+        const currentMode = this.appState.apiMode || 'demo';
+        if (currentMode === 'live') {
             const apiKeyInput = this.findElement('#apiKeyInput');
             const saveKeyBtn = this.findElement('#saveApiKeyBtn');
             
@@ -1215,10 +1226,12 @@ export class App extends BaseComponent {
                         this.handleSaveApiKey();
                     }
                 });
+                debugLog('✅ API key input listeners re-attached for live mode');
             }
             
             if (saveKeyBtn) {
                 this.addListener(saveKeyBtn, 'click', this.handleSaveApiKey.bind(this));
+                debugLog('✅ Save API key button listener re-attached for live mode');
             }
         }
         

@@ -285,6 +285,54 @@
 
 ---
 
+### **TASK-028: Fix Demo Mode and Live Mode UI States**
+**Story**: STORY-019 (Demo Mode UX Improvements)  
+**Status**: 🟢 DONE  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Completed**: Today  
+
+**Description**: Fixed critical UX issues with demo mode and live mode state management on GitHub Pages.
+
+**Problems Fixed**:
+- ❌ Demo mode showing API key input (confusing users)
+- ❌ Misleading "Built-in API" naming
+- ❌ Live mode not indicating locked state without API key
+- ❌ No visual feedback for API key validation
+- ❌ Confusing success popups instead of status updates
+
+**Solution Implemented**:
+- ✅ **Demo Mode**: Clean status panel with "Try Demo" naming, no API key input required
+- ✅ **Live Mode**: Gray out all inputs until API key is validated
+- ✅ **Progressive Disclosure**: Inputs unlock after API key validation
+- ✅ **Better Naming**: "Try Demo" instead of "Built-in API", "Full Version" instead of "Your API"
+- ✅ **Visual Feedback**: API key validation enables save button, shows validated state
+- ✅ **Status Updates**: Removed popups in favor of clean status panel updates
+- ✅ **Comprehensive CSS**: Added disabled states, demo panel, validation indicators
+
+**Technical Changes**:
+- Updated `renderModeToggle()` with better naming and descriptions
+- Enhanced `renderApiKeySection()` with demo status panel and validation states
+- Modified `renderSearchSection()` to disable inputs in live mode without API key
+- Added `updateUIAfterApiKeyChange()` method for dynamic UI updates
+- Fixed `handleApiKeyInput()` validation and button state management
+- Added comprehensive CSS for disabled states and visual feedback
+
+**User Experience**:
+- Demo mode: Immediate access, clear limitations, no setup required
+- Live mode: Clear progression from locked → API entry → validation → unlocked
+- No confusing popups or misleading terminology
+- Visual feedback at every step
+
+**Files Modified**:
+- `src/js/components/App.js` - UI state management and validation
+- `src/styles/main.css` - Disabled states and demo panel styling
+
+**Time Spent**: 2 hours  
+**Status**: Deployed to GitHub Pages
+
+---
+
 ## 🐛 BUGS FIXED
 
 ### **BUG-001: Search Button Unresponsive**
