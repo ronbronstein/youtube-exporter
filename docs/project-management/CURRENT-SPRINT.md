@@ -594,3 +594,191 @@
 - **Epics**: See `EPICS.md` for high-level objectives
 - **Stories**: See `STORIES.md` for detailed user stories
 - **Sprint Planning**: Next sprint planning scheduled after deployment completion 
+
+## 🚀 NEW SPRINT: Legacy UX Restoration & Modern Improvements
+
+**Sprint Goal**: Restore legacy app experience with modern UX improvements  
+**Priority**: P0 (Critical User Experience)  
+**Target**: Complete legacy feature parity with enhanced UX  
+
+---
+
+## 🎯 ACTIVE TASKS (In Progress)
+
+### **TASK-020: Restore Missing Analysis Sections**
+**Story**: STORY-011 (Legacy Feature Parity)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+
+**Description**: Analysis panels from legacy app are missing in current implementation.
+
+**Missing Components**:
+- ❌ Content Analysis grid (Total Videos, Avg Views, Videos/Month, etc.)
+- ❌ Advanced Content Insights (Viral Content, Title Patterns, Upload Schedule)  
+- ❌ Upload Frequency Timeline chart
+- ❌ Proper analysis panel styling and layout
+
+**Acceptance Criteria**:
+- [ ] Content Analysis panel displays after successful fetch
+- [ ] Advanced insights panel shows viral content and patterns
+- [ ] Upload timeline chart renders with Chart.js
+- [ ] All panels match legacy styling with modern improvements
+- [ ] Analysis data is properly calculated and displayed
+
+---
+
+### **TASK-021: Implement Smart Caching Strategy**
+**Story**: STORY-012 (Performance Optimization)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+
+**Description**: Optimize fetch strategy - fetch all videos once, then filter locally.
+
+**Current Issue**: Re-fetching entire video list on every filter change  
+**Target**: Fetch once → cache → filter locally  
+
+**Implementation Plan**:
+- [ ] Cache all videos in localStorage after first fetch
+- [ ] Implement cache expiration (24 hours)
+- [ ] Filter operations work on cached data
+- [ ] Show cache status to user ("Using cached data from...")
+- [ ] Add "Refresh Data" option for manual cache clearing
+
+**Performance Benefits**:
+- 🚀 Instant filtering (no API calls)
+- 💰 Reduced API quota usage
+- 📱 Better offline experience
+- ⚡ Faster user interactions
+
+---
+
+### **TASK-022: Legacy Styling with Modern UX**
+**Story**: STORY-013 (Design System)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P1 (High)  
+**Assignee**: Development Team  
+
+**Description**: Restore Windows XP retro aesthetic with modern UX improvements.
+
+**Design Requirements**:
+- 🎨 Windows XP color scheme and borders
+- 🔲 Inset/outset button styles
+- 📝 Tahoma font family
+- 📏 Improved spacing for modern screens
+- 🔘 Subtle border radius (2-4px max)
+- 📱 Optimized for screen space efficiency
+- 🎯 Better visual hierarchy
+
+**Components to Update**:
+- [ ] Header styling
+- [ ] Control panel layout
+- [ ] Button styles and states
+- [ ] Analysis panel styling
+- [ ] Video list/grid styling
+- [ ] Form inputs and selectors
+
+---
+
+### **TASK-023: One-Screen Initial Layout**
+**Story**: STORY-014 (Layout Optimization)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P1 (High)  
+**Assignee**: Development Team  
+
+**Description**: Compact initial interface that expands below fold after analysis.
+
+**Layout Strategy**:
+- 📱 Initial view fits in one screen (no scrolling)
+- 📊 Analysis results appear below the fold
+- 🎬 Video list appears after analysis panels
+- 📏 Proper spacing and visual flow
+- 🔄 Smooth transitions between states
+
+**Responsive Behavior**:
+- [ ] Desktop: Compact control panel
+- [ ] Mobile: Stacked layout
+- [ ] Tablet: Optimized spacing
+
+---
+
+### **TASK-024: Enhanced Grid View**
+**Story**: STORY-015 (Video Display)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P2 (Medium)  
+**Assignee**: Development Team  
+
+**Description**: Improve grid view with two-column layout and emoji metrics.
+
+**Grid Improvements**:
+- 📱 Two-column layout (responsive)
+- 📊 Emoji metrics for better visual appeal
+- 🖼️ Optimized thumbnail display
+- 📏 Better card spacing and proportions
+- 🎯 Improved readability
+
+**Emoji Metrics**:
+- 👀 Views
+- 👍 Likes  
+- 💬 Comments
+- ⏱️ Duration
+- 📅 Published Date
+
+---
+
+### **TASK-025: Footer & Attribution**
+**Story**: STORY-016 (Branding)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P3 (Low)  
+**Assignee**: Development Team  
+
+**Description**: Add footer with attribution and GitHub repository link.
+
+**Footer Requirements**:
+- ❤️ "Created with ❤️ by Ron Bronstein"
+- 🐙 GitHub repository link with icon
+- 🎨 Matches overall design aesthetic
+- 📱 Responsive layout
+- 🔗 Proper link styling and hover states
+
+---
+
+### **TASK-026: API Key Storage Documentation**
+**Story**: STORY-017 (Security & Documentation)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P2 (Medium)  
+**Assignee**: Development Team  
+
+**Description**: Document and improve API key storage security.
+
+**Current State**:
+- 💾 Stored in browser localStorage (plain text)
+- 🔒 Only accessible to this website/device
+- ⏰ Persists across browser sessions
+- ✅ Safe for current usage
+
+**Improvements Needed**:
+- [ ] Add encryption for production use
+- [ ] Document storage mechanism clearly
+- [ ] Add security best practices guide
+- [ ] Implement key expiration options
+- [ ] Add clear data management options
+
+---
+
+## 📊 SPRINT METRICS
+
+**Story Points**: 35 points total  
+**Estimated Completion**: 3-4 days  
+**Priority Distribution**:
+- P0 (Critical): 20 points
+- P1 (High): 10 points  
+- P2 (Medium): 5 points
+
+**Dependencies**:
+- TASK-020 → TASK-023 (Analysis sections needed for layout)
+- TASK-022 → All UI tasks (Styling foundation)
+- TASK-021 → TASK-020 (Caching needed for analysis)
+
+--- 

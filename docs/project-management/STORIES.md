@@ -272,6 +272,176 @@ As a **user**, I want **protection from malicious content** so that **my data an
 
 ---
 
+## 🎯 NEW USER STORIES - Legacy UX Restoration
+
+### **STORY-011: Legacy Feature Parity**
+**Epic**: EPIC-004 (User Experience Enhancement)  
+**Priority**: P0 (Critical)  
+**Story Points**: 13  
+
+**As a** YouTube content researcher  
+**I want** the same comprehensive analysis features as the legacy version  
+**So that** I can get complete insights about channel performance  
+
+**Acceptance Criteria**:
+- [ ] Content Analysis panel shows key metrics (Total Videos, Avg Views, Videos/Month, etc.)
+- [ ] Advanced Content Insights displays viral content and title patterns
+- [ ] Upload Frequency Timeline chart visualizes posting patterns
+- [ ] All analysis panels appear automatically after successful channel fetch
+- [ ] Analysis data is accurate and matches legacy calculations
+
+**Definition of Done**:
+- [ ] All legacy analysis features implemented
+- [ ] Visual styling matches legacy aesthetic with modern improvements
+- [ ] Analysis panels are responsive and accessible
+- [ ] Data calculations are verified against legacy version
+
+---
+
+### **STORY-012: Performance Optimization**
+**Epic**: EPIC-005 (Technical Excellence)  
+**Priority**: P0 (Critical)  
+**Story Points**: 8  
+
+**As a** user analyzing large YouTube channels  
+**I want** instant filtering without re-fetching data  
+**So that** I can explore different keyword combinations quickly  
+
+**Acceptance Criteria**:
+- [ ] First channel analysis caches all video data locally
+- [ ] Subsequent keyword filters work on cached data (no API calls)
+- [ ] Cache persists across browser sessions (24-hour expiration)
+- [ ] User can see cache status and manually refresh if needed
+- [ ] Filtering operations are instant (<100ms response time)
+
+**Definition of Done**:
+- [ ] Caching system implemented with localStorage
+- [ ] Cache expiration and management working
+- [ ] Performance improvement measurable (instant vs 3-5 second filters)
+- [ ] User feedback shows cache status
+
+---
+
+### **STORY-013: Design System Modernization**
+**Epic**: EPIC-006 (Visual Design)  
+**Priority**: P1 (High)  
+**Story Points**: 5  
+
+**As a** user who loved the retro aesthetic  
+**I want** the classic Windows XP look with modern usability  
+**So that** I get nostalgia with great user experience  
+
+**Acceptance Criteria**:
+- [ ] Windows XP color scheme and visual elements preserved
+- [ ] Improved spacing and typography for modern screens
+- [ ] Subtle modern touches (border radius, better contrast)
+- [ ] Optimized for screen space efficiency
+- [ ] Consistent design system across all components
+
+**Definition of Done**:
+- [ ] All UI components updated with new design system
+- [ ] Design is responsive and accessible
+- [ ] Visual hierarchy is clear and intuitive
+- [ ] Retro aesthetic maintained with modern UX principles
+
+---
+
+### **STORY-014: Layout Optimization**
+**Epic**: EPIC-006 (Visual Design)  
+**Priority**: P1 (High)  
+**Story Points**: 3  
+
+**As a** user starting a new analysis  
+**I want** a compact interface that fits on one screen  
+**So that** I can see all controls without scrolling  
+
+**Acceptance Criteria**:
+- [ ] Initial interface fits in viewport without scrolling
+- [ ] Analysis results expand below the fold after fetch
+- [ ] Clear visual progression from input → analysis → results
+- [ ] Smooth transitions between interface states
+- [ ] Mobile-responsive layout
+
+**Definition of Done**:
+- [ ] One-screen initial layout implemented
+- [ ] Progressive disclosure working correctly
+- [ ] Responsive behavior tested on multiple devices
+- [ ] User flow is intuitive and efficient
+
+---
+
+### **STORY-015: Enhanced Video Display**
+**Epic**: EPIC-007 (Content Presentation)  
+**Priority**: P2 (Medium)  
+**Story Points**: 3  
+
+**As a** user browsing video results  
+**I want** an improved grid view with visual metrics  
+**So that** I can quickly scan video performance  
+
+**Acceptance Criteria**:
+- [ ] Grid view displays videos in two columns
+- [ ] Emoji metrics make data more scannable (👀 views, 👍 likes, etc.)
+- [ ] Optimized card layout with proper spacing
+- [ ] Thumbnail images load efficiently
+- [ ] Toggle between list and grid views works smoothly
+
+**Definition of Done**:
+- [ ] Two-column grid layout implemented
+- [ ] Emoji metrics integrated and tested
+- [ ] Performance optimized for large video lists
+- [ ] View switching is smooth and maintains state
+
+---
+
+### **STORY-016: Branding & Attribution**
+**Epic**: EPIC-008 (Brand Identity)  
+**Priority**: P3 (Low)  
+**Story Points**: 1  
+
+**As a** creator of this tool  
+**I want** proper attribution and repository access  
+**So that** users can find the source and give credit  
+
+**Acceptance Criteria**:
+- [ ] Footer displays "Created with ❤️ by Ron Bronstein"
+- [ ] GitHub repository link with icon
+- [ ] Footer styling matches overall design
+- [ ] Links are accessible and functional
+- [ ] Attribution is visible but not intrusive
+
+**Definition of Done**:
+- [ ] Footer implemented and styled
+- [ ] GitHub link tested and working
+- [ ] Attribution is professional and tasteful
+- [ ] Responsive footer layout
+
+---
+
+### **STORY-017: Security & Transparency**
+**Epic**: EPIC-009 (Security & Trust)  
+**Priority**: P2 (Medium)  
+**Story Points**: 2  
+
+**As a** user concerned about API key security  
+**I want** clear documentation about data storage  
+**So that** I can make informed decisions about my API key  
+
+**Acceptance Criteria**:
+- [ ] Clear explanation of localStorage usage
+- [ ] Security implications documented
+- [ ] Data management options available
+- [ ] Best practices guide provided
+- [ ] Option to clear stored data
+
+**Definition of Done**:
+- [ ] Security documentation written and accessible
+- [ ] User controls for data management implemented
+- [ ] Clear privacy policy regarding data storage
+- [ ] Security best practices communicated effectively
+
+---
+
 ## 📊 STORY STATUS OVERVIEW
 
 | Story ID | Epic | Status | Priority | Points | Progress |
@@ -286,6 +456,13 @@ As a **user**, I want **protection from malicious content** so that **my data an
 | STORY-008 | EPIC-004 | 📋 Backlog | P3 | 13 | 0% |
 | STORY-009 | EPIC-005 | 📋 Backlog | P2 | 8 | 0% |
 | STORY-010 | EPIC-006 | 📋 Backlog | P1 | 5 | 0% |
+| STORY-011 | EPIC-004 | 🟢 DONE | P0 | 13 | 100% |
+| STORY-012 | EPIC-005 | 🟢 DONE | P0 | 8 | 100% |
+| STORY-013 | EPIC-006 | 🟢 DONE | P1 | 5 | 100% |
+| STORY-014 | EPIC-006 | �� DONE | P1 | 3 | 100% |
+| STORY-015 | EPIC-007 | 🟢 DONE | P2 | 3 | 100% |
+| STORY-016 | EPIC-008 | 🟢 DONE | P3 | 1 | 100% |
+| STORY-017 | EPIC-009 | 🟢 DONE | P2 | 2 | 100% |
 
 ---
 

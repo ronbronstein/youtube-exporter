@@ -166,6 +166,151 @@
 
 ---
 
+## 🎯 NEW EPICS - Legacy UX Restoration
+
+### **EPIC-004: User Experience Enhancement**
+**Priority**: P0 (Critical)  
+**Status**: 🔄 In Progress  
+**Story Points**: 16  
+**Target Release**: Current Sprint  
+
+**Description**: Restore and enhance the user experience to match or exceed the legacy application's functionality while maintaining the beloved retro aesthetic.
+
+**Business Value**: 
+- Ensures feature parity with working legacy version
+- Maintains user satisfaction and tool adoption
+- Provides comprehensive analysis capabilities users expect
+
+**Success Criteria**:
+- [ ] All legacy analysis features restored and functional
+- [ ] User experience is intuitive and efficient
+- [ ] Analysis accuracy matches or exceeds legacy version
+- [ ] Performance is optimized for modern usage patterns
+
+**Related Stories**: STORY-011, STORY-014
+
+---
+
+### **EPIC-005: Technical Excellence**
+**Priority**: P0 (Critical)  
+**Status**: 🔄 In Progress  
+**Story Points**: 8  
+**Target Release**: Current Sprint  
+
+**Description**: Implement smart caching and performance optimizations to create a superior technical foundation while reducing API costs and improving user experience.
+
+**Business Value**:
+- Dramatically improves user experience with instant filtering
+- Reduces API quota usage and costs
+- Enables offline-like functionality
+- Scales better for large channel analysis
+
+**Success Criteria**:
+- [ ] Caching system reduces API calls by 90%+
+- [ ] Filtering operations are instant (<100ms)
+- [ ] Cache management is transparent and user-controlled
+- [ ] System handles large datasets efficiently
+
+**Related Stories**: STORY-012
+
+---
+
+### **EPIC-006: Visual Design**
+**Priority**: P1 (High)  
+**Status**: 🔄 In Progress  
+**Story Points**: 8  
+**Target Release**: Current Sprint  
+
+**Description**: Modernize the visual design system while preserving the beloved Windows XP retro aesthetic, optimizing for modern screens and usage patterns.
+
+**Business Value**:
+- Maintains unique brand identity and user appeal
+- Improves usability on modern devices
+- Optimizes screen space utilization
+- Creates consistent and professional appearance
+
+**Success Criteria**:
+- [ ] Retro aesthetic preserved with modern improvements
+- [ ] Responsive design works across all devices
+- [ ] Visual hierarchy is clear and intuitive
+- [ ] Design system is consistent and maintainable
+
+**Related Stories**: STORY-013, STORY-014
+
+---
+
+### **EPIC-007: Content Presentation**
+**Priority**: P2 (Medium)  
+**Status**: 🔄 In Progress  
+**Story Points**: 3  
+**Target Release**: Current Sprint  
+
+**Description**: Enhance how video content and analysis results are presented to users, making information more scannable and actionable.
+
+**Business Value**:
+- Improves content discoverability and analysis efficiency
+- Makes large datasets more manageable
+- Enhances visual appeal and user engagement
+- Supports different user preferences and workflows
+
+**Success Criteria**:
+- [ ] Grid view is optimized for quick scanning
+- [ ] Emoji metrics improve data readability
+- [ ] View switching is smooth and maintains context
+- [ ] Large video lists perform well
+
+**Related Stories**: STORY-015
+
+---
+
+### **EPIC-008: Brand Identity**
+**Priority**: P3 (Low)  
+**Status**: 🔄 In Progress  
+**Story Points**: 1  
+**Target Release**: Current Sprint  
+
+**Description**: Establish proper branding and attribution for the tool, including creator credit and repository access.
+
+**Business Value**:
+- Provides proper attribution and credit
+- Enables community contributions and feedback
+- Establishes professional presentation
+- Supports open-source development model
+
+**Success Criteria**:
+- [ ] Creator attribution is visible and professional
+- [ ] Repository access is easily discoverable
+- [ ] Branding is consistent with overall design
+- [ ] Links and attribution are functional
+
+**Related Stories**: STORY-016
+
+---
+
+### **EPIC-009: Security & Trust**
+**Priority**: P2 (Medium)  
+**Status**: 🔄 In Progress  
+**Story Points**: 2  
+**Target Release**: Current Sprint  
+
+**Description**: Provide transparency and security around data storage and API key management to build user trust and ensure safe usage.
+
+**Business Value**:
+- Builds user trust and confidence
+- Ensures responsible data handling
+- Provides clear security guidance
+- Enables informed user decisions
+
+**Success Criteria**:
+- [ ] Security practices are clearly documented
+- [ ] Users have control over their data
+- [ ] API key storage is secure and transparent
+- [ ] Privacy implications are clearly communicated
+
+**Related Stories**: STORY-017
+
+---
+
 ## 📊 EPIC STATUS OVERVIEW
 
 | Epic ID | Name | Status | Priority | Progress | Target |
