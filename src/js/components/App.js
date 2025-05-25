@@ -811,12 +811,21 @@ export class App extends BaseComponent {
             apiMode: this.appState.apiMode,
             currentEnvironment: this.appState.currentEnvironment,
             isDemoMode: isDemoMode,
-            apiKeyLength: apiKey ? apiKey.length : 0
+            apiKeyLength: apiKey ? apiKey.length : 0,
+            apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'null'
         });
         
         if (isDemoMode) {
             this.services.youtube.setDemoMode(true);
             debugLog('🎭 Demo mode enabled on YouTube service - 100 video limit active');
+            
+            // Verify demo mode was set
+            setTimeout(() => {
+                debugLog('🔍 Verifying demo mode state:', {
+                    youtubeServiceDemoMode: this.services.youtube.isDemoMode,
+                    appStateDemoMode: this.appState.apiMode === 'demo'
+                });
+            }, 100);
         } else {
             this.services.youtube.setDemoMode(false);
             debugLog('🌐 Live mode enabled on YouTube service - no video limit');
@@ -1690,15 +1699,19 @@ export class App extends BaseComponent {
     }
     
     setupCachedChannelsListeners() {
-        // Load cached channel
-        this.container.addEventListener('click', async (e) => {
+        // Load cached channel - use document for better event delegation
+        document.addEventListener('click', async (e) => {
             if (e.target.classList.contains('load-cached-btn')) {
+                e.preventDefault();
                 const channelId = e.target.dataset.channelId;
+                debugLog('🖱️ Load cached button clicked:', channelId);
                 await this.loadCachedChannel(channelId);
             }
             
             if (e.target.classList.contains('delete-cached-btn')) {
+                e.preventDefault();
                 const channelId = e.target.dataset.channelId;
+                debugLog('🖱️ Delete cached button clicked:', channelId);
                 this.deleteCachedChannel(channelId);
             }
         });
@@ -1707,9 +1720,12 @@ export class App extends BaseComponent {
         const clearAllBtn = this.findElement('#clearAllCacheBtn');
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', () => {
+                debugLog('🖱️ Clear all cache button clicked');
                 this.clearAllCache();
             });
         }
+        
+        debugLog('✅ Cached channels listeners setup complete');
     }
     
     async loadCachedChannel(channelId) {

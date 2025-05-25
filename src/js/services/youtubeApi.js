@@ -185,6 +185,14 @@ export class YouTubeApiService {
         const videoLimit = this.isDemoMode ? 100 : Infinity;
         let videosCollected = 0;
         
+        debugLog(`🎬 Starting getAllChannelVideos with demo mode state:`, {
+            isDemoMode: this.isDemoMode,
+            maxResults: maxResults,
+            maxPages: maxPages,
+            videoLimit: videoLimit,
+            uploadsPlaylistId: uploadsPlaylistId
+        });
+        
         do {
             let playlistUrl = `${CONFIG.API.BASE_URL}/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${this.apiKey}`;
             
