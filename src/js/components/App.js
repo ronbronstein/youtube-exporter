@@ -964,7 +964,20 @@ export class App extends BaseComponent {
     
     renderAnalytics() {
         const analyticsSection = this.findElement('#analyticsSection');
-        if (!analyticsSection || !this.appState.videos.length) return;
+        debugLog('📊 renderAnalytics called:', {
+            hasAnalyticsSection: !!analyticsSection,
+            videosLength: this.appState.videos?.length || 0,
+            hasAnalyticsService: !!this.services.analytics
+        });
+        
+        if (!analyticsSection || !this.appState.videos.length) {
+            debugLog('❌ Analytics rendering skipped:', {
+                reason: !analyticsSection ? 'No analytics section' : 'No videos',
+                analyticsSection: !!analyticsSection,
+                videosLength: this.appState.videos?.length || 0
+            });
+            return;
+        }
         
         debugLog('📊 Rendering complete analytics sections');
         
@@ -976,6 +989,12 @@ export class App extends BaseComponent {
         const advancedAnalysisHTML = this.services.analytics.generateAdvancedAnalysisHTML();
         const chartPanelHTML = this.services.analytics.generateChartPanelHTML('uploadChart');
         
+        debugLog('📊 Analytics HTML generated:', {
+            contentAnalysisLength: contentAnalysisHTML?.length || 0,
+            advancedAnalysisLength: advancedAnalysisHTML?.length || 0,
+            chartPanelLength: chartPanelHTML?.length || 0
+        });
+        
         // Combine all sections with proper styling
         analyticsSection.innerHTML = `
             <div class="analytics-container">
@@ -985,9 +1004,13 @@ export class App extends BaseComponent {
             </div>
         `;
         
+        debugLog('📊 Analytics HTML set in DOM');
+        
         // Create the upload timeline chart after DOM is updated
         setTimeout(() => {
+            debugLog('📊 Creating upload timeline chart...');
             this.services.analytics.createUploadTimelineChart('uploadChart');
+            debugLog('📊 Upload timeline chart creation attempted');
         }, 100);
         
         debugLog('📊 Complete analytics rendered with chart');
@@ -1740,11 +1763,18 @@ export class App extends BaseComponent {
             }
             
             const cacheMetadata = this.services.storage.getCacheMetadata(channelId);
+            debugLog('📊 Cache metadata:', cacheMetadata);
             
             // Set up app state - cachedAnalysis IS the data array
             this.appState.videos = cachedAnalysis;
             this.appState.filteredVideos = cachedAnalysis;
             this.appState.cacheMetadata = cacheMetadata;
+            
+            debugLog('📊 App state updated:', {
+                videosCount: this.appState.videos.length,
+                filteredVideosCount: this.appState.filteredVideos.length,
+                hasAnalyticsService: !!this.services.analytics
+            });
             
             // Create minimal channel data
             this.appState.channelData = {
@@ -1753,16 +1783,20 @@ export class App extends BaseComponent {
             };
             
             // Process analytics
+            debugLog('📊 Setting analytics data...');
             this.services.analytics.setVideosData(cachedAnalysis);
+            debugLog('📊 Analytics data set, calling renderAnalytics...');
             
             // Update Results component
             if (this.components.results) {
                 this.components.results.setVideos(cachedAnalysis, cacheMetadata?.channelTitle || 'Unknown Channel');
                 this.components.results.show();
+                debugLog('📊 Results component updated');
             }
             
             // Update analytics display
             this.renderAnalytics();
+            debugLog('📊 renderAnalytics() called');
             
             // Show cache status
             if (cacheMetadata) {
