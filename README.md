@@ -14,6 +14,97 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 
 *Just bring your own YouTube API key (free setup in 2 minutes)*
 
+## 🚀 Quick Start
+
+### Option 1: Use Online (Recommended)
+Visit **[https://ronbronstein.github.io/youtube-exporter/](https://ronbronstein.github.io/youtube-exporter/)** - no setup required!
+
+### Option 2: Run Locally
+
+#### Prerequisites
+- **Git** (to clone the repository)
+- **Web browser** (Chrome, Firefox, Safari, Edge)
+- **Local web server** (Python, Node.js, or VS Code Live Server)
+
+#### Installation
+
+1. **Clone the Repository**
+```bash
+git clone https://github.com/ronbronstein/youtube-exporter.git
+cd youtube-exporter
+```
+
+2. **Start a Local Web Server**
+
+**Option A: Python (if you have Python installed)**
+```bash
+# Python 3
+python -m http.server 8000
+
+# Python 2
+python -m SimpleHTTPServer 8000
+```
+
+**Option B: Node.js (if you have Node.js installed)**
+```bash
+npx http-server -p 8000
+```
+
+**Option C: VS Code Live Server**
+1. Open the project in VS Code
+2. Install "Live Server" extension
+3. Right-click on `src/index.html` → "Open with Live Server"
+
+3. **Open in Browser**
+Navigate to: `http://localhost:8000/src/`
+
+## 🔑 YouTube API Key Setup
+
+### Get Your Free API Key (2 minutes)
+
+1. **Go to Google Cloud Console**
+   - Visit: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+   - Sign in with your Google account
+
+2. **Create a Project** (if you don't have one)
+   - Click "Create Project"
+   - Name it "YouTube Exporter" 
+   - Click "Create"
+
+3. **Enable YouTube Data API v3**
+   - Go to [APIs & Services > Library](https://console.cloud.google.com/apis/library)
+   - Search for "YouTube Data API v3"
+   - Click on it and press "Enable"
+
+4. **Create API Key**
+   - Go to [APIs & Services > Credentials](https://console.cloud.google.com/apis/credentials)
+   - Click "Create Credentials" → "API Key"
+   - Copy your API key (starts with `AIza...`)
+
+5. **Secure Your API Key** (Optional but Recommended)
+   - Click on your API key to edit it
+   - Under "Application restrictions" → select "HTTP referrers"
+   - Add your domain: `localhost:8000` and your production domain
+   - Under "API restrictions" → select "YouTube Data API v3"
+   - Save
+
+### Use Your API Key
+
+**For Online Use:**
+- Paste your API key in the tool
+- Click "Validate & Use"
+- Your key is stored locally in your browser only
+
+**For Local Development:**
+- Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+- Edit `.env` and add your API key:
+```bash
+YOUTUBE_API_KEY=your_api_key_here
+```
+
 ## ✨ Features
 
 ### 🔍 **Comprehensive Channel Analysis**
@@ -47,65 +138,89 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 - **Title Export**: Clean text file of video titles for content planning
 - **Markdown Export**: LLM-ready format optimized for AI analysis workflows
 
-## 🚀 Quick Start (For Your Own Use)
+## 🎯 Usage Modes
 
-1. **Clone this repository**
-2. **Get a YouTube API key** from [Google Cloud Console](https://console.cloud.google.com/)
-3. **Create `.env` file**:
-   ```bash
-   # Your personal YouTube API key
-   YOUTUBE_API_KEY=your_youtube_api_key_here
-   ```
-4. **Install and run**:
-   ```bash
-   npm install
-   npm run dev
-   ```
+### Demo Mode
+- **No API key required**
+- **Limited to 100 videos** per channel
+- **Perfect for testing**
 
-That's it! You'll have the full app running locally with your own API key.
+### Live Mode  
+- **Requires your API key**
+- **Unlimited videos** (up to API limits)
+- **Full functionality**
 
-## 🌐 Live Demo Versions
+### Local Development Mode
+- **API key from .env file**
+- **Best for developers**
+- **Automatic key loading**
 
-I also host two versions on GitHub Pages to showcase the app:
+## 🔒 Security & Privacy
 
-- **[Demo Mode](https://ronbronstein.github.io/youtube-exporter/?mode=demo)** - Try it instantly with built-in API key (limited to 100 videos)
-- **[Live Mode](https://ronbronstein.github.io/youtube-exporter/?mode=live)** - Full functionality, bring your own API key
+### Your API Key is Safe
+- **Local Storage Only**: Keys are stored in your browser's local storage
+- **Never Transmitted**: Keys are not sent to any external servers
+- **Client-Side Only**: All processing happens in your browser
+- **No Backend**: This tool has no server component
 
-These versions include a mode selector UI that you don't need for your own deployment.
+### API Key Best Practices
+1. **Restrict Your Key**: Use HTTP referrer restrictions in Google Cloud Console
+2. **Monitor Usage**: Check your quota usage in Google Cloud Console
+3. **Regenerate if Needed**: You can always create a new key if compromised
 
-## 📁 What You Get vs What I Host
+### Free Tier Limits
+- **10,000 requests/day** (more than enough for most users)
+- **100 requests per 100 seconds per user**
+- **1 request per second per user**
 
-**Your cloned version:**
-- Clean, simple app
-- Uses your API key from `.env`
-- No mode switching complexity
-- Full functionality
+## 🛠️ Troubleshooting
 
-**My GitHub Pages versions:**
-- Demo mode with my API key (for showcasing)
-- Live mode for users to test with their keys
-- Mode selector UI for switching between them
+### Common Issues
 
-The code is identical - I just add environment detection and mode switching for the hosted versions.
+**"API key not valid"**
+- Check your API key is correct
+- Ensure YouTube Data API v3 is enabled
+- Verify API key restrictions aren't too strict
 
-## 📖 Usage Guide
+**"Videos not showing"**
+- Check browser console for errors
+- Try refreshing the page
+- Switch between Demo and Live modes
 
-### Getting a YouTube API Key
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable the **YouTube Data API v3**
-4. Create credentials (API Key)
-5. **🔒 Critical**: Restrict your key:
-   - **HTTP referrers**: `ronbronstein.github.io/*`, `localhost/*`
-   - **API restrictions**: YouTube Data API v3 only
-6. Enter your key in the app when prompted
+**"Channel not found"**
+- Try different channel formats:
+  - `@channelhandle`
+  - `https://youtube.com/@channelhandle`
+  - `https://youtube.com/channel/UC...`
+  - Channel ID directly
 
-### Analyzing a Channel
-1. **Enter channel info**: URL, handle (@channel), or channel ID
-2. **Set filters**: Keywords with AND/OR logic for topic discovery
-3. **Choose sort order**: Upload date, view count, or engagement
-4. **Click Analyze**: Get comprehensive insights and metrics
-5. **Export data**: Download CSV, text, or markdown files
+**Local server not working**
+- Ensure you're accessing `http://localhost:8000/src/` (note the `/src/`)
+- Try a different port: `python -m http.server 3000`
+- Check if another service is using port 8000
+
+### Browser Compatibility
+- ✅ Chrome 80+
+- ✅ Firefox 75+
+- ✅ Safari 13+
+- ✅ Edge 80+
+
+## 📁 Project Structure
+```
+youtube-exporter/
+├── src/
+│   ├── index.html          # Main application
+│   ├── js/
+│   │   ├── components/     # UI components
+│   │   ├── services/       # API services
+│   │   └── utils/          # Utilities
+│   └── styles/
+│       └── main.css        # Retro Windows XP styling
+├── legacy/                 # Original single-file version
+├── docs/                   # Documentation
+├── .env.example            # Environment template
+└── README.md
+```
 
 ## 🛠️ Modern Architecture
 
@@ -176,142 +291,23 @@ npm run performance
 git push origin main  # Automatic deployment
 ```
 
-## 🔐 Security & Privacy
-
-### **"Bring Your Own API Key" Philosophy**
-- **No shared keys** - you control your own quotas and costs
-- **No server storage** - your API key stays in your browser
-- **Zero abuse potential** - self-managed usage only
-- **Client-side encryption** - keys encrypted before localStorage
-
-### **The Only Security Concern: API Key Protection**
-1. **Restrict domains** - key only works on approved websites
-2. **Restrict APIs** - limit to YouTube Data API v3 only
-3. **Monitor usage** - set quota alerts in Google Cloud Console
-4. **Rotate regularly** - change keys every few months
-
 ## 🤝 Contributing
 
-### **Development Setup**
-```bash
-# Fork and clone
-git clone https://github.com/your-username/youtube-exporter.git
-cd youtube-exporter
+Found a bug or want to contribute?
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-# Install dependencies
-npm install
+## 📄 License
 
-# Start development
-npm run dev
+MIT License - feel free to use and modify!
 
-# Make changes, test, and submit PR
-```
-
-### **Project Structure**
-- **`src/js/components/`** - React-like UI components
-- **`src/js/services/`** - API and business logic
-- **`src/js/utils/`** - Helper functions and utilities
-- **`docs/`** - Comprehensive documentation system
-- **`vite.config.js`** - Build configuration
-
-### **Contribution Guidelines**
-- **Maintain XP aesthetic** - preserve the retro design philosophy
-- **Use ES6 modules** - keep the modular architecture clean
-- **Add tests** - verify functionality works as expected
-- **Update docs** - keep documentation current
-- **Optimize performance** - respect API quotas and bundle size
-
-## 📚 Documentation
-
-### **For Users**
-- **[USER_GUIDE.md](./docs/USER_GUIDE.md)** - Complete usage instructions
-- **[TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
-
-### **For Developers**
-- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - Technical architecture details
-- **[API_REFERENCE.md](./docs/API_REFERENCE.md)** - Component and service documentation
-- **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)** - Detailed contribution guide
-
-### **For Deployment**
-- **[DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - GitHub Pages deployment guide
-- **[API_SECURITY.md](./docs/API_SECURITY.md)** - API key security best practices
-
-## 🚀 Deployment
-
-### **Automatic GitHub Pages**
-Every push to `main` automatically deploys via GitHub Actions:
-
-1. **Build** with Vite (ES6 → optimized bundle)
-2. **Test** bundle integrity and performance
-3. **Deploy** to GitHub Pages with custom domain support
-4. **Verify** deployment health
-
-Live at: https://ronbronstein.github.io/youtube-exporter/
-
-### **Local Preview**
-```bash
-npm run build    # Build production bundle
-npm run preview  # Test locally at localhost:4173
-```
-
-## 📈 Performance
-
-- **⚡ Load Time**: < 3 seconds on 3G connection
-- **📦 Bundle Size**: 104KB optimized (gzipped)
-- **🏃 Runtime**: 60fps smooth scrolling and interactions
-- **💾 Memory**: Efficient garbage collection and memory management
-
-## 📜 License
-
-**MIT License** - Feel free to use this project for personal or commercial purposes.
-
-## 🙏 Acknowledgments
-
-- **YouTube Data API v3** for comprehensive channel data access
-- **Windows XP Design Team** for timeless aesthetic inspiration
-- **Vite Community** for modern build tooling
-- **Open Source Community** for continuous feedback and improvements
-
-## 📞 Support & Contact
+## 🆘 Support
 
 - **Issues**: [GitHub Issues](https://github.com/ronbronstein/youtube-exporter/issues)
-- **Documentation**: [Complete docs](./docs/)
-- **Creator**: Made with ❤️ by [Ron Bronstein](https://github.com/ronbronstein)
+- **Discussions**: [GitHub Discussions](https://github.com/ronbronstein/youtube-exporter/discussions)
 
 ---
 
-**⭐ Star this repo if it helps your YouTube strategy!** 
-
-*Modern architecture meets nostalgic design for powerful content insights.* 🚀✨
-
-## 🎭 Demo Mode Setup
-
-To enable demo mode with your own API key:
-
-1. **Create a `.env` file** in the project root:
-```bash
-# .env
-VITE_DEMO_API_KEY=your_actual_youtube_api_key_here
-```
-
-2. **Get a YouTube API Key**:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing
-   - Enable YouTube Data API v3
-   - Create credentials (API Key)
-   - Copy the key to your `.env` file
-
-3. **Demo Mode Features**:
-   - ✅ Uses your private API key (not exposed to users)
-   - ✅ Limited to 100 most recent videos per channel
-   - ✅ Cost-controlled (2 API calls max per analysis)
-   - ✅ Perfect for showcasing the app functionality
-
-4. **Security**: The `.env` file is gitignored and never committed to version control.
-
-## 🌐 Live Mode
-
-Users provide their own YouTube API key for full functionality:
-- ✅ Unlimited video analysis
-- ✅ Complete channel history
-- ✅ Uses user's own API quota
+**Happy analyzing! 🎉**
