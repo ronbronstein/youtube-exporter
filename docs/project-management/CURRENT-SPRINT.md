@@ -19,8 +19,9 @@
 5. ✅ Consolidate and update documentation
 6. ✅ Fix loading states and component initialization issues
 7. ✅ Fix API key storage architecture
+8. ✅ Fix demo mode video limit enforcement
 
-**Current Sprint Velocity**: 35 story points completed  
+**Current Sprint Velocity**: 37 story points completed  
 **Progress**: 100% complete
 
 ---
@@ -328,6 +329,59 @@
 
 ---
 
+### **TASK-029: Fix Demo Mode Video Limit Enforcement**
+**Story**: STORY-019 (Demo Mode UX Improvements)  
+**Status**: 🟢 DONE  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Completed**: Today  
+
+**Description**: Fixed critical bug where demo mode was fetching unlimited videos instead of the intended 100 video limit.
+
+**Problem Identified**:
+- ❌ Demo mode fetching 490 videos instead of 100 for @OutdoorBoys channel
+- ❌ `loadSavedState()` method overriding demo mode API key with saved localStorage key
+- ❌ Order of operations bug in `initializeApiKey()` method
+- ❌ Demo mode detection failing due to `apiMode` being set after `setApiKey()` call
+
+**Root Cause Analysis**:
+1. **Initialization Order Bug**: In `initializeApiKey()`, `setApiKey(demoApiKey)` was called before `this.appState.apiMode = 'demo'`
+2. **Demo Mode Detection Failure**: Inside `setApiKey()`, the demo mode check `this.appState.apiMode === 'demo'` failed because `apiMode` was still null
+3. **YouTube Service Not Limited**: Without proper demo mode detection, YouTube service wasn't configured with 100 video limit
+4. **localStorage Override**: `loadSavedState()` was loading saved API keys even in demo mode, overriding the demo configuration
+
+**Solution Implemented**:
+- ✅ **Fixed Initialization Order**: Set `this.appState.apiMode = 'demo'` BEFORE calling `setApiKey(demoApiKey)`
+- ✅ **Enhanced loadSavedState()**: Skip loading saved API keys when `apiMode === 'demo'` to preserve demo settings
+- ✅ **Added Debug Logging**: Enhanced debug output to track demo mode detection and video limiting
+- ✅ **Verified YouTube Service**: Confirmed YouTube service properly receives demo mode flag for 100 video limit
+
+**Technical Changes**:
+```javascript
+// BEFORE (broken):
+this.setApiKey(demoApiKey);
+this.appState.apiMode = 'demo';  // Too late!
+
+// AFTER (fixed):
+this.appState.apiMode = 'demo';  // Set BEFORE setApiKey
+this.setApiKey(demoApiKey);
+```
+
+**Testing Results**:
+- ✅ @OutdoorBoys channel now returns exactly 100 videos in demo mode
+- ✅ Demo mode detection working correctly in `setApiKey()` method
+- ✅ YouTube service properly configured with demo mode limits
+- ✅ No localStorage override of demo mode settings
+
+**Files Modified**:
+- `src/js/components/App.js` - Fixed initialization order and loadSavedState logic
+- `src/js/services/youtubeApi.js` - Enhanced debug logging for demo mode limiting
+
+**Time Spent**: 1.5 hours  
+**Status**: Deployed to GitHub Pages and verified working
+
+---
+
 ## 🐛 BUGS FIXED
 
 ### **BUG-001: Search Button Unresponsive**
@@ -386,10 +440,24 @@
 
 ---
 
+### **BUG-005: Demo Mode Not Limiting Videos to 100**
+**Severity**: Critical  
+**Status**: 🟢 FIXED  
+**Found**: Production testing  
+**Fixed**: Today  
+
+**Description**: Demo mode fetching unlimited videos (490 for @OutdoorBoys) instead of intended 100 video limit.
+
+**Root Cause**: Order of operations bug - `setApiKey()` called before `apiMode = 'demo'` was set, causing demo mode detection to fail.
+
+**Fix**: Set `this.appState.apiMode = 'demo'` before calling `setApiKey()` to ensure proper demo mode detection and YouTube service configuration.
+
+---
+
 ## 📊 SPRINT METRICS
 
-**Story Points Completed**: 35/35  
-**Bugs Fixed**: 4 critical  
+**Story Points Completed**: 37/37  
+**Bugs Fixed**: 5 critical  
 **Features Delivered**: 3 major  
 **Documentation Updated**: 4 files  
 **Code Quality**: All TypeScript errors resolved  
@@ -871,7 +939,7 @@
 
 ## 📊 SPRINT METRICS
 
-**Story Points**: 35 points total  
+**Story Points**: 37 points total  
 **Estimated Completion**: 3-4 days  
 **Priority Distribution**:
 - P0 (Critical): 20 points
