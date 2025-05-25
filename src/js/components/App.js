@@ -38,7 +38,8 @@ export class App extends BaseComponent {
             currentView: 'list',
             isLoading: false,
             lastAnalysis: null,
-            savedSearches: []
+            savedSearches: [],
+            apiMode: null
         };
         
         // Component instances
@@ -88,6 +89,9 @@ export class App extends BaseComponent {
         
         // Initialize components
         this.initializeComponents();
+        
+        // Initialize API key based on environment (like legacy version)
+        await this.initializeApiKey();
         
         // Load saved state
         await this.loadSavedState();
@@ -583,11 +587,46 @@ export class App extends BaseComponent {
     }
     
     handleSaveApiKey() {
-        if (this.appState.apiKey && validateApiKey(this.appState.apiKey)) {
-            this.setApiKey(this.appState.apiKey);
-            storageService.saveApiKey(this.appState.apiKey);
-            this.showSuccess('API key saved successfully');
+        const apiKeyInput = this.findElement('#apiKeyInput');
+        if (!apiKeyInput) {
+            debugLog('❌ API key input not found');
+            return;
         }
+        
+        const apiKey = apiKeyInput.value.trim();
+        
+        if (!apiKey) {
+            this.showError('Please enter an API key');
+            return;
+        }
+        
+        if (!apiKey.startsWith('AIza')) {
+            this.showError('Invalid API key format. YouTube API keys start with "AIza"');
+            return;
+        }
+        
+        if (apiKey.length < 35) {
+            this.showError('API key appears to be too short. Please check your key.');
+            return;
+        }
+        
+        // Use our storage service instead of direct localStorage
+        const saved = this.services.storage.saveApiKey(apiKey);
+        if (!saved) {
+            this.showError('Failed to save API key. Please try again.');
+            return;
+        }
+        
+        // Set the API key in the app
+        this.setApiKey(apiKey);
+        this.appState.apiMode = 'live';
+        
+        // Clear the input for security
+        apiKeyInput.value = '';
+        
+        this.showSuccess('✅ API key saved successfully! You can now analyze channels.');
+        
+        debugLog('🔑 API key saved via storage service and set in app');
     }
     
     handleChannelInput(event) {
@@ -705,48 +744,59 @@ export class App extends BaseComponent {
         if (!this.services.youtube) {
             throw new Error('YouTube API service not initialized');
         }
-        
+
         try {
             debugLog('🔍 Starting channel analysis', { query: channelQuery });
             
             // Get channel data
-            this.showProgress(20, 'Getting channel information...');
+            this.setLoadingState(true, 'Analyzing channel information...');
             const channelData = await this.services.youtube.getChannelData(channelQuery);
             this.appState.channelData = channelData;
             
-            // Get all videos
-            this.showProgress(40, 'Fetching video library...');
+            // Get all videos with detailed progress like legacy version
+            this.setLoadingState(true, 'Fetching video library...');
             const videos = await this.services.youtube.getAllChannelVideos(
                 channelData.uploadsPlaylistId,
-                (message) => this.showProgress(60, message)
+                (progressMessage) => {
+                    // Use the detailed progress messages from the API service
+                    this.setLoadingState(true, progressMessage);
+                }
             );
             
-            this.appState.videos = videos;
-            this.appState.filteredVideos = videos;
+            // Process video details with progress
+            this.setLoadingState(true, 'Processing video details...');
+            const processedVideos = await this.services.youtube.processVideoDataBatched(
+                videos,
+                (progressMessage) => {
+                    // Show detailed processing progress
+                    this.setLoadingState(true, progressMessage);
+                }
+            );
+            
+            this.appState.videos = processedVideos;
+            this.appState.filteredVideos = processedVideos;
             
             // Process videos with analytics
-            this.showProgress(80, 'Processing video analytics...');
-            this.services.analytics.setVideosData(videos);
+            this.setLoadingState(true, 'Generating content analysis...');
+            this.services.analytics.setVideosData(processedVideos);
             
             // Update Results component with channel name
             const channelName = channelData.channelTitle || channelData.snippet?.title || 'Unknown Channel';
             
             if (this.components.results) {
-                this.components.results.setVideos(videos, channelName);
-                debugLog(`📊 Results component updated with ${videos.length} videos from analyzeChannel`);
+                this.components.results.setVideos(processedVideos, channelName);
+                debugLog(`📊 Results component updated with ${processedVideos.length} videos from analyzeChannel`);
             }
             
             // Update analytics display
-            this.showProgress(90, 'Generating insights...');
+            this.setLoadingState(true, 'Finalizing insights...');
             this.renderAnalytics();
             
             // Save analysis to storage
-            storageService.saveAnalysis(channelData.channelId, videos);
+            storageService.saveAnalysis(channelData.channelId, processedVideos);
             storageService.setLastAnalyzedChannel(channelData.channelId);
             
-            this.showProgress(100, 'Complete!');
-            
-            debugLog(`✅ Channel analysis complete: ${videos.length} videos`);
+            debugLog(`✅ Channel analysis complete: ${processedVideos.length} videos`);
             
         } catch (error) {
             debugLog('❌ Channel analysis failed:', error);
@@ -1134,5 +1184,63 @@ export class App extends BaseComponent {
         }
         
         debugLog('🗑️ App component destroyed');
+    }
+
+    /**
+     * Initialize API key based on environment (like legacy version)
+     */
+    async initializeApiKey() {
+        debugLog('🔑 Initializing API key...');
+        
+        // Check for environment variable injection (like legacy version)
+        if (window.YOUTUBE_API_KEY) {
+            this.setApiKey(window.YOUTUBE_API_KEY);
+            this.appState.apiMode = 'local-server';
+            debugLog('✅ Local server mode: API key loaded from window.YOUTUBE_API_KEY');
+            this.showSuccess('API key loaded from server environment');
+            return 'local-server';
+        }
+        
+        // Check for Vite environment variables
+        const demoApiKey = import.meta.env.VITE_DEMO_API_KEY;
+        const localApiKey = import.meta.env.VITE_YOUTUBE_API_KEY || import.meta.env.YOUTUBE_API_KEY;
+        
+        if (this.appState.currentEnvironment === 'demo' && demoApiKey) {
+            this.setApiKey(demoApiKey);
+            this.appState.apiMode = 'demo';
+            debugLog('✅ Demo mode: API key loaded from VITE_DEMO_API_KEY');
+            this.showInfo('Demo mode active - Limited to 100 recent videos per analysis');
+            return 'demo';
+        }
+        
+        if (this.appState.currentEnvironment === 'local' && localApiKey) {
+            this.setApiKey(localApiKey);
+            this.appState.apiMode = 'local';
+            debugLog('✅ Local mode: API key loaded from environment');
+            this.showSuccess('API key loaded from local environment');
+            return 'local';
+        }
+        
+        // Try to load saved API key using our storage service
+        const savedApiKey = this.services.storage.getApiKey();
+        if (savedApiKey) {
+            this.setApiKey(savedApiKey);
+            this.appState.apiMode = 'live';
+            debugLog('✅ Live mode: API key loaded from storage service');
+            this.showInfo('Using saved API key');
+            return 'live';
+        }
+        
+        // No API key found - user needs to enter one
+        this.appState.apiMode = 'web';
+        debugLog('🌐 Web mode: No API key found, user input required');
+        
+        if (this.appState.currentEnvironment === 'demo') {
+            this.showWarning('Demo API key not available. Please enter your own YouTube API key.');
+        } else {
+            this.showInfo('Please enter your YouTube Data API key to get started');
+        }
+        
+        return 'web';
     }
 } 
