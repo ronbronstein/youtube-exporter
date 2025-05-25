@@ -2,6 +2,30 @@
 
 > **Complete guide to analyzing YouTube channels with retro Windows XP style**
 
+## ⚠️ **Current Development Status**
+
+**The tool is actively being improved!** Core functionality works (channel analysis, video fetching, keyword filtering), but some advanced features from the legacy version are being restored:
+
+**✅ Currently Working:**
+- Channel analysis and video fetching
+- Keyword filtering (AND/OR logic)
+- Basic video list display
+- CSV/Markdown exports
+- API key management
+
+**🔄 Being Restored:**
+- Comprehensive analysis panels (Content Analysis, Advanced Insights)
+- Upload Frequency Timeline charts
+- Enhanced grid view with emoji metrics
+- Improved visual layout and styling
+
+**📋 Planned Improvements:**
+- Smart caching (fetch once, filter instantly)
+- Two-column grid view
+- Better mobile experience
+
+---
+
 ## 🚀 Quick Start (5 minutes)
 
 ### Step 1: Get Your Free YouTube API Key

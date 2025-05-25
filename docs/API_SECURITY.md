@@ -27,6 +27,37 @@ In our architecture, there's only **one real security concern**: someone stealin
 
 ## 🔑 **API Key Management Strategies**
 
+### **🔒 localStorage Security Explanation**
+
+**How Your API Key is Stored:**
+```
+📱 BROWSER LOCALSTORAGE SECURITY
+├─ Storage Location: Your browser's localStorage (local to your device)
+├─ Visibility: Only accessible to this website on your device
+├─ Persistence: Stays until you clear browser data or we remove it
+├─ Encryption: Currently plain text (visible in browser dev tools)
+└─ Network: Never sent to our servers (stays local)
+```
+
+**Security Implications:**
+- ✅ **Safe from server breaches** - We never see your API key
+- ✅ **Safe from other websites** - localStorage is domain-isolated
+- ✅ **Safe from network interception** - Key never leaves your device
+- ⚠️ **Visible in browser dev tools** - Anyone with access to your device can see it
+- ⚠️ **Shared across browser tabs** - All tabs of this site can access it
+- ⚠️ **Persists across sessions** - Stays until manually cleared
+
+**Best Practices for Current Implementation:**
+1. **Use on trusted devices only** - Don't enter your key on public computers
+2. **Clear data when done** - Use "Clear API Key" button on shared devices
+3. **Monitor your usage** - Check Google Cloud Console for unexpected activity
+4. **Restrict your key properly** - Limit to specific domains only
+
+**Future Security Improvements (Planned)**:
+- 🔄 **Client-side encryption** - Encrypt keys before localStorage
+- 🔄 **Session-only option** - Option to not persist across browser sessions
+- 🔄 **Key expiration** - Automatic key clearing after inactivity
+
 ### **📱 Public Demo (GitHub Pages)**
 ```
 🌐 LIVE DEMO SECURITY MODEL

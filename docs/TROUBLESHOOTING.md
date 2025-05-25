@@ -2,6 +2,37 @@
 
 Common issues and solutions for YouTube Channel Research Hub.
 
+## 🚨 **Current Known Issues (Active Development)**
+
+### Missing Analysis Sections
+**Problem**: Analysis panels from legacy version are not displaying  
+**Status**: 🔄 Being restored in current sprint  
+**Workaround**: Basic video list and filtering still work  
+**ETA**: Next few days  
+
+**Missing Features**:
+- Content Analysis grid (Total Videos, Avg Views, etc.)
+- Advanced Content Insights (Viral Content, Title Patterns)
+- Upload Frequency Timeline chart
+
+### Video Display Issues
+**Problem**: Videos may not be visible even when data is fetched successfully  
+**Status**: 🔄 Being fixed in current sprint  
+**Workaround**: Check browser console for "videos found" messages  
+**Debug**: Look for debug logs showing successful API calls  
+
+### Loading States Not Always Visible
+**Problem**: No loading indicator during API calls in some cases  
+**Status**: ✅ Partially fixed with fallback system  
+**Solution**: Loading should work now, but may appear different than expected  
+
+### Grid View Needs Improvement
+**Problem**: Grid view layout needs optimization  
+**Status**: 🔄 Being redesigned for two-column layout with emoji metrics  
+**Workaround**: Use list view for now  
+
+---
+
 ## 🔑 YouTube API Setup Issues
 
 ### "API key not loaded" Error
