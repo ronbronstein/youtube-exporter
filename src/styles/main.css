@@ -1280,4 +1280,96 @@ th {
     .input-group {
         flex-direction: column;
     }
+}
+
+/* Local Development Mode Styles */
+.local-mode-banner {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.local-mode-banner .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.local-mode-banner .banner-icon {
+    font-size: 2rem;
+}
+
+.local-mode-banner .banner-text h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.2rem;
+}
+
+.local-mode-banner .banner-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.local-api-status {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.local-api-status .status-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.local-api-status .status-icon {
+    font-size: 1.2rem;
+}
+
+.local-api-status .status-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.local-api-status .status-indicator {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.local-api-status .status-indicator.ready {
+    background: #d4edda;
+    color: #155724;
+}
+
+.local-api-status .status-indicator.missing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.local-api-status .env-help {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.local-api-status .env-help p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.local-api-status .env-help code {
+    background: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    color: #e83e8c;
 } 
