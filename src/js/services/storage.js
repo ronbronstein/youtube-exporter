@@ -88,6 +88,19 @@ export class StorageService {
                     videoCount: analysis.data?.length || 0
                 });
                 
+                // Convert date strings back to Date objects
+                if (analysis.data && Array.isArray(analysis.data)) {
+                    analysis.data.forEach(video => {
+                        if (video.publishedDate && typeof video.publishedDate === 'string') {
+                            video.publishedDate = new Date(video.publishedDate);
+                        }
+                        if (video.publishedAt && typeof video.publishedAt === 'string') {
+                            video.publishedAt = new Date(video.publishedAt);
+                        }
+                    });
+                    debugLog('✅ Date objects restored for cached videos');
+                }
+                
                 return analysis.data;
             }
         } catch (error) {
