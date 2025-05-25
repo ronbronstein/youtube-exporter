@@ -199,16 +199,16 @@ export class App extends BaseComponent {
         // Debug: Check if critical elements exist
         debugLog('🔍 Checking critical elements after mount:');
         debugLog('  - Channel input:', !!this.findElement('#channelInput'));
-        debugLog('  - Analyze button:', !!this.findElement('#analyzeBtn'));
+        debugLog('  - Search button:', !!this.findElement('#searchBtn'));
         debugLog('  - API key input:', !!this.findElement('#apiKeyInput'));
         debugLog('  - Environment:', this.appState.currentEnvironment);
         debugLog('  - Has API key:', !!this.appState.apiKey);
         
         // Debug: Check button state
-        const analyzeBtn = this.findElement('#analyzeBtn');
-        if (analyzeBtn) {
-            debugLog('  - Button disabled:', analyzeBtn.disabled);
-            debugLog('  - Button classes:', analyzeBtn.className);
+        const searchBtn = this.findElement('#searchBtn');
+        if (searchBtn) {
+            debugLog('  - Button disabled:', searchBtn.disabled);
+            debugLog('  - Button classes:', searchBtn.className);
         }
         
         debugLog('🏗️ App onMount completed');
@@ -839,9 +839,15 @@ export class App extends BaseComponent {
     // Environment-specific initialization
     async initializeDemoMode() {
         try {
-            // In demo mode, use a real demo API key (in production, this would be loaded from secure environment)
-            // For now, using a placeholder that enables the button - in real deployment, load from .env
-            const demoApiKey = process.env.VITE_DEMO_API_KEY || 'AIzaSyDemo_EnableButton_ForTestingPurposes';
+            // Load demo API key from environment variables
+            const demoApiKey = import.meta.env.VITE_DEMO_API_KEY;
+            
+            if (!demoApiKey || demoApiKey === 'your_youtube_api_key_here') {
+                this.showError('Demo mode requires a valid API key. Please set VITE_DEMO_API_KEY in your .env file.');
+                debugLog('❌ Demo mode: No valid API key found in environment');
+                return;
+            }
+            
             this.setApiKey(demoApiKey);
             
             // Ensure button state is updated
@@ -850,10 +856,11 @@ export class App extends BaseComponent {
                 debugLog('🎭 Demo mode button state updated');
             }, 100);
             
-            this.showInfo('Demo mode active - Using built-in API key, 100 video limit');
-            debugLog('🎭 Demo mode initialized with demo API key');
+            this.showInfo('Demo mode active - Using built-in API key, limited to 100 recent videos');
+            debugLog('🎭 Demo mode initialized with environment API key');
         } catch (error) {
             this.showError('Failed to initialize demo mode');
+            debugLog('❌ Demo mode initialization error:', error);
         }
     }
     

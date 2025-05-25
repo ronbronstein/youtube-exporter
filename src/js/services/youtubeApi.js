@@ -117,16 +117,25 @@ export class YouTubeApiService {
         const channelId = await this.getChannelId(channelInput);
         
         // Get channel details including uploads playlist
-        const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=contentDetails&id=${channelId}&key=${this.apiKey}`);
-        const data = await response.json();
+        const apiCall = async () => {
+            const response = await fetch(`${CONFIG.API.BASE_URL}/channels?part=contentDetails&id=${channelId}&key=${this.apiKey}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
+            if (!data.items || data.items.length === 0) {
+                throw new Error('Channel not found');
+            }
+            
+            return data;
+        };
         
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-        
-        if (!data.items || data.items.length === 0) {
-            throw new Error('Channel not found');
-        }
+        // Track API call performance
+        const data = this.performanceMonitor ? 
+            await this.performanceMonitor.trackApiCall('channels', apiCall()) :
+            await apiCall();
         
         const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
         
@@ -146,10 +155,11 @@ export class YouTubeApiService {
         let allVideos = [];
         let nextPageToken = null;
         let pageCount = 0;
-        const maxResults = CONFIG.API.BATCH_SIZE;
         
-        // Demo mode video limit
-        const videoLimit = this.isDemoMode ? CONFIG.DEMO.MAX_VIDEOS_PER_ANALYSIS : Infinity;
+        // Demo mode: limit to 100 recent videos (2 pages of 50)
+        const maxResults = this.isDemoMode ? 50 : CONFIG.API.BATCH_SIZE;
+        const maxPages = this.isDemoMode ? 2 : 100; // Demo: 2 pages = 100 videos max
+        const videoLimit = this.isDemoMode ? 100 : Infinity;
         let videosCollected = 0;
         
         do {
@@ -159,14 +169,27 @@ export class YouTubeApiService {
                 playlistUrl += `&pageToken=${nextPageToken}`;
             }
             
-            debugLog(`Fetching uploads page ${pageCount + 1}`, { url: playlistUrl.replace(this.apiKey, 'HIDDEN') });
+            debugLog(`Fetching uploads page ${pageCount + 1}${this.isDemoMode ? ' (demo mode)' : ''}`, { 
+                url: playlistUrl.replace(this.apiKey, 'HIDDEN'),
+                maxResults,
+                maxPages: this.isDemoMode ? maxPages : 'unlimited'
+            });
             
-            const response = await fetch(playlistUrl);
-            const data = await response.json();
+            const apiCall = async () => {
+                const response = await fetch(playlistUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                return data;
+            };
             
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
+            // Track API call performance
+            const data = this.performanceMonitor ? 
+                await this.performanceMonitor.trackApiCall('playlistItems', apiCall()) :
+                await apiCall();
             
             if (data.items && data.items.length > 0) {
                 // Convert playlist items to search-like format
@@ -176,7 +199,10 @@ export class YouTubeApiService {
                 }));
                 
                 // Apply demo mode video limit
-                const videosToAdd = videos.slice(0, Math.max(0, videoLimit - videosCollected));
+                const videosToAdd = this.isDemoMode ? 
+                    videos.slice(0, Math.max(0, videoLimit - videosCollected)) : 
+                    videos;
+                    
                 allVideos = allVideos.concat(videosToAdd);
                 videosCollected += videosToAdd.length;
                 
@@ -185,7 +211,7 @@ export class YouTubeApiService {
                 // Update progress with demo mode info
                 if (progressCallback) {
                     if (this.isDemoMode) {
-                        progressCallback(`Demo Mode: Fetching videos... Found ${allVideos.length}/${videoLimit} (limited for cost control)`);
+                        progressCallback(`Demo Mode: Fetching recent videos... Found ${allVideos.length}/${videoLimit} (limited for cost control)`);
                     } else {
                         progressCallback(`Fetching complete video library... Found ${allVideos.length} so far`);
                     }
@@ -201,15 +227,21 @@ export class YouTubeApiService {
             nextPageToken = data.nextPageToken;
             pageCount++;
             
+            // Demo mode: stop after maxPages
+            if (this.isDemoMode && pageCount >= maxPages) {
+                debugLog(`Demo mode: Reached page limit of ${maxPages} pages`);
+                break;
+            }
+            
             // Safety limit to prevent infinite loops
             if (pageCount >= 100) {
                 debugLog('Reached maximum page limit (100 pages = ~5000 videos)');
                 break;
             }
             
-        } while (nextPageToken && (!this.isDemoMode || videosCollected < videoLimit));
+        } while (nextPageToken && (!this.isDemoMode || (videosCollected < videoLimit && pageCount < maxPages)));
         
-        debugLog(`Total videos from uploads playlist: ${allVideos.length}${this.isDemoMode ? ` (demo limited to ${videoLimit})` : ''}`);
+        debugLog(`Total videos from uploads playlist: ${allVideos.length}${this.isDemoMode ? ` (demo limited to ${videoLimit} recent videos)` : ''}`);
         return allVideos;
     }
 

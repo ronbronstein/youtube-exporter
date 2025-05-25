@@ -265,3 +265,35 @@ npm run preview  # Test locally at localhost:4173
 **⭐ Star this repo if it helps your YouTube strategy!** 
 
 *Modern architecture meets nostalgic design for powerful content insights.* 🚀✨
+
+## 🎭 Demo Mode Setup
+
+To enable demo mode with your own API key:
+
+1. **Create a `.env` file** in the project root:
+```bash
+# .env
+VITE_DEMO_API_KEY=your_actual_youtube_api_key_here
+```
+
+2. **Get a YouTube API Key**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing
+   - Enable YouTube Data API v3
+   - Create credentials (API Key)
+   - Copy the key to your `.env` file
+
+3. **Demo Mode Features**:
+   - ✅ Uses your private API key (not exposed to users)
+   - ✅ Limited to 100 most recent videos per channel
+   - ✅ Cost-controlled (2 API calls max per analysis)
+   - ✅ Perfect for showcasing the app functionality
+
+4. **Security**: The `.env` file is gitignored and never committed to version control.
+
+## 🌐 Live Mode
+
+Users provide their own YouTube API key for full functionality:
+- ✅ Unlimited video analysis
+- ✅ Complete channel history
+- ✅ Uses user's own API quota
