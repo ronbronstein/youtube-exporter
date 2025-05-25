@@ -47,28 +47,46 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 - **Title Export**: Clean text file of video titles for content planning
 - **Markdown Export**: LLM-ready format optimized for AI analysis workflows
 
-## 🚀 Quick Start
+## 🚀 Quick Start (For Your Own Use)
 
-### **Option 1: Use Online (Recommended)**
+1. **Clone this repository**
+2. **Get a YouTube API key** from [Google Cloud Console](https://console.cloud.google.com/)
+3. **Create `.env` file**:
+   ```bash
+   # Your personal YouTube API key
+   YOUTUBE_API_KEY=your_youtube_api_key_here
+   ```
+4. **Install and run**:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-1. **Visit**: https://ronbronstein.github.io/youtube-exporter/
-2. **Get API Key**: [Google Cloud Console](https://console.cloud.google.com/) → Enable YouTube Data API v3
-3. **Analyze**: Enter any YouTube channel and start exploring!
+That's it! You'll have the full app running locally with your own API key.
 
-### **Option 2: Local Development**
+## 🌐 Live Demo Versions
 
-```bash
-# Clone repository
-git clone https://github.com/ronbronstein/youtube-exporter.git
-cd youtube-exporter
+I also host two versions on GitHub Pages to showcase the app:
 
-# Install dependencies
-npm install
+- **[Demo Mode](https://ronbronstein.github.io/youtube-exporter/?mode=demo)** - Try it instantly with built-in API key (limited to 100 videos)
+- **[Live Mode](https://ronbronstein.github.io/youtube-exporter/?mode=live)** - Full functionality, bring your own API key
 
-# Start development server
-npm run dev
-# → Opens http://localhost:5173
-```
+These versions include a mode selector UI that you don't need for your own deployment.
+
+## 📁 What You Get vs What I Host
+
+**Your cloned version:**
+- Clean, simple app
+- Uses your API key from `.env`
+- No mode switching complexity
+- Full functionality
+
+**My GitHub Pages versions:**
+- Demo mode with my API key (for showcasing)
+- Live mode for users to test with their keys
+- Mode selector UI for switching between them
+
+The code is identical - I just add environment detection and mode switching for the hosted versions.
 
 ## 📖 Usage Guide
 

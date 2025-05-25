@@ -270,6 +270,22 @@ export class App extends BaseComponent {
     renderModeToggle() {
         const currentMode = this.appState.currentEnvironment;
         
+        // Only show mode selector on GitHub Pages, not for local development
+        if (currentMode === 'local') {
+            return `
+                <div class="local-mode-banner">
+                    <div class="banner-content">
+                        <div class="banner-icon">🏠</div>
+                        <div class="banner-text">
+                            <h3>Local Development Mode</h3>
+                            <p>Using your API key from .env file • Full functionality • No limitations</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // GitHub Pages mode selector (demo/live switching)
         return `
             <div class="mode-selector">
                 <div class="mode-selector-header">
@@ -331,7 +347,29 @@ export class App extends BaseComponent {
     }
 
     renderApiKeySection() {
-        if (this.appState.currentEnvironment === 'demo') {
+        const currentMode = this.appState.currentEnvironment;
+        
+        if (currentMode === 'local') {
+            // Local development - API key comes from .env, no input needed
+            return `
+                <div class="local-api-status">
+                    <div class="status-content">
+                        <span class="status-icon">🔐</span>
+                        <span class="status-text">API key loaded from .env file</span>
+                        <span class="status-indicator ${this.appState.apiKey ? 'ready' : 'missing'}">
+                            ${this.appState.apiKey ? '✅ Ready' : '⚠️ Missing'}
+                        </span>
+                    </div>
+                    ${!this.appState.apiKey ? `
+                        <div class="env-help">
+                            <p>Add <code>YOUTUBE_API_KEY=your_key_here</code> to your .env file</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        if (currentMode === 'demo') {
             return `
                 <div class="demo-status-banner">
                     <div class="banner-content">

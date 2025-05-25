@@ -1,6 +1,6 @@
 /**
  * Environment Detection & Initialization Utilities
- * Simplified Two-Mode System: Demo vs Live
+ * Simplified: GitHub Pages = Demo/Live modes, Local = Simple API key usage
  */
 
 import { CONFIG, updateGlobalState } from '../config.js';
@@ -8,43 +8,38 @@ import { debugLog } from './debug.js';
 
 /**
  * Detect the current deployment environment
- * Simplified to two modes: 'demo' or 'live'
- * @returns {string} Environment type: 'demo' or 'live'
+ * @returns {string} Environment type: 'demo', 'live', or 'local'
  */
 export function detectEnvironment() {
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    // Check for explicit mode parameter
-    const modeParam = searchParams.get('mode');
-    if (modeParam === 'demo' || modeParam === 'live') {
-        return modeParam;
-    }
-    
-    // Check for legacy demo parameter
-    if (searchParams.has('demo')) {
-        return 'demo';
-    }
-    
-    // Check localStorage for user preference
-    const savedMode = localStorage.getItem('yt_hub_mode');
-    if (savedMode === 'demo' || savedMode === 'live') {
-        return savedMode;
-    }
-    
-    // Default based on environment:
-    // - GitHub Pages: Start with demo mode for easy onboarding
-    // - Local development: Start with live mode for development
     const hostname = window.location.hostname;
     const isGitHubPages = hostname.includes('github.io');
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('localhost');
     
-    if (isGitHubPages) {
-        return 'demo'; // GitHub Pages defaults to demo for easy user onboarding
-    } else if (isLocalhost) {
-        return 'live'; // Local development defaults to live mode
-    } else {
-        return 'demo'; // Self-hosted defaults to demo for safety
+    // Local development - simple mode, no demo/live switching
+    if (isLocalhost) {
+        return 'local';
     }
+    
+    // GitHub Pages - check for mode parameter or default to demo
+    if (isGitHubPages) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const modeParam = searchParams.get('mode');
+        
+        if (modeParam === 'live') {
+            return 'live';
+        }
+        
+        // Check localStorage for user preference
+        const savedMode = localStorage.getItem('yt_hub_mode');
+        if (savedMode === 'live') {
+            return 'live';
+        }
+        
+        return 'demo'; // Default to demo for GitHub Pages
+    }
+    
+    // Self-hosted defaults to local mode
+    return 'local';
 }
 
 /**
@@ -58,6 +53,9 @@ export function initializeEnvironment() {
     debugLog(`🌍 Environment initialized: ${currentEnvironment} mode`);
     
     switch (currentEnvironment) {
+        case 'local':
+            initializeLocalMode();
+            break;
         case 'demo':
             initializeDemoMode();
             break;
@@ -65,34 +63,29 @@ export function initializeEnvironment() {
             initializeLiveMode();
             break;
         default:
-            console.warn('Unknown environment, defaulting to demo mode');
-            initializeDemoMode();
+            console.warn('Unknown environment, defaulting to local mode');
+            initializeLocalMode();
     }
 }
 
 /**
- * Switch to a specific mode and persist the choice
- * @param {string} mode - 'demo' or 'live'
+ * Initialize local development mode - simple API key from .env
  */
-export function switchToMode(mode) {
-    if (mode !== 'demo' && mode !== 'live') {
-        console.error('Invalid mode:', mode);
-        return;
+function initializeLocalMode() {
+    CONFIG.DEMO.ENABLED = false;
+    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
+    
+    // Try to get API key from environment
+    const apiKey = import.meta.env.YOUTUBE_API_KEY || import.meta.env.VITE_YOUTUBE_API_KEY || null;
+    if (apiKey) {
+        updateGlobalState('youtubeApiKey', apiKey);
+        updateGlobalState('apiMode', 'local');
+        debugLog('✅ Local mode: API key loaded from environment');
+    } else {
+        console.warn('⚠️ Local mode: No API key found. Add YOUTUBE_API_KEY to your .env file');
     }
     
-    // Save user preference
-    localStorage.setItem('yt_hub_mode', mode);
-    
-    // Update URL without reload
-    const url = new URL(window.location);
-    url.searchParams.set('mode', mode);
-    window.history.replaceState({}, '', url);
-    
-    // Update global state
-    CONFIG.ENVIRONMENT.DETECTED = mode;
-    updateGlobalState('currentEnvironment', mode);
-    
-    debugLog(`🔄 Switched to ${mode} mode`);
+    debugLog('🏠 Local mode initialized - Full functionality with your API key');
 }
 
 /**
