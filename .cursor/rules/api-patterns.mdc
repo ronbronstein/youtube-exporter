@@ -1,0 +1,117 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Patterns & YouTube Integration
+
+## YouTube Data API v3 Integration
+
+### Core API Configuration
+Configuration is centralized in [src/js/config.js](mdc:src/js/config.js):
+- API base URLs and endpoints
+- Quota limits and rate limiting
+- Request batch sizes
+- Error handling patterns
+
+### API Key Management
+- **Local Storage**: Keys stored securely in browser localStorage
+- **Environment Variables**: Development keys in `.env` file
+- **Validation**: Always validate keys before making requests
+- **Security**: Client-side only, no server transmission
+
+## Request Patterns
+
+### Standard API Call Structure
+```javascript
+async function makeYouTubeRequest(endpoint, params) {
+  try {
+    const url = buildApiUrl(endpoint, params);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    handleApiError(error);
+    throw error;
+  }
+}
+```
+
+### Quota Management
+- **Daily Limit**: 10,000 requests per day (free tier)
+- **Rate Limiting**: 100 requests per 100 seconds per user
+- **Batch Processing**: Process videos in chunks of 50
+- **Smart Caching**: Cache responses to minimize API calls
+
+### Common Endpoints Used
+1. **Channels**: Get channel information and statistics
+2. **Search**: Find channels by username or handle
+3. **PlaylistItems**: Get videos from channel uploads playlist
+4. **Videos**: Get detailed video statistics and metadata
+
+## Error Handling Patterns
+
+### API Error Types
+- **401 Unauthorized**: Invalid or missing API key
+- **403 Forbidden**: Quota exceeded or API disabled
+- **404 Not Found**: Channel or video doesn't exist
+- **429 Too Many Requests**: Rate limit exceeded
+
+### Error Recovery Strategies
+- **Exponential Backoff**: For rate limit errors
+- **Graceful Degradation**: Show partial data when possible
+- **User Feedback**: Clear error messages for users
+- **Retry Logic**: Automatic retry for transient failures
+
+## Data Processing Patterns
+
+### Response Transformation
+Always transform YouTube API responses to consistent internal format:
+```javascript
+function transformVideoData(apiResponse) {
+  return {
+    id: apiResponse.id,
+    title: apiResponse.snippet.title,
+    publishedAt: new Date(apiResponse.snippet.publishedAt),
+    viewCount: parseInt(apiResponse.statistics.viewCount) || 0,
+    likeCount: parseInt(apiResponse.statistics.likeCount) || 0,
+    // ... other fields
+  };
+}
+```
+
+### Null Safety
+YouTube API responses can have missing fields:
+- Always check for property existence
+- Provide sensible defaults
+- Handle private/disabled statistics gracefully
+
+### Performance Optimization
+- **Pagination**: Use pageToken for large datasets
+- **Field Selection**: Only request needed fields with `part` parameter
+- **Concurrent Requests**: Use Promise.all for independent requests
+- **Progress Tracking**: Show progress for long-running operations
+
+## Security Best Practices
+
+### API Key Protection
+- Never commit API keys to version control
+- Use environment variables for development
+- Implement key rotation capabilities
+- Monitor API usage in Google Cloud Console
+
+### Data Privacy
+- All processing happens client-side
+- No data sent to external servers
+- Local storage for user preferences only
+- Respect YouTube's Terms of Service
+
+### Rate Limit Compliance
+- Implement request queuing
+- Add delays between batch requests
+- Monitor quota usage
+- Provide user feedback on limits

@@ -1,59 +1,95 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
-# Development Workflow Guide
+# Development Workflow & Best Practices
 
-## 🚀 Getting Started Quickly
+## Development Environment Setup
 
-### Environment Setup
-1. Copy [config.template](mdc:config.template) to `.env` 
-2. Add YouTube API key to `.env`
-3. Run `npm start` to launch development server
+### Prerequisites
+- Node.js 18.0.0+ (specified in [package.json](mdc:package.json))
+- NPM 9.0.0+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Git for version control
 
-### Development Server Options
-- **Production mode**: `npm start` - uses [server.js](mdc:server.js)
-- **Test mode**: `node test-server.js` - uses [test-server.js](mdc:test-server.js)
+### Local Development
+1. **Install Dependencies**: `npm install`
+2. **Start Dev Server**: `npm run dev` (uses Vite)
+3. **Open Browser**: Navigate to `http://localhost:5173`
+4. **Hot Reload**: Changes auto-refresh in browser
 
-## 📁 File Organization Patterns
+### Environment Configuration
+- **API Keys**: Store in `.env` file (never commit)
+- **Local Storage**: Development data persists in browser
+- **CORS**: Handled by Vite dev server proxy
 
-### Single-File Architecture
-The main application lives in [youtube_video_exporter.html](mdc:youtube_video_exporter.html) which contains:
-- **HTML structure** (UI layout)
-- **CSS styling** (Windows XP theme)
-- **JavaScript logic** (YouTube API interactions, analytics)
+## Build & Testing Workflow
 
-### When to Edit What
-- **UI/UX changes** → Edit HTML/CSS sections in [youtube_video_exporter.html](mdc:youtube_video_exporter.html)
-- **Analytics logic** → Edit JavaScript sections in [youtube_video_exporter.html](mdc:youtube_video_exporter.html)
-- **Server config** → Edit [server.js](mdc:server.js)
-- **Dependencies** → Edit [package.json](mdc:package.json)
-- **Documentation** → Edit files in [docs/](mdc:docs/) directory
+### Development Commands
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production (outputs to `dist/`)
+- `npm run preview` - Preview production build locally
+- `npm run test:browser` - Run browser-based integration tests
+- `npm run clean` - Clean build artifacts and cache
 
-## 🎨 Windows XP Design System
+### Testing Strategy
+- **Integration Tests**: [src/js/integration-test.js](mdc:src/js/integration-test.js)
+- **Manual Testing**: Use preview mode with real API
+- **Cross-Browser**: Test in Chrome, Firefox, Safari, Edge
+- **API Testing**: Validate with different YouTube channels
 
-### CSS Variables for Theming
-```css
---xp-blue-start: #0078d4;
---xp-gray: #ece9d8;
---xp-button-face: #ece9d8;
+### Quality Assurance
+- **Security Audit**: `npm run security-audit`
+- **Code Validation**: `npm run validate` (build + preview)
+- **Performance**: Monitor bundle size and load times
+- **Accessibility**: Test with screen readers and keyboard navigation
+
+## Git Workflow
+
+### Branch Strategy
+- **main**: Production-ready code (auto-deploys to GitHub Pages)
+- **develop**: Integration branch for features
+- **feature/***: Individual feature development
+- **hotfix/***: Critical production fixes
+
+### Commit Conventions
+Use descriptive commit messages:
+```
+feat: add viral content detection algorithm
+fix: resolve API quota exceeded error handling
+docs: update user guide with new features
+style: improve Windows XP button hover effects
+refactor: modularize YouTube API service
+test: add integration tests for channel analysis
 ```
 
-### Component Patterns
-- **Buttons**: Use `outset` borders for raised effect
-- **Input fields**: Use `inset` borders for sunken effect
-- **Windows**: Classic 3D border styling with proper shadows
+## Deployment Process
 
-## 🔧 API Development Guidelines
+### Automated Deployment
+- **Trigger**: Push to `main` branch
+- **Platform**: GitHub Pages via GitHub Actions
+- **Build**: Vite production build
+- **URL**: https://ronbronstein.github.io/youtube-exporter/
 
-### YouTube API Optimization
-- Batch API calls in groups of 50 (YouTube limit)
-- Track quota usage carefully
-- Use efficient endpoint combinations
-- Cache results in localStorage when possible
+### Manual Deployment Steps
+1. `npm run build` - Create production build
+2. Verify `dist/` folder contents
+3. Push to `main` branch
+4. GitHub Actions handles deployment
+5. Verify live site functionality
 
-### Error Handling Pattern
-- Always handle API rate limits gracefully
-- Provide clear user feedback for API errors
-- Log errors to console for debugging
+## Documentation Maintenance
+
+### Documentation Updates
+Always update relevant docs when making changes:
+- **[README.md](mdc:README.md)**: User-facing changes
+- **[docs/USER_GUIDE.md](mdc:docs/USER_GUIDE.md)**: Feature additions
+- **[docs/API_REFERENCE.md](mdc:docs/API_REFERENCE.md)**: API changes
+- **[docs/TROUBLESHOOTING.md](mdc:docs/TROUBLESHOOTING.md)**: New issues/solutions
+
+### Code Documentation
+- **Inline Comments**: Explain complex logic and API interactions
+- **Function Documentation**: JSDoc comments for public functions
+- **Component Documentation**: Purpose and usage of UI components
+- **Configuration Documentation**: Explain settings in [src/js/config.js](mdc:src/js/config.js)

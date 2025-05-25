@@ -1,0 +1,153 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI Components & Windows XP Styling
+
+## Windows XP Design System
+
+### Color Palette
+Primary colors used throughout the application:
+- **Background**: `#ece9d8` (classic XP beige)
+- **Primary Blue**: `#0054e3` (title bars, links)
+- **Secondary Blue**: `#316ac5` (hover states)
+- **Border Gray**: `#aca899` (panel borders)
+- **Text**: `#000000` (primary text)
+
+### Typography
+- **Primary Font**: Tahoma, sans-serif (authentic XP font)
+- **Fallback**: Arial, sans-serif
+- **Sizes**: 11px (default), 12px (headers), 10px (small text)
+
+### 3D Border Effects
+Authentic Windows XP borders using CSS:
+```css
+.xp-panel {
+  border: 2px outset #ece9d8;
+  background: #ece9d8;
+}
+
+.xp-button {
+  border: 1px outset #ece9d8;
+  background: linear-gradient(to bottom, #ffffff, #ece9d8);
+}
+
+.xp-button:active {
+  border: 1px inset #ece9d8;
+}
+```
+
+## Core UI Components
+
+### Navigation & Layout
+- **Main Container**: Central application wrapper with XP window styling
+- **Tab System**: Windows XP-style tabs for different views
+- **Status Bar**: Bottom status information with progress indicators
+- **Toolbar**: Top action buttons with XP button styling
+
+### Data Display Components
+- **Video List**: Sortable table with XP-style headers and rows
+- **Video Grid**: Card-based layout with thumbnail previews
+- **Statistics Panel**: Metrics display with XP panel styling
+- **Progress Bar**: Windows XP-style progress indication
+
+### Form Components
+- **Input Fields**: XP-style text inputs with inset borders
+- **Buttons**: Authentic XP button styling with hover/active states
+- **Dropdowns**: XP-style select elements
+- **Checkboxes**: Classic XP checkbox styling
+
+### Modal & Dialog Components
+- **Error Dialogs**: XP-style error message boxes
+- **Confirmation Dialogs**: Standard XP confirmation patterns
+- **Settings Panel**: Configuration options with XP styling
+- **Help Tooltips**: Context-sensitive help with XP balloon styling
+
+## Component Architecture
+
+### Modular CSS Classes
+Use BEM methodology with XP prefixes:
+```css
+.xp-component {}
+.xp-component__element {}
+.xp-component--modifier {}
+```
+
+### JavaScript Component Pattern
+```javascript
+class XPComponent {
+  constructor(container) {
+    this.container = container;
+    this.init();
+  }
+  
+  init() {
+    this.render();
+    this.bindEvents();
+  }
+  
+  render() {
+    // Component rendering logic
+  }
+  
+  bindEvents() {
+    // Event handling
+  }
+}
+```
+
+## Responsive Design
+
+### Breakpoints
+- **Desktop**: 1024px+ (primary target)
+- **Tablet**: 768px-1023px (adapted XP styling)
+- **Mobile**: <768px (simplified XP elements)
+
+### Mobile Adaptations
+- Larger touch targets for buttons
+- Simplified 3D effects for performance
+- Collapsible panels for space efficiency
+- Maintained XP color scheme and typography
+
+## Accessibility
+
+### XP-Compatible Accessibility
+- High contrast mode support
+- Keyboard navigation patterns
+- Screen reader compatibility
+- Focus indicators with XP styling
+
+### ARIA Implementation
+- Proper ARIA labels for complex components
+- Role definitions for custom elements
+- State management for dynamic content
+- Landmark navigation
+
+## Animation & Interactions
+
+### XP-Style Animations
+- Button press effects (inset/outset transitions)
+- Hover state changes
+- Loading animations with XP progress bars
+- Smooth transitions while maintaining authenticity
+
+### Performance Considerations
+- CSS transforms over position changes
+- Debounced user interactions
+- Efficient DOM updates
+- Minimal animation overhead
+
+## Component Testing
+
+### Visual Testing
+- Cross-browser XP styling consistency
+- Responsive behavior validation
+- Accessibility compliance
+- Performance impact assessment
+
+### Interaction Testing
+- Button states and feedback
+- Form validation and submission
+- Modal dialog behavior
+- Keyboard navigation flows

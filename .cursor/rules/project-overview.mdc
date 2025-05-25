@@ -1,40 +1,43 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
 # YouTube Research Hub - Project Overview
 
-This is a YouTube channel analysis tool that combines Windows XP nostalgia with modern analytics. The project follows a **single-file frontend design philosophy** for maximum simplicity and compatibility.
+## Project Description
+YouTube Research Hub is a comprehensive YouTube channel analysis tool that combines nostalgic Windows XP aesthetics with powerful modern analytics. Built with modern ES6 modules and professional deployment pipeline.
 
-## 🏗️ Core Architecture
+## Tech Stack
+- **Frontend**: Vanilla JavaScript (ES6 modules), HTML5, CSS3
+- **Build Tool**: Vite 6.3.5
+- **Styling**: Custom CSS with Windows XP theme
+- **Charts**: Chart.js 4.4.0
+- **Security**: crypto-js 4.2.0
+- **Deployment**: GitHub Pages via GitHub Actions
 
-### Main Application Files
-- **[youtube_video_exporter.html](mdc:youtube_video_exporter.html)** - Complete frontend application (HTML + CSS + JS in one file)
-- **[server.js](mdc:server.js)** - Minimal Express server for API key management
-- **[test-server.js](mdc:test-server.js)** - Development/testing server
-- **[package.json](mdc:package.json)** - Project dependencies and scripts
+## Key Architecture
+- **Modular ES6 Components**: 15 modular components for maintainable architecture
+- **Client-Side Only**: No backend, all processing in browser
+- **API Integration**: YouTube Data API v3 with smart quota management
+- **Local Storage**: Secure API key storage in browser
 
-### Documentation Hub
-- **[README.md](mdc:README.md)** - Main project documentation
-- **[docs/](mdc:docs/)** - Comprehensive documentation directory
-  - **[docs/TaskBoard.md](mdc:docs/TaskBoard.md)** - Project task tracking
-  - **[docs/ARCHITECTURE.md](mdc:docs/ARCHITECTURE.md)** - Technical architecture details
-  - **[docs/API_REFERENCE.md](mdc:docs/API_REFERENCE.md)** - API documentation
-  - **[docs/USER_GUIDE.md](mdc:docs/USER_GUIDE.md)** - User instructions
+## Entry Points
+- Main HTML: [src/index.html](mdc:src/index.html)
+- Main JavaScript: [src/js/main.js](mdc:src/js/main.js)
+- Configuration: [src/js/config.js](mdc:src/js/config.js)
+- Build Config: [vite.config.js](mdc:vite.config.js)
 
-## 🎯 Design Philosophy
+## Core Features
+1. **Channel Analysis**: Complete video inventory with smart pagination
+2. **Content Insights**: Viral detection, title patterns, upload optimization
+3. **Windows XP UI**: Authentic retro styling with modern usability
+4. **Dual Views**: List and grid view modes with real-time filtering
+5. **Export Options**: CSV, text, and markdown exports
 
-1. **Single-file frontend** - Everything in one HTML file for portability
-2. **Windows XP aesthetic** - Authentic retro design with modern usability
-3. **Vanilla JavaScript** - No framework dependencies
-4. **API efficiency** - Smart quota management for YouTube API
-5. **Privacy-first** - All data stays in browser local storage
-
-## 🔑 Key Technologies
-
-- **Backend**: Node.js + Express (minimal server)
-- **Frontend**: Vanilla HTML/CSS/JavaScript
-- **API**: YouTube Data API v3
-- **Styling**: Custom Windows XP-themed CSS
-- **Data**: Browser localStorage for persistence
+## Development Commands
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test:browser` - Browser-based testing
+- `npm run deploy` - Build and deploy instructions
