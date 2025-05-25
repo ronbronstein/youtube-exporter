@@ -1453,8 +1453,8 @@ export class App extends BaseComponent {
                 });
                 
                 if (demoApiKey) {
+                    this.appState.apiMode = 'demo';  // Set demo mode BEFORE setApiKey
                     this.setApiKey(demoApiKey);
-                    this.appState.apiMode = 'demo';
                     debugLog('✅ GitHub Pages: Demo mode with built-in API key');
                     this.showInfo('Demo mode active - Limited to 100 recent videos');
                     return 'demo';
