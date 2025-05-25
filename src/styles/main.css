@@ -1,5 +1,8 @@
 /* YouTube Research Hub - Main Styles */
 
+/* Import component styles */
+@import '../css/components/cached-channels.css';
+
 /* CSS Variables for Windows XP Theme */
 :root {
     --xp-gray: #ece9d8;

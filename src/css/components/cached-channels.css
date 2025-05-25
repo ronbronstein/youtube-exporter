@@ -1,0 +1,164 @@
+/* ===== CACHED CHANNELS SECTION ===== */
+
+.cached-channels-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--window-bg);
+    border: 2px inset var(--border-color);
+    border-radius: 4px;
+}
+
+.cached-channels-list h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.cached-channels-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.cached-channels-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.cached-channel-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.cached-channel-item:hover {
+    background: var(--hover-bg);
+    border-color: var(--accent-color);
+}
+
+.cached-channel-item.expired {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+.channel-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.channel-title {
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.channel-stats {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.channel-age {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.channel-age.fresh {
+    color: var(--success-color);
+}
+
+.channel-age.stale {
+    color: var(--warning-color);
+}
+
+.channel-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.channel-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: auto;
+}
+
+.load-cached-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.load-cached-btn:hover {
+    background: var(--primary-hover);
+}
+
+.delete-cached-btn {
+    background: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.delete-cached-btn:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+.cache-actions {
+    text-align: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.cache-actions .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+/* Refresh button in header */
+.refresh-btn {
+    margin-left: 15px;
+    padding: 8px 16px;
+    font-size: 13px;
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .cached-channel-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .channel-actions {
+        margin-left: 0;
+        justify-content: center;
+    }
+    
+    .channel-title {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
+    }
+} 

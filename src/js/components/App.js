@@ -126,6 +126,11 @@ export class App extends BaseComponent {
                     ${this.renderSearchSection()}
                 </div>
                 
+                <!-- Cached Channels Section -->
+                <div class="cached-channels-section">
+                    ${this.renderCachedChannelsList()}
+                </div>
+                
                 <!-- Results Section (Single Panel) -->
                 <div class="results-section">
                     <div id="resultsContainer" class="results-container"></div>
@@ -607,6 +612,9 @@ export class App extends BaseComponent {
             debugLog('⚠️ No mode toggle buttons found');
         }
         
+        // Set up cached channels listeners
+        this.setupCachedChannelsListeners();
+        
         debugLog('🔌 Event listeners setup complete');
     }
     
@@ -821,18 +829,59 @@ export class App extends BaseComponent {
         this.updateAnalyzeButtonState();
     }
     
-    async analyzeChannel(channelQuery) {
+    async analyzeChannel(channelQuery, forceRefresh = false) {
         if (!this.services.youtube) {
             throw new Error('YouTube API service not initialized');
         }
 
         try {
-            debugLog('🔍 Starting channel analysis', { query: channelQuery });
+            debugLog('🔍 Starting channel analysis', { query: channelQuery, forceRefresh });
             
-            // Get channel data
+            // Get channel data first to get the channel ID
             this.setLoadingState(true, 'Analyzing channel information...');
             const channelData = await this.services.youtube.getChannelData(channelQuery);
             this.appState.channelData = channelData;
+            
+            // Check cache first (unless force refresh)
+            if (!forceRefresh && this.services.storage.isCacheValid(channelData.channelId)) {
+                debugLog('📦 Loading from cache...');
+                this.setLoadingState(true, 'Loading cached analysis...');
+                
+                const cachedAnalysis = this.services.storage.loadAnalysis(channelData.channelId);
+                if (cachedAnalysis && cachedAnalysis.data) {
+                    const cacheMetadata = this.services.storage.getCacheMetadata(channelData.channelId);
+                    
+                    this.appState.videos = cachedAnalysis.data;
+                    this.appState.filteredVideos = cachedAnalysis.data;
+                    this.appState.cacheMetadata = cacheMetadata;
+                    
+                    // Process videos with analytics
+                    this.setLoadingState(true, 'Processing cached data...');
+                    this.services.analytics.setVideosData(cachedAnalysis.data);
+                    
+                    // Update Results component with channel name
+                    const channelName = channelData.channelTitle || channelData.snippet?.title || 'Unknown Channel';
+                    
+                    if (this.components.results) {
+                        this.components.results.setVideos(cachedAnalysis.data, channelName);
+                        this.components.results.show();
+                        debugLog(`📊 Results component updated with ${cachedAnalysis.data.length} cached videos`);
+                    }
+                    
+                    // Update analytics display
+                    this.setLoadingState(true, 'Finalizing insights...');
+                    this.renderAnalytics();
+                    
+                    // Show cache status
+                    this.showCacheStatus(cacheMetadata);
+                    
+                    debugLog(`✅ Cached analysis loaded: ${cachedAnalysis.data.length} videos (${cacheMetadata.ageHours}h old)`);
+                    return;
+                }
+            }
+            
+            // Fresh fetch from API
+            debugLog('🌐 Fetching fresh data from YouTube API...');
             
             // Get all videos with detailed progress like legacy version
             this.setLoadingState(true, 'Fetching video library...');
@@ -856,6 +905,7 @@ export class App extends BaseComponent {
             
             this.appState.videos = processedVideos;
             this.appState.filteredVideos = processedVideos;
+            this.appState.cacheMetadata = null; // Clear cache metadata for fresh data
             
             // Process videos with analytics
             this.setLoadingState(true, 'Generating content analysis...');
@@ -867,7 +917,7 @@ export class App extends BaseComponent {
             if (this.components.results) {
                 this.components.results.setVideos(processedVideos, channelName);
                 this.components.results.show();
-                debugLog(`📊 Results component updated with ${processedVideos.length} videos from analyzeChannel`);
+                debugLog(`📊 Results component updated with ${processedVideos.length} videos from fresh API`);
             }
             
             // Update analytics display
@@ -875,10 +925,13 @@ export class App extends BaseComponent {
             this.renderAnalytics();
             
             // Save analysis to storage
-            storageService.saveAnalysis(channelData.channelId, processedVideos);
-            storageService.setLastAnalyzedChannel(channelData.channelId);
+            this.services.storage.saveAnalysis(channelData.channelId, processedVideos);
+            this.services.storage.setLastAnalyzedChannel(channelData.channelId);
             
-            debugLog(`✅ Channel analysis complete: ${processedVideos.length} videos`);
+            // Show fresh data status
+            this.showFreshDataStatus();
+            
+            debugLog(`✅ Fresh channel analysis complete: ${processedVideos.length} videos`);
             
         } catch (error) {
             debugLog('❌ Channel analysis failed:', error);
@@ -1519,5 +1572,222 @@ export class App extends BaseComponent {
         this.updateAnalyzeButtonState();
         
         debugLog('✅ UI updated after API key change');
+    }
+
+    showCacheStatus(cacheMetadata) {
+        if (!cacheMetadata) return;
+        
+        const ageText = cacheMetadata.ageHours < 1 ? 
+            `${Math.round(cacheMetadata.ageHours * 60)} minutes ago` :
+            `${Math.round(cacheMetadata.ageHours)} hours ago`;
+            
+        this.showInfo(`✅ Using cached data from ${ageText} • ${cacheMetadata.videoCount} videos`);
+        
+        // Add refresh button to header
+        this.addRefreshButton();
+    }
+    
+    showFreshDataStatus() {
+        this.showSuccess('✅ Fresh data loaded from YouTube API');
+        this.removeRefreshButton();
+    }
+    
+    addRefreshButton() {
+        // Remove existing refresh button if any
+        this.removeRefreshButton();
+        
+        const header = this.findElement('.app-header');
+        if (header) {
+            const refreshBtn = document.createElement('button');
+            refreshBtn.id = 'refreshDataBtn';
+            refreshBtn.className = 'btn btn-secondary refresh-btn';
+            refreshBtn.innerHTML = '🔄 Refresh Data';
+            refreshBtn.title = 'Fetch fresh data from YouTube API';
+            
+            refreshBtn.addEventListener('click', () => {
+                this.handleRefreshData();
+            });
+            
+            header.appendChild(refreshBtn);
+        }
+    }
+    
+    removeRefreshButton() {
+        const refreshBtn = this.findElement('#refreshDataBtn');
+        if (refreshBtn) {
+            refreshBtn.remove();
+        }
+    }
+    
+    async handleRefreshData() {
+        if (!this.appState.channelData) {
+            this.showWarning('No channel data to refresh');
+            return;
+        }
+        
+        try {
+            const channelQuery = this.appState.channelData.channelId || 
+                               this.appState.channelData.customUrl || 
+                               this.appState.channelData.channelTitle;
+            
+            await this.analyzeChannel(channelQuery, true); // Force refresh
+        } catch (error) {
+            debugLog('❌ Refresh failed:', error);
+            this.showError('Failed to refresh data');
+        }
+    }
+    
+    renderCachedChannelsList() {
+        const cachedChannels = this.services.storage.getAllCachedChannels();
+        
+        if (cachedChannels.length === 0) {
+            return `
+                <div class="cached-channels-empty">
+                    <p>No cached channels yet. Analyze a channel to see it here!</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="cached-channels-list">
+                <h3>📋 Recently Analyzed Channels</h3>
+                <div class="cached-channels-grid">
+                    ${cachedChannels.map(channel => `
+                        <div class="cached-channel-item ${channel.isValid ? 'valid' : 'expired'}" 
+                             data-channel-id="${channel.channelId}">
+                            <div class="channel-info">
+                                <div class="channel-title">🎬 ${channel.channelTitle}</div>
+                                <div class="channel-stats">
+                                    ${channel.videoCount} videos • ${channel.size}KB
+                                </div>
+                                <div class="channel-age ${channel.isValid ? 'fresh' : 'stale'}">
+                                    📅 ${channel.ageHours < 1 ? 
+                                        `${Math.round(channel.ageHours * 60)}m ago` :
+                                        `${Math.round(channel.ageHours)}h ago`}
+                                    ${channel.isValid ? '' : ' (expired)'}
+                                </div>
+                            </div>
+                            <div class="channel-actions">
+                                <button class="btn btn-primary load-cached-btn" 
+                                        data-channel-id="${channel.channelId}">
+                                    🔄 Load
+                                </button>
+                                <button class="btn btn-secondary delete-cached-btn" 
+                                        data-channel-id="${channel.channelId}">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="cache-actions">
+                    <button class="btn btn-warning" id="clearAllCacheBtn">
+                        🗑️ Clear All Cache
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    setupCachedChannelsListeners() {
+        // Load cached channel
+        this.container.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('load-cached-btn')) {
+                const channelId = e.target.dataset.channelId;
+                await this.loadCachedChannel(channelId);
+            }
+            
+            if (e.target.classList.contains('delete-cached-btn')) {
+                const channelId = e.target.dataset.channelId;
+                this.deleteCachedChannel(channelId);
+            }
+        });
+        
+        // Clear all cache
+        const clearAllBtn = this.findElement('#clearAllCacheBtn');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                this.clearAllCache();
+            });
+        }
+    }
+    
+    async loadCachedChannel(channelId) {
+        try {
+            debugLog('📦 Loading cached channel:', channelId);
+            
+            const cachedAnalysis = this.services.storage.loadAnalysis(channelId);
+            if (!cachedAnalysis || !cachedAnalysis.data) {
+                this.showError('Cached data not found');
+                return;
+            }
+            
+            const cacheMetadata = this.services.storage.getCacheMetadata(channelId);
+            
+            // Set up app state
+            this.appState.videos = cachedAnalysis.data;
+            this.appState.filteredVideos = cachedAnalysis.data;
+            this.appState.cacheMetadata = cacheMetadata;
+            
+            // Create minimal channel data
+            this.appState.channelData = {
+                channelId: channelId,
+                channelTitle: cacheMetadata.channelTitle
+            };
+            
+            // Process analytics
+            this.services.analytics.setVideosData(cachedAnalysis.data);
+            
+            // Update Results component
+            if (this.components.results) {
+                this.components.results.setVideos(cachedAnalysis.data, cacheMetadata.channelTitle);
+                this.components.results.show();
+            }
+            
+            // Update analytics display
+            this.renderAnalytics();
+            
+            // Show cache status
+            this.showCacheStatus(cacheMetadata);
+            
+            // Update channel input
+            const channelInput = this.findElement('#channelInput');
+            if (channelInput) {
+                channelInput.value = cacheMetadata.channelTitle;
+            }
+            
+            debugLog(`✅ Cached channel loaded: ${cachedAnalysis.data.length} videos`);
+            
+        } catch (error) {
+            debugLog('❌ Failed to load cached channel:', error);
+            this.showError('Failed to load cached channel');
+        }
+    }
+    
+    deleteCachedChannel(channelId) {
+        if (confirm('Delete this cached analysis?')) {
+            this.services.storage.deleteAnalysis(channelId);
+            this.updateCachedChannelsList();
+            this.showSuccess('Cached analysis deleted');
+        }
+    }
+    
+    clearAllCache() {
+        if (confirm('Clear all cached analyses? This cannot be undone.')) {
+            const cachedChannels = this.services.storage.getAllCachedChannels();
+            cachedChannels.forEach(channel => {
+                this.services.storage.deleteAnalysis(channel.channelId);
+            });
+            this.updateCachedChannelsList();
+            this.showSuccess('All cache cleared');
+        }
+    }
+    
+    updateCachedChannelsList() {
+        const cachedSection = this.findElement('.cached-channels-section');
+        if (cachedSection) {
+            cachedSection.innerHTML = this.renderCachedChannelsList();
+            this.setupCachedChannelsListeners();
+        }
     }
 }

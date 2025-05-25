@@ -113,6 +113,113 @@ export class StorageService {
         }
     }
 
+    /**
+     * Check if cached analysis is still valid
+     * @param {string} channelId - Channel identifier
+     * @param {number} maxAgeHours - Maximum age in hours (default 24)
+     * @returns {boolean} True if cache is valid
+     */
+    isCacheValid(channelId, maxAgeHours = 24) {
+        if (!this.isAvailable) return false;
+
+        try {
+            const saved = localStorage.getItem(`analysis_${channelId}`);
+            if (!saved) return false;
+
+            const analysis = JSON.parse(saved);
+            const ageHours = (Date.now() - analysis.timestamp) / (1000 * 60 * 60);
+            
+            debugLog('Cache validity check', { 
+                channelId, 
+                ageHours: Math.round(ageHours * 10) / 10,
+                maxAgeHours,
+                isValid: ageHours < maxAgeHours
+            });
+            
+            return ageHours < maxAgeHours;
+        } catch (error) {
+            debugLog('Failed to check cache validity', error);
+            return false;
+        }
+    }
+
+    /**
+     * Get all cached channel analyses with metadata
+     * @returns {Array} Array of cached channel objects
+     */
+    getAllCachedChannels() {
+        if (!this.isAvailable) return [];
+
+        try {
+            const cached = [];
+            
+            // Iterate through all localStorage keys
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('analysis_')) {
+                    const channelId = key.replace('analysis_', '');
+                    const saved = localStorage.getItem(key);
+                    
+                    if (saved) {
+                        const analysis = JSON.parse(saved);
+                        const ageHours = (Date.now() - analysis.timestamp) / (1000 * 60 * 60);
+                        
+                        cached.push({
+                            channelId,
+                            channelTitle: analysis.data?.[0]?.channelTitle || 'Unknown Channel',
+                            videoCount: analysis.videoCount || analysis.data?.length || 0,
+                            timestamp: analysis.timestamp,
+                            date: analysis.date,
+                            ageHours: Math.round(ageHours * 10) / 10,
+                            isValid: ageHours < 24,
+                            size: Math.round(JSON.stringify(analysis).length / 1024)
+                        });
+                    }
+                }
+            }
+            
+            // Sort by most recent first
+            cached.sort((a, b) => b.timestamp - a.timestamp);
+            
+            debugLog('Found cached channels', { count: cached.length });
+            return cached;
+        } catch (error) {
+            debugLog('Failed to get cached channels', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get cache metadata for a specific channel
+     * @param {string} channelId - Channel identifier
+     * @returns {Object|null} Cache metadata or null
+     */
+    getCacheMetadata(channelId) {
+        if (!this.isAvailable) return null;
+
+        try {
+            const saved = localStorage.getItem(`analysis_${channelId}`);
+            if (!saved) return null;
+
+            const analysis = JSON.parse(saved);
+            const ageHours = (Date.now() - analysis.timestamp) / (1000 * 60 * 60);
+            
+            return {
+                channelId,
+                channelTitle: analysis.data?.[0]?.channelTitle || 'Unknown Channel',
+                videoCount: analysis.videoCount || analysis.data?.length || 0,
+                timestamp: analysis.timestamp,
+                date: analysis.date,
+                ageHours: Math.round(ageHours * 10) / 10,
+                isValid: ageHours < 24,
+                size: Math.round(JSON.stringify(analysis).length / 1024)
+            };
+        } catch (error) {
+            debugLog('Failed to get cache metadata', error);
+            return null;
+        }
+    }
+
     /* ===== SAVED SEARCHES ===== */
 
     /**
@@ -390,6 +497,24 @@ export class StorageService {
             return true;
         } catch (error) {
             debugLog('Failed to clear all data', error);
+            return false;
+        }
+    }
+
+    /**
+     * Delete a cached analysis
+     * @param {string} channelId - Channel identifier
+     * @returns {boolean} True if deleted successfully
+     */
+    deleteAnalysis(channelId) {
+        if (!this.isAvailable) return false;
+
+        try {
+            localStorage.removeItem(`analysis_${channelId}`);
+            debugLog('Deleted cached analysis', { channelId });
+            return true;
+        } catch (error) {
+            debugLog('Failed to delete cached analysis', error);
             return false;
         }
     }
