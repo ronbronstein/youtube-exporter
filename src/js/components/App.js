@@ -1733,30 +1733,31 @@ export class App extends BaseComponent {
             debugLog('📦 Loading cached channel:', channelId);
             
             const cachedAnalysis = this.services.storage.loadAnalysis(channelId);
-            if (!cachedAnalysis || !cachedAnalysis.data) {
+            if (!cachedAnalysis) {
+                debugLog('📢 ERROR: Cached data not found', cachedAnalysis);
                 this.showError('Cached data not found');
                 return;
             }
             
             const cacheMetadata = this.services.storage.getCacheMetadata(channelId);
             
-            // Set up app state
-            this.appState.videos = cachedAnalysis.data;
-            this.appState.filteredVideos = cachedAnalysis.data;
+            // Set up app state - cachedAnalysis IS the data array
+            this.appState.videos = cachedAnalysis;
+            this.appState.filteredVideos = cachedAnalysis;
             this.appState.cacheMetadata = cacheMetadata;
             
             // Create minimal channel data
             this.appState.channelData = {
                 channelId: channelId,
-                channelTitle: cacheMetadata.channelTitle
+                channelTitle: cacheMetadata?.channelTitle || 'Unknown Channel'
             };
             
             // Process analytics
-            this.services.analytics.setVideosData(cachedAnalysis.data);
+            this.services.analytics.setVideosData(cachedAnalysis);
             
             // Update Results component
             if (this.components.results) {
-                this.components.results.setVideos(cachedAnalysis.data, cacheMetadata.channelTitle);
+                this.components.results.setVideos(cachedAnalysis, cacheMetadata?.channelTitle || 'Unknown Channel');
                 this.components.results.show();
             }
             
@@ -1764,15 +1765,17 @@ export class App extends BaseComponent {
             this.renderAnalytics();
             
             // Show cache status
-            this.showCacheStatus(cacheMetadata);
+            if (cacheMetadata) {
+                this.showCacheStatus(cacheMetadata);
+            }
             
             // Update channel input
             const channelInput = this.findElement('#channelInput');
-            if (channelInput) {
+            if (channelInput && cacheMetadata) {
                 channelInput.value = cacheMetadata.channelTitle;
             }
             
-            debugLog(`✅ Cached channel loaded: ${cachedAnalysis.data.length} videos`);
+            debugLog(`✅ Cached channel loaded: ${cachedAnalysis.length} videos`);
             
         } catch (error) {
             debugLog('❌ Failed to load cached channel:', error);
