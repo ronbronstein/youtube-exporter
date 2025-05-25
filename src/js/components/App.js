@@ -902,7 +902,7 @@ export class App extends BaseComponent {
         }
         
         // Use the new environment utility
-        import('./utils/environment.js').then(({ switchToMode }) => {
+        import('../utils/environment.js').then(({ switchToMode }) => {
             switchToMode(newMode);
         });
         

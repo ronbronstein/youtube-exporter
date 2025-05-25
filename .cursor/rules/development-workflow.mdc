@@ -3,3 +3,57 @@ description:
 globs:
 alwaysApply: false
 ---
+# Development Workflow Guide
+
+## 🚀 Getting Started Quickly
+
+### Environment Setup
+1. Copy [config.template](mdc:config.template) to `.env` 
+2. Add YouTube API key to `.env`
+3. Run `npm start` to launch development server
+
+### Development Server Options
+- **Production mode**: `npm start` - uses [server.js](mdc:server.js)
+- **Test mode**: `node test-server.js` - uses [test-server.js](mdc:test-server.js)
+
+## 📁 File Organization Patterns
+
+### Single-File Architecture
+The main application lives in [youtube_video_exporter.html](mdc:youtube_video_exporter.html) which contains:
+- **HTML structure** (UI layout)
+- **CSS styling** (Windows XP theme)
+- **JavaScript logic** (YouTube API interactions, analytics)
+
+### When to Edit What
+- **UI/UX changes** → Edit HTML/CSS sections in [youtube_video_exporter.html](mdc:youtube_video_exporter.html)
+- **Analytics logic** → Edit JavaScript sections in [youtube_video_exporter.html](mdc:youtube_video_exporter.html)
+- **Server config** → Edit [server.js](mdc:server.js)
+- **Dependencies** → Edit [package.json](mdc:package.json)
+- **Documentation** → Edit files in [docs/](mdc:docs/) directory
+
+## 🎨 Windows XP Design System
+
+### CSS Variables for Theming
+```css
+--xp-blue-start: #0078d4;
+--xp-gray: #ece9d8;
+--xp-button-face: #ece9d8;
+```
+
+### Component Patterns
+- **Buttons**: Use `outset` borders for raised effect
+- **Input fields**: Use `inset` borders for sunken effect
+- **Windows**: Classic 3D border styling with proper shadows
+
+## 🔧 API Development Guidelines
+
+### YouTube API Optimization
+- Batch API calls in groups of 50 (YouTube limit)
+- Track quota usage carefully
+- Use efficient endpoint combinations
+- Cache results in localStorage when possible
+
+### Error Handling Pattern
+- Always handle API rate limits gracefully
+- Provide clear user feedback for API errors
+- Log errors to console for debugging
