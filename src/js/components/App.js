@@ -321,16 +321,16 @@ export class App extends BaseComponent {
             <div class="mode-selector-minimal">
                 <div class="mode-toggle-compact">
                     <button class="mode-btn-compact ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
-                        🎭 Demo (Built-in API)
+                        🎭 Try Demo
                     </button>
                     <button class="mode-btn-compact ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
-                        🚀 Full (Your API)
+                        🚀 Full Version
                     </button>
                 </div>
                 <div class="mode-description">
                     ${currentMode === 'demo' ? 
-                        'Demo mode: Built-in API key, limited to 100 videos' : 
-                        'Full mode: Use your own API key, unlimited videos'
+                        'Demo: Test the tool with sample data, limited to 100 videos' : 
+                        'Full: Use your own API key for unlimited analysis'
                     }
                 </div>
             </div>
@@ -344,7 +344,7 @@ export class App extends BaseComponent {
 
     renderApiKeySection() {
         const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode;
+        const currentMode = this.appState.apiMode || 'demo'; // Default to demo for GitHub Pages
         
         // Local development - show clean API key status
         if (currentEnvironment === 'local') {
@@ -371,10 +371,22 @@ export class App extends BaseComponent {
         
         // GitHub Pages - demo mode (no API key input needed)
         if (currentMode === 'demo') {
-            return ''; // Demo mode shows status in mode selector
+            return `
+                <div class="demo-status-panel">
+                    <div class="demo-info">
+                        <span class="demo-icon">🎭</span>
+                        <span class="demo-text">Demo Mode: Ready to test</span>
+                        <span class="demo-indicator ready">✅ No setup required</span>
+                    </div>
+                    <div class="demo-description">
+                        Test the tool with real YouTube data. Limited to 100 most recent videos per channel.
+                    </div>
+                </div>
+            `;
         }
         
         // GitHub Pages - live mode (show API key input)
+        const hasValidApiKey = !!this.appState.apiKey;
         return `
             <div class="api-key-section-minimal">
                 <div class="api-key-header-minimal">
@@ -391,7 +403,7 @@ export class App extends BaseComponent {
                         placeholder="AIza... (paste your YouTube Data API v3 key here)"
                         class="api-key-input-large"
                     >
-                    <button id="saveApiKeyBtn" class="save-key-btn-minimal">
+                    <button id="saveApiKeyBtn" class="save-key-btn-minimal" disabled>
                         Validate & Use
                     </button>
                 </div>
@@ -401,6 +413,13 @@ export class App extends BaseComponent {
                     <span>🆓 Free tier: 10,000 requests/day</span>
                     <span>⚡ Takes 2 minutes to set up</span>
                 </div>
+                
+                ${hasValidApiKey ? `
+                    <div class="api-validated">
+                        <span class="validated-icon">✅</span>
+                        <span class="validated-text">API key validated and ready</span>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -413,21 +432,28 @@ export class App extends BaseComponent {
      * - Simplified options layout
      * - Larger, more prominent search button
      * - Clear status messaging
+     * - Disabled state for live mode without API key
      * 
      * @returns {string} HTML for search section
      */
     renderSearchSection() {
         const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode;
+        const currentMode = this.appState.apiMode || 'demo';
+        const hasApiKey = !!this.appState.apiKey;
+        
+        // Determine if inputs should be disabled
+        const shouldDisableInputs = currentMode === 'live' && !hasApiKey;
+        const disabledAttr = shouldDisableInputs ? 'disabled' : '';
+        const disabledClass = shouldDisableInputs ? 'disabled' : '';
         
         // Determine status message based on environment and mode
         let statusMessage = '';
         if (currentEnvironment === 'local') {
-            statusMessage = this.appState.apiKey ? 'Local development: Full functionality' : 'API key required';
+            statusMessage = hasApiKey ? 'Local development: Full functionality' : 'API key required';
         } else if (currentMode === 'demo') {
             statusMessage = 'Demo: 100 video limit';
         } else if (currentMode === 'live') {
-            statusMessage = 'Full: Unlimited videos';
+            statusMessage = hasApiKey ? 'Full: Unlimited videos' : 'Enter API key to unlock';
         } else {
             statusMessage = 'Ready to analyze';
         }
@@ -437,31 +463,33 @@ export class App extends BaseComponent {
                 <h3>🔍 Analyze YouTube Channel</h3>
                 
                 <!-- Large Input Fields -->
-                <div class="search-inputs-large">
+                <div class="search-inputs-large ${disabledClass}">
                     <input 
                         type="text" 
                         id="channelInput" 
-                        placeholder="Enter channel URL, @handle, or channel ID"
-                        class="channel-input-large"
+                        placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : 'Enter channel URL, @handle, or channel ID'}"
+                        class="channel-input-large ${disabledClass}"
+                        ${disabledAttr}
                     >
                     <input 
                         type="text" 
                         id="keywordInput" 
-                        placeholder="Filter by keywords (optional): AI, tutorial, etc."
-                        class="keyword-input-large"
+                        placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : 'Filter by keywords (optional): AI, tutorial, etc.'}"
+                        class="keyword-input-large ${disabledClass}"
+                        ${disabledAttr}
                     >
                 </div>
                 
                 <!-- Compact Options -->
-                <div class="search-options-compact">
+                <div class="search-options-compact ${disabledClass}">
                     <div class="option-group-inline">
                         <label>Search in:</label>
                         <label class="radio-inline">
-                            <input type="radio" name="searchScope" value="both" checked> 
+                            <input type="radio" name="searchScope" value="both" checked ${disabledAttr}> 
                             Title & Description
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="searchScope" value="title"> 
+                            <input type="radio" name="searchScope" value="title" ${disabledAttr}> 
                             Title Only
                         </label>
                     </div>
@@ -469,11 +497,11 @@ export class App extends BaseComponent {
                     <div class="option-group-inline">
                         <label>Keywords:</label>
                         <label class="radio-inline">
-                            <input type="radio" name="searchLogic" value="OR" checked> 
+                            <input type="radio" name="searchLogic" value="OR" checked ${disabledAttr}> 
                             Any (OR)
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="searchLogic" value="AND"> 
+                            <input type="radio" name="searchLogic" value="AND" ${disabledAttr}> 
                             All (AND)
                         </label>
                     </div>
@@ -484,7 +512,7 @@ export class App extends BaseComponent {
                     <button id="searchBtn" class="search-btn-large" disabled>
                         🔍 Analyze Channel
                     </button>
-                    <div class="search-status">
+                    <div class="search-status ${shouldDisableInputs ? 'locked' : ''}">
                         ${statusMessage}
                     </div>
                 </div>
@@ -591,20 +619,20 @@ export class App extends BaseComponent {
         // Track user interaction
         if (this.performanceMonitor) {
             this.performanceMonitor.trackUserInteraction('apiKeyInput', {
-                hasValue: !!event.target.value,
-                isValid: validateApiKey(event.target.value)
+                hasValue: !!event.target.value
             });
         }
         
         const apiKey = event.target.value.trim();
         const saveBtn = this.findElement('#saveApiKeyBtn');
         
-        if (validateApiKey(apiKey)) {
-            this.appState.apiKey = apiKey;
+        // Simple validation - API key should start with AIza and be at least 35 characters
+        const isValid = apiKey.startsWith('AIza') && apiKey.length >= 35;
+        
+        if (isValid) {
             saveBtn?.removeAttribute('disabled');
             saveBtn?.classList.add('valid');
         } else {
-            this.appState.apiKey = null;
             saveBtn?.setAttribute('disabled', 'true');
             saveBtn?.classList.remove('valid');
         }
@@ -650,9 +678,12 @@ export class App extends BaseComponent {
         // Clear the input for security
         apiKeyInput.value = '';
         
-        this.showSuccess('✅ API key saved successfully! You can now analyze channels.');
+        // Update the entire UI to reflect the validated state
+        this.updateUIAfterApiKeyChange();
         
-        debugLog('🔑 API key saved via storage service and set in app');
+        this.showSuccess('✅ API key validated! You can now analyze channels.');
+        
+        debugLog('🔑 API key saved via storage service and UI updated');
     }
     
     handleChannelInput(event) {
@@ -1429,5 +1460,24 @@ export class App extends BaseComponent {
         
         // Update button state as well
         this.updateAnalyzeButtonState();
+    }
+
+    /**
+     * Update the entire UI after API key changes
+     */
+    updateUIAfterApiKeyChange() {
+        // Re-render the control panel to update disabled states
+        const controlPanel = this.findElement('.control-panel');
+        if (controlPanel) {
+            controlPanel.innerHTML = this.renderApiKeySection() + this.renderSearchSection();
+        }
+        
+        // Re-attach event listeners
+        this.setupEventListeners();
+        
+        // Update button state
+        this.updateAnalyzeButtonState();
+        
+        debugLog('✅ UI updated after API key change');
     }
 }

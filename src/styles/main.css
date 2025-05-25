@@ -2138,3 +2138,139 @@ button:disabled:hover {
     border: 1px inset var(--xp-gray);
     margin: 16px 0;
 }
+
+/* Demo Status Panel */
+.demo-status-panel {
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.demo-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.demo-icon {
+    font-size: 24px;
+}
+
+.demo-text {
+    font-weight: 600;
+    color: #2E7D32;
+    font-size: 16px;
+}
+
+.demo-indicator.ready {
+    background: #4CAF50;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.demo-description {
+    color: #388E3C;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-left: 36px;
+}
+
+/* API Validated Indicator */
+.api-validated {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 12px;
+    background: #e8f5e8;
+    border: 1px solid #4CAF50;
+    border-radius: 6px;
+}
+
+.validated-icon {
+    font-size: 18px;
+}
+
+.validated-text {
+    color: #2E7D32;
+    font-weight: 500;
+}
+
+/* Disabled States for Live Mode */
+.search-inputs-large.disabled input,
+.search-options-compact.disabled input,
+.search-options-compact.disabled label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.search-inputs-large.disabled input {
+    background-color: #f5f5f5;
+    border-color: #ddd;
+    color: #999;
+}
+
+.search-inputs-large.disabled input::placeholder {
+    color: #bbb;
+}
+
+.search-options-compact.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.search-status.locked {
+    color: #ff6b35;
+    font-weight: 500;
+}
+
+/* Save API Key Button States */
+.save-key-btn-minimal:disabled {
+    background-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.save-key-btn-minimal:disabled:hover {
+    background-color: #ddd;
+    transform: none;
+}
+
+/* API Key Input Enhancement */
+.api-key-input-large:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* Mode Toggle Improvements */
+.mode-btn-compact {
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.mode-btn-compact:hover {
+    border-color: #4CAF50;
+    transform: translateY(-1px);
+}
+
+.mode-btn-compact.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.mode-description {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.4;
+}
