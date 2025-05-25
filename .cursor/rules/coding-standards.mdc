@@ -3,3 +3,91 @@ description:
 globs:
 alwaysApply: false
 ---
+# Coding Standards & Conventions
+
+## 🎯 JavaScript Style Guide
+
+### Naming Conventions
+- **Variables**: `camelCase` (e.g., `channelData`, `videoList`)
+- **Constants**: `UPPER_SNAKE_CASE` (e.g., `API_BASE_URL`, `BATCH_SIZE`)
+- **Functions**: `camelCase` with descriptive verbs (e.g., `fetchChannelData`, `analyzeVideoMetrics`)
+- **CSS Classes**: `kebab-case` with XP prefixes (e.g., `xp-button`, `analysis-panel`)
+
+### Function Organization Pattern
+```javascript
+// API functions at top
+async function fetchChannelData() { }
+async function getVideoDetails() { }
+
+// Analysis functions in middle  
+function analyzeViralContent() { }
+function calculateEngagementRates() { }
+
+// UI helper functions at bottom
+function updateProgressBar() { }
+function displayResults() { }
+```
+
+## 🎨 CSS Architecture
+
+### Windows XP Design System
+- **Always use CSS custom properties** for theming
+- **Consistent 3D border patterns**: `2px outset/inset`
+- **Authentic color palette**: Reference original XP colors
+- **Tahoma font family** for authentic feel
+
+### Component Structure Pattern
+```css
+.xp-component {
+    /* Layout properties first */
+    /* Visual properties second */  
+    /* Interactive states last (:hover, :active) */
+}
+```
+
+## 📱 HTML Structure Guidelines
+
+### Semantic HTML First
+- Use proper semantic elements (`<main>`, `<section>`, `<header>`)
+- Accessible form patterns with labels
+- Logical heading hierarchy (h1 → h2 → h3)
+
+### Single-File Organization
+Since everything lives in [youtube_video_exporter.html](mdc:youtube_video_exporter.html):
+1. **HTML structure** at top
+2. **CSS styles** in `<style>` block
+3. **JavaScript logic** in `<script>` block at bottom
+
+## 🔄 API Integration Patterns
+
+### Error Handling Standard
+```javascript
+try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+} catch (error) {
+    console.error('API call failed:', error);
+    showUserFriendlyError(error);
+}
+```
+
+### Progress Tracking Pattern
+- Always show progress for long operations
+- Update progress bar incrementally
+- Provide meaningful status messages
+- Allow user cancellation when possible
+
+## 📊 Data Processing Standards
+
+### YouTube API Response Handling
+- **Batch processing**: Always process in chunks of 50
+- **Null safety**: Check for missing properties
+- **Data transformation**: Convert to consistent internal format
+- **Storage optimization**: Only store essential data in localStorage
+
+### Analytics Calculation Consistency
+- Use consistent rounding (2 decimal places for percentages)
+- Handle edge cases (division by zero, empty datasets)
+- Provide fallback values for missing data
+- Document calculation methods in comments

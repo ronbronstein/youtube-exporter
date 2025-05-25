@@ -1,6 +1,6 @@
 /**
  * Environment Detection & Initialization Utilities
- * Handles different deployment environments (Live hosting, local, etc.)
+ * Simplified Two-Mode System: Demo vs Live
  */
 
 import { CONFIG, updateGlobalState } from '../config.js';
@@ -8,31 +8,43 @@ import { debugLog } from './debug.js';
 
 /**
  * Detect the current deployment environment
- * @returns {string} Environment type: 'demo', 'live', 'local-server', 'local-file'
+ * Simplified to two modes: 'demo' or 'live'
+ * @returns {string} Environment type: 'demo' or 'live'
  */
 export function detectEnvironment() {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
     const searchParams = new URLSearchParams(window.location.search);
     
-    // Check for demo mode via URL parameter
-    if (searchParams.has('demo') || searchParams.get('mode') === 'demo') {
+    // Check for explicit mode parameter
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'demo' || modeParam === 'live') {
+        return modeParam;
+    }
+    
+    // Check for legacy demo parameter
+    if (searchParams.has('demo')) {
         return 'demo';
     }
     
-    // Check if running as local file
-    if (protocol === 'file:') {
-        return 'local-file';
+    // Check localStorage for user preference
+    const savedMode = localStorage.getItem('yt_hub_mode');
+    if (savedMode === 'demo' || savedMode === 'live') {
+        return savedMode;
     }
     
-    // Check if running on local development server (including Vite preview)
-    if (CONFIG.ENVIRONMENT.LOCAL_DOMAINS.includes(hostname) || hostname.startsWith('localhost')) {
-        // For localhost preview servers, default to demo mode for easier testing
-        return 'demo';
-    }
+    // Default based on environment:
+    // - GitHub Pages: Start with demo mode for easy onboarding
+    // - Local development: Start with live mode for development
+    const hostname = window.location.hostname;
+    const isGitHubPages = hostname.includes('github.io');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('localhost');
     
-    // Default to live for any hosted domain (Cloudways, custom domain, etc.)
-    return 'live';
+    if (isGitHubPages) {
+        return 'demo'; // GitHub Pages defaults to demo for easy user onboarding
+    } else if (isLocalhost) {
+        return 'live'; // Local development defaults to live mode
+    } else {
+        return 'demo'; // Self-hosted defaults to demo for safety
+    }
 }
 
 /**
@@ -43,86 +55,97 @@ export function initializeEnvironment() {
     CONFIG.ENVIRONMENT.DETECTED = currentEnvironment;
     updateGlobalState('currentEnvironment', currentEnvironment);
     
-    debugLog(`Environment detected: ${currentEnvironment}`);
+    debugLog(`🌍 Environment initialized: ${currentEnvironment} mode`);
     
     switch (currentEnvironment) {
         case 'demo':
-            initializeDemoEnvironment();
+            initializeDemoMode();
             break;
         case 'live':
-            initializeLiveEnvironment();
-            break;
-        case 'local-server':
-            initializeLocalServer();
-            break;
-        case 'local-file':
-            initializeLocalFile();
+            initializeLiveMode();
             break;
         default:
-            console.warn('Unknown environment, defaulting to live mode');
-            initializeLiveEnvironment();
+            console.warn('Unknown environment, defaulting to demo mode');
+            initializeDemoMode();
     }
 }
 
 /**
- * Initialize demo environment with built-in API key
+ * Switch to a specific mode and persist the choice
+ * @param {string} mode - 'demo' or 'live'
  */
-function initializeDemoEnvironment() {
+export function switchToMode(mode) {
+    if (mode !== 'demo' && mode !== 'live') {
+        console.error('Invalid mode:', mode);
+        return;
+    }
+    
+    // Save user preference
+    localStorage.setItem('yt_hub_mode', mode);
+    
+    // Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('mode', mode);
+    window.history.replaceState({}, '', url);
+    
+    // Update global state
+    CONFIG.ENVIRONMENT.DETECTED = mode;
+    updateGlobalState('currentEnvironment', mode);
+    
+    debugLog(`🔄 Switched to ${mode} mode`);
+}
+
+/**
+ * Initialize demo mode with built-in API key
+ */
+function initializeDemoMode() {
     CONFIG.DEMO.ENABLED = true;
     CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
     
-    // Set demo API key from environment variable (will be set in GitHub secrets)
+    // Set demo API key from environment variable
     const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
     if (demoApiKey) {
         updateGlobalState('youtubeApiKey', demoApiKey);
         updateGlobalState('apiMode', 'demo');
-        debugLog('✅ Demo mode initialized with built-in API key');
+        debugLog('✅ Demo mode: Built-in API key loaded');
     } else {
-        console.warn('⚠️ Demo mode enabled but no API key found');
+        console.warn('⚠️ Demo mode: No API key found in environment');
     }
     
-    showEnvironmentBanner('🎭 Demo Mode - Limited functionality with built-in API key');
+    debugLog('🎭 Demo mode initialized - Limited to 100 videos per analysis');
 }
 
 /**
- * Initialize live environment (user brings own API key)
+ * Initialize live mode (user brings own API key)
  */
-function initializeLiveEnvironment() {
+function initializeLiveMode() {
     CONFIG.DEMO.ENABLED = false;
     CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
     updateGlobalState('apiMode', 'live');
     
-    showEnvironmentBanner('🌐 Live Version - Enter your YouTube API key to get started');
-    debugLog('✅ Live environment initialized');
+    debugLog('🌐 Live mode initialized - Full functionality with user API key');
 }
 
 /**
- * Initialize local server environment
+ * Get current mode
+ * @returns {string} Current mode: 'demo' or 'live'
  */
-function initializeLocalServer() {
-    CONFIG.DEMO.ENABLED = false;
-    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-    updateGlobalState('apiMode', 'local');
-    
-    showEnvironmentBanner('🔧 Local Server - Development Mode');
-    debugLog('Local server mode initialized');
+export function getCurrentMode() {
+    return CONFIG.ENVIRONMENT.DETECTED || 'demo';
 }
 
 /**
- * Initialize local file environment
+ * Check if currently in demo mode
+ * @returns {boolean}
  */
-function initializeLocalFile() {
-    CONFIG.AUTH.GITHUB_OAUTH_ENABLED = false;
-    showEnvironmentBanner('🏠 Local Development - Direct File Access');
-    debugLog('Local file mode initialized');
+export function isDemoMode() {
+    return getCurrentMode() === 'demo';
 }
 
 /**
- * Show environment banner (temporary implementation - will be moved to UI component)
- * @param {string} message - Banner message to display
+ * Check if currently in live mode
+ * @returns {boolean}
  */
-function showEnvironmentBanner(message) {
-    // For now, just log to console
-    // This will be replaced with proper UI banner in the App component
-    console.log(`🏷️ Environment Banner: ${message}`);
+export function isLiveMode() {
+    return getCurrentMode() === 'live';
 } 

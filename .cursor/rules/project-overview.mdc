@@ -3,3 +3,38 @@ description:
 globs:
 alwaysApply: false
 ---
+# YouTube Research Hub - Project Overview
+
+This is a YouTube channel analysis tool that combines Windows XP nostalgia with modern analytics. The project follows a **single-file frontend design philosophy** for maximum simplicity and compatibility.
+
+## 🏗️ Core Architecture
+
+### Main Application Files
+- **[youtube_video_exporter.html](mdc:youtube_video_exporter.html)** - Complete frontend application (HTML + CSS + JS in one file)
+- **[server.js](mdc:server.js)** - Minimal Express server for API key management
+- **[test-server.js](mdc:test-server.js)** - Development/testing server
+- **[package.json](mdc:package.json)** - Project dependencies and scripts
+
+### Documentation Hub
+- **[README.md](mdc:README.md)** - Main project documentation
+- **[docs/](mdc:docs/)** - Comprehensive documentation directory
+  - **[docs/TaskBoard.md](mdc:docs/TaskBoard.md)** - Project task tracking
+  - **[docs/ARCHITECTURE.md](mdc:docs/ARCHITECTURE.md)** - Technical architecture details
+  - **[docs/API_REFERENCE.md](mdc:docs/API_REFERENCE.md)** - API documentation
+  - **[docs/USER_GUIDE.md](mdc:docs/USER_GUIDE.md)** - User instructions
+
+## 🎯 Design Philosophy
+
+1. **Single-file frontend** - Everything in one HTML file for portability
+2. **Windows XP aesthetic** - Authentic retro design with modern usability
+3. **Vanilla JavaScript** - No framework dependencies
+4. **API efficiency** - Smart quota management for YouTube API
+5. **Privacy-first** - All data stays in browser local storage
+
+## 🔑 Key Technologies
+
+- **Backend**: Node.js + Express (minimal server)
+- **Frontend**: Vanilla HTML/CSS/JavaScript
+- **API**: YouTube Data API v3
+- **Styling**: Custom Windows XP-themed CSS
+- **Data**: Browser localStorage for persistence

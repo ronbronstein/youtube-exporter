@@ -108,13 +108,12 @@ export class App extends BaseComponent {
                             <h1>📺 YouTube Channel Research Hub</h1>
                             <p>Comprehensive analysis • Content insights • Strategic planning</p>
                         </div>
-                        <div class="mode-toggle-section">
-                            ${this.renderModeToggle()}
-                        </div>
                     </div>
-                    <div class="environment-info">
-                        ${this.renderEnvironmentInfo()}
-                    </div>
+                </div>
+                
+                <!-- Mode Selector Section (Prominent) -->
+                <div class="mode-selector-section">
+                    ${this.renderModeToggle()}
                 </div>
                 
                 <!-- Control Panel -->
@@ -269,112 +268,131 @@ export class App extends BaseComponent {
     
     // Environment-specific methods
     renderModeToggle() {
+        const currentMode = this.appState.currentEnvironment;
+        
         return `
-            <div class="mode-toggle">
-                <div class="toggle-label">Mode:</div>
-                <div class="toggle-buttons">
-                    <button 
-                        id="demoModeBtn" 
-                        class="toggle-btn ${this.appState.currentEnvironment === 'demo' ? 'active' : ''}"
-                        data-mode="demo"
-                    >
-                        🎭 Demo
-                    </button>
-                    <button 
-                        id="liveModeBtn" 
-                        class="toggle-btn ${this.appState.currentEnvironment === 'live' ? 'active' : ''}"
-                        data-mode="live"
-                    >
-                        🌐 Live
-                    </button>
+            <div class="mode-selector">
+                <div class="mode-selector-header">
+                    <h3>🎛️ Choose Your Mode</h3>
+                    <p>Select how you want to use the YouTube Research Hub</p>
+                </div>
+                
+                <div class="mode-options">
+                    <div class="mode-option ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
+                        <div class="mode-icon">🎭</div>
+                        <div class="mode-content">
+                            <h4>Demo Mode</h4>
+                            <p><strong>Try it instantly!</strong></p>
+                            <ul>
+                                <li>✅ Built-in API key</li>
+                                <li>✅ No setup required</li>
+                                <li>⚠️ Limited to 100 videos</li>
+                                <li>⚠️ Shared quota</li>
+                            </ul>
+                            <button class="mode-btn ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
+                                ${currentMode === 'demo' ? '✅ Active' : '🎭 Try Demo'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mode-option ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
+                        <div class="mode-icon">🚀</div>
+                        <div class="mode-content">
+                            <h4>Full Version</h4>
+                            <p><strong>Unlimited power!</strong></p>
+                            <ul>
+                                <li>✅ Your own API key</li>
+                                <li>✅ Unlimited videos</li>
+                                <li>✅ Full functionality</li>
+                                <li>✅ Private quota</li>
+                            </ul>
+                            <button class="mode-btn ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
+                                ${currentMode === 'live' ? '✅ Active' : '🚀 Use Full Version'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mode-status">
+                    <div class="current-mode">
+                        <span class="status-icon">${currentMode === 'demo' ? '🎭' : '🚀'}</span>
+                        <span class="status-text">
+                            Currently in <strong>${currentMode === 'demo' ? 'Demo' : 'Full'} Mode</strong>
+                        </span>
+                    </div>
                 </div>
             </div>
         `;
     }
 
     renderEnvironmentInfo() {
-        const env = this.appState.currentEnvironment;
-        
-        if (env === 'demo') {
-            return `
-                <div class="env-info demo">
-                    <div class="env-icon">🎭</div>
-                    <div class="env-details">
-                        <strong>Demo Mode Active</strong>
-                        <p>Built-in API key • Limited to 50 videos • No quota usage</p>
-                    </div>
-                </div>
-            `;
-        } else if (env === 'live') {
-            return `
-                <div class="env-info live">
-                    <div class="env-icon">🌐</div>
-                    <div class="env-details">
-                        <strong>Live Mode</strong>
-                        <p>Bring your own YouTube API key • Full functionality • Uses your quota</p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        return `
-            <div class="env-info local">
-                <div class="env-icon">💻</div>
-                <div class="env-details">
-                    <strong>Development Mode</strong>
-                    <p>Local environment detected</p>
-                </div>
-            </div>
-        `;
+        // This is now integrated into the mode selector above
+        return '';
     }
 
     renderApiKeySection() {
         if (this.appState.currentEnvironment === 'demo') {
             return `
-                <div class="demo-banner">
-                    <div class="demo-icon">🎭</div>
-                    <div class="demo-content">
-                        <h3>Demo Mode Active</h3>
-                        <p>Using encrypted demo API key • Limited to 100 videos per analysis</p>
-                        <a href="#" class="upgrade-link">Upgrade to full version →</a>
+                <div class="demo-status-banner">
+                    <div class="banner-content">
+                        <div class="banner-icon">🎭</div>
+                        <div class="banner-text">
+                            <h3>Demo Mode Active</h3>
+                            <p>Using built-in API key • Limited to 100 videos per analysis • Perfect for trying the app!</p>
+                        </div>
+                        <div class="banner-action">
+                            <button class="upgrade-btn" data-mode="live">
+                                🚀 Upgrade to Full Version
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
         }
         
-        if (this.appState.currentEnvironment === 'local') {
-            return `
-                <div class="local-banner">
-                    <div class="local-icon">💻</div>
-                    <div class="local-content">
-                        <h3>Local Development Mode</h3>
-                        <p>API key loaded from environment • Full functionality enabled</p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Live environment - show API key input
+        // Live mode - show API key input
         return `
             <div class="api-key-section">
                 <div class="api-key-header">
-                    <span class="key-icon">🔐</span>
-                    <strong>YouTube API Key Required</strong>
-                    <a href="https://console.cloud.google.com/" target="_blank" class="get-key-link">
-                        Get Free API Key →
-                    </a>
+                    <div class="header-content">
+                        <span class="key-icon">🔐</span>
+                        <div class="header-text">
+                            <h3>YouTube API Key Required</h3>
+                            <p>Enter your free YouTube Data API v3 key to unlock full functionality</p>
+                        </div>
+                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="get-key-btn">
+                            🆓 Get Free API Key
+                        </a>
+                    </div>
                 </div>
-                <div class="api-key-input-group">
-                    <input 
-                        type="password" 
-                        id="apiKeyInput" 
-                        placeholder="AIza... (paste your YouTube Data API v3 key)"
-                        class="api-key-input"
-                    >
-                    <button id="saveApiKeyBtn" class="save-key-btn">Save Key</button>
-                </div>
-                <div class="api-key-notice">
-                    <strong>🔒 Secure:</strong> Stored locally only • Not sent to our servers
+                
+                <div class="api-key-input-section">
+                    <div class="input-group">
+                        <input 
+                            type="password" 
+                            id="apiKeyInput" 
+                            placeholder="AIza... (paste your YouTube Data API v3 key here)"
+                            class="api-key-input"
+                        >
+                        <button id="saveApiKeyBtn" class="save-key-btn">
+                            💾 Save Key
+                        </button>
+                    </div>
+                    
+                    <div class="api-key-help">
+                        <div class="help-item">
+                            <span class="help-icon">🔒</span>
+                            <span>Stored locally only • Never sent to our servers</span>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">🆓</span>
+                            <span>Free tier: 10,000 requests/day • More than enough for most users</span>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">⚡</span>
+                            <span>Takes 2 minutes to set up • Works immediately</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -883,6 +901,11 @@ export class App extends BaseComponent {
             return;
         }
         
+        // Use the new environment utility
+        import('./utils/environment.js').then(({ switchToMode }) => {
+            switchToMode(newMode);
+        });
+        
         // Clear existing state when switching modes
         this.appState.apiKey = null;
         this.services.youtube = null;
@@ -930,20 +953,14 @@ export class App extends BaseComponent {
             this.setupModeSpecificListeners();
         }, 100);
         
-        this.showSuccess(`Switched to ${newMode} mode`);
+        this.showSuccess(`Switched to ${newMode === 'demo' ? 'Demo' : 'Full'} mode`);
     }
     
     updateHeader() {
-        // Update mode toggle buttons
-        const modeToggleSection = this.findElement('.mode-toggle-section');
-        if (modeToggleSection) {
-            modeToggleSection.innerHTML = this.renderModeToggle();
-        }
-        
-        // Update environment info
-        const envInfoSection = this.findElement('.environment-info');
-        if (envInfoSection) {
-            envInfoSection.innerHTML = this.renderEnvironmentInfo();
+        // Update mode selector section
+        const modeSelectorSection = this.findElement('.mode-selector-section');
+        if (modeSelectorSection) {
+            modeSelectorSection.innerHTML = this.renderModeToggle();
         }
         
         // Update control panel (API key section)
@@ -951,24 +968,22 @@ export class App extends BaseComponent {
         if (controlPanel) {
             controlPanel.innerHTML = this.renderApiKeySection() + this.renderSearchSection();
         }
+        
+        debugLog('✅ Header updated with new mode selector');
     }
     
     setupModeSpecificListeners() {
-        // Re-attach mode toggle listeners
-        const demoModeBtn = this.findElement('#demoModeBtn');
-        const liveModeBtn = this.findElement('#liveModeBtn');
-        
-        if (demoModeBtn) {
-            this.addListener(demoModeBtn, 'click', (e) => {
-                this.switchMode('demo');
-            });
-        }
-        
-        if (liveModeBtn) {
-            this.addListener(liveModeBtn, 'click', (e) => {
-                this.switchMode('live');
-            });
-        }
+        // Re-attach mode toggle listeners (new system)
+        const modeButtons = this.findElements('.mode-btn, .upgrade-btn');
+        modeButtons.forEach(btn => {
+            const mode = btn.getAttribute('data-mode');
+            if (mode) {
+                this.addListener(btn, 'click', (e) => {
+                    e.preventDefault();
+                    this.switchMode(mode);
+                });
+            }
+        });
         
         // Re-attach API key listeners if in live mode
         if (this.appState.currentEnvironment === 'live') {
@@ -977,6 +992,11 @@ export class App extends BaseComponent {
             
             if (apiKeyInput) {
                 this.addListener(apiKeyInput, 'input', this.handleApiKeyInput.bind(this));
+                this.addListener(apiKeyInput, 'keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleSaveApiKey();
+                    }
+                });
             }
             
             if (saveKeyBtn) {
@@ -991,7 +1011,7 @@ export class App extends BaseComponent {
         if (channelInput) {
             this.addListener(channelInput, 'input', this.handleChannelInput.bind(this));
             this.addListener(channelInput, 'keydown', (e) => {
-                if (e.key === 'Enter' && !searchBtn.disabled) {
+                if (e.key === 'Enter' && !searchBtn?.disabled) {
                     this.handleAnalyzeChannel();
                 }
             });
@@ -1000,11 +1020,13 @@ export class App extends BaseComponent {
         
         if (searchBtn) {
             this.addListener(searchBtn, 'click', (e) => {
+                e.preventDefault();
                 debugLog('🖱️ Search button clicked (re-attached)');
                 if (this.performanceMonitor) {
                     this.performanceMonitor.trackUserInteraction('searchButtonClick', {
                         disabled: searchBtn.disabled,
-                        hasApiKey: !!this.appState.apiKey
+                        hasApiKey: !!this.appState.apiKey,
+                        mode: this.appState.currentEnvironment
                     });
                 }
                 this.handleAnalyzeChannel();
@@ -1016,6 +1038,8 @@ export class App extends BaseComponent {
         
         // Update button state
         this.updateAnalyzeButtonState();
+        
+        debugLog(`✅ Mode-specific listeners setup complete for ${this.appState.currentEnvironment} mode`);
     }
     
     initializeLiveMode() {
