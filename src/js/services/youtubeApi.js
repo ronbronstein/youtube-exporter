@@ -225,6 +225,16 @@ export class YouTubeApiService {
                 const videosToAdd = this.isDemoMode ? 
                     videos.slice(0, Math.max(0, videoLimit - videosCollected)) : 
                     videos;
+                
+                debugLog(`📊 Demo mode video limiting:`, {
+                    isDemoMode: this.isDemoMode,
+                    videosFromAPI: videos.length,
+                    videosCollected: videosCollected,
+                    videoLimit: videoLimit,
+                    remainingSlots: videoLimit - videosCollected,
+                    videosToAdd: videosToAdd.length,
+                    willReachLimit: (videosCollected + videosToAdd.length) >= videoLimit
+                });
                     
                 allVideos = allVideos.concat(videosToAdd);
                 videosCollected += videosToAdd.length;

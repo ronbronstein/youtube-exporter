@@ -275,10 +275,17 @@ export class App extends BaseComponent {
             // Load saved searches
             this.appState.savedSearches = storageService.getSavedSearches();
             
-            // Load last API key (encrypted)
-            const savedApiKey = storageService.getApiKey();
-            if (savedApiKey) {
-                this.setApiKey(savedApiKey);
+            // Load last API key (encrypted) - but NOT in demo mode
+            if (this.appState.apiMode !== 'demo') {
+                const savedApiKey = storageService.getApiKey();
+                if (savedApiKey) {
+                    this.setApiKey(savedApiKey);
+                    debugLog('✅ Loaded saved API key from localStorage');
+                } else {
+                    debugLog('ℹ️ No saved API key found in localStorage');
+                }
+            } else {
+                debugLog('🎭 Demo mode: Skipping saved API key to preserve demo settings');
             }
             
             // Load last analysis if available
