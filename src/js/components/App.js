@@ -308,24 +308,15 @@ export class App extends BaseComponent {
      * @returns {string} HTML for mode selector or local development banner
      */
     renderModeToggle() {
-        const currentMode = this.appState.currentEnvironment;
+        const currentEnvironment = this.appState.currentEnvironment;
         
-        // Only show mode selector on GitHub Pages, not for local development
-        if (currentMode === 'local') {
-            return `
-                <div class="local-mode-banner">
-                    <div class="banner-content">
-                        <div class="banner-icon">🏠</div>
-                        <div class="banner-text">
-                            <h3>Local Development Mode</h3>
-                            <p>Using your API key from .env file • Full functionality • No limitations</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+        // Local development - no mode toggle, clean interface
+        if (currentEnvironment === 'local') {
+            return ''; // No mode selector for local development
         }
         
-        // GitHub Pages - minimal mode selector
+        // GitHub Pages - show demo/live mode selector
+        const currentMode = this.appState.apiMode || 'demo';
         return `
             <div class="mode-selector-minimal">
                 <div class="mode-toggle-compact">
@@ -352,34 +343,38 @@ export class App extends BaseComponent {
     }
 
     renderApiKeySection() {
-        const currentMode = this.appState.currentEnvironment;
+        const currentEnvironment = this.appState.currentEnvironment;
+        const currentMode = this.appState.apiMode;
         
-        if (currentMode === 'local') {
-            // Local development - API key comes from .env, no input needed
+        // Local development - show clean API key status
+        if (currentEnvironment === 'local') {
+            const hasApiKey = !!this.appState.apiKey;
+            const apiKeySource = hasApiKey ? 'Found in .env file' : 'Not found in .env file';
+            
             return `
-                <div class="local-api-status">
+                <div class="api-key-status-local">
                     <div class="status-content">
                         <span class="status-icon">🔐</span>
-                        <span class="status-text">API key loaded from .env file</span>
-                        <span class="status-indicator ${this.appState.apiKey ? 'ready' : 'missing'}">
-                            ${this.appState.apiKey ? '✅ Ready' : '⚠️ Missing'}
+                        <span class="status-text">API Key: ${apiKeySource}</span>
+                        <span class="status-indicator ${hasApiKey ? 'ready' : 'missing'}">
+                            ${hasApiKey ? '✅ Ready' : '⚠️ Missing'}
                         </span>
                     </div>
-                    ${!this.appState.apiKey ? `
+                    ${!hasApiKey ? `
                         <div class="env-help">
-                            <p>Add <code>YOUTUBE_API_KEY=your_key_here</code> to your .env file</p>
+                            <p>Add <code>VITE_DEMO_API_KEY=your_key_here</code> to your .env file</p>
                         </div>
                     ` : ''}
                 </div>
             `;
         }
         
+        // GitHub Pages - demo mode (no API key input needed)
         if (currentMode === 'demo') {
-            // Demo mode - no banner needed, mode selector shows the status
-            return '';
+            return ''; // Demo mode shows status in mode selector
         }
         
-        // Live mode - show API key input
+        // GitHub Pages - live mode (show API key input)
         return `
             <div class="api-key-section-minimal">
                 <div class="api-key-header-minimal">
@@ -422,6 +417,21 @@ export class App extends BaseComponent {
      * @returns {string} HTML for search section
      */
     renderSearchSection() {
+        const currentEnvironment = this.appState.currentEnvironment;
+        const currentMode = this.appState.apiMode;
+        
+        // Determine status message based on environment and mode
+        let statusMessage = '';
+        if (currentEnvironment === 'local') {
+            statusMessage = this.appState.apiKey ? 'Local development: Full functionality' : 'API key required';
+        } else if (currentMode === 'demo') {
+            statusMessage = 'Demo: 100 video limit';
+        } else if (currentMode === 'live') {
+            statusMessage = 'Full: Unlimited videos';
+        } else {
+            statusMessage = 'Ready to analyze';
+        }
+        
         return `
             <div class="search-section-minimal">
                 <h3>🔍 Analyze YouTube Channel</h3>
@@ -475,12 +485,7 @@ export class App extends BaseComponent {
                         🔍 Analyze Channel
                     </button>
                     <div class="search-status">
-                        ${this.appState.currentEnvironment === 'demo' ? 
-                            'Demo: 100 video limit' : 
-                            this.appState.currentEnvironment === 'live' ? 
-                                'Full: Unlimited videos' : 
-                                'Development mode'
-                        }
+                        ${statusMessage}
                     </div>
                 </div>
             </div>
@@ -1327,60 +1332,69 @@ export class App extends BaseComponent {
     }
 
     /**
-     * Initialize API key based on environment (like legacy version)
+     * Initialize API key based on environment (unified approach)
      */
     async initializeApiKey() {
         debugLog('🔑 Initializing API key...');
         
-        // Check for environment variable injection (like legacy version)
-        if (window.YOUTUBE_API_KEY) {
-            this.setApiKey(window.YOUTUBE_API_KEY);
-            this.appState.apiMode = 'local-server';
-            debugLog('✅ Local server mode: API key loaded from window.YOUTUBE_API_KEY');
-            this.showSuccess('API key loaded from server environment');
-            return 'local-server';
-        }
+        const currentEnvironment = this.appState.currentEnvironment;
         
-        // Check for Vite environment variables
-        const demoApiKey = import.meta.env.VITE_DEMO_API_KEY;
-        const localApiKey = import.meta.env.VITE_YOUTUBE_API_KEY || import.meta.env.YOUTUBE_API_KEY;
-        
-        if (this.appState.currentEnvironment === 'demo' && demoApiKey) {
-            this.setApiKey(demoApiKey);
-            this.appState.apiMode = 'demo';
-            debugLog('✅ Demo mode: API key loaded from VITE_DEMO_API_KEY');
-            this.showInfo('Demo mode active - Limited to 100 recent videos per analysis');
-            return 'demo';
-        }
-        
-        if (this.appState.currentEnvironment === 'local' && localApiKey) {
-            this.setApiKey(localApiKey);
-            this.appState.apiMode = 'local';
-            debugLog('✅ Local mode: API key loaded from environment');
-            this.showSuccess('API key loaded from local environment');
-            return 'local';
-        }
-        
-        // Try to load saved API key using our storage service
-        const savedApiKey = this.services.storage.getApiKey();
-        if (savedApiKey) {
-            this.setApiKey(savedApiKey);
-            this.appState.apiMode = 'live';
-            debugLog('✅ Live mode: API key loaded from storage service');
-            this.showInfo('Using saved API key');
-            return 'live';
-        }
-        
-        // No API key found - user needs to enter one
-        this.appState.apiMode = 'web';
-        debugLog('🌐 Web mode: No API key found, user input required');
-        
-        if (this.appState.currentEnvironment === 'demo') {
-            this.showWarning('Demo API key not available. Please enter your own YouTube API key.');
+        if (currentEnvironment === 'local') {
+            // Local development - try to auto-load from .env
+            const apiKey = import.meta.env.VITE_DEMO_API_KEY || 
+                           import.meta.env.VITE_YOUTUBE_API_KEY || 
+                           import.meta.env.YOUTUBE_API_KEY || 
+                           null;
+            
+            if (apiKey) {
+                this.setApiKey(apiKey);
+                this.appState.apiMode = 'local-auto';
+                debugLog('✅ Local development: API key auto-loaded from .env file');
+                this.showSuccess('API key loaded from .env file');
+                return 'local-auto';
+            } else {
+                this.appState.apiMode = 'manual';
+                debugLog('⚠️ Local development: No API key found in .env file');
+                this.showWarning('Add VITE_DEMO_API_KEY to your .env file');
+                return 'manual';
+            }
         } else {
-            this.showInfo('Please enter your YouTube Data API key to get started');
+            // GitHub Pages - check for demo mode or load saved key
+            const urlParams = new URLSearchParams(window.location.search);
+            const modeParam = urlParams.get('mode');
+            const savedMode = localStorage.getItem('yt_hub_mode');
+            
+            if (modeParam === 'live' || savedMode === 'live') {
+                // Live mode - try to load saved API key
+                const savedApiKey = this.services.storage.getApiKey();
+                if (savedApiKey) {
+                    this.setApiKey(savedApiKey);
+                    this.appState.apiMode = 'live';
+                    debugLog('✅ GitHub Pages: Live mode with saved API key');
+                    this.showInfo('Using saved API key');
+                    return 'live';
+                } else {
+                    this.appState.apiMode = 'live';
+                    debugLog('🌐 GitHub Pages: Live mode - user input required');
+                    this.showInfo('Please enter your YouTube Data API key');
+                    return 'live';
+                }
+            } else {
+                // Demo mode - use built-in API key
+                const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
+                if (demoApiKey) {
+                    this.setApiKey(demoApiKey);
+                    this.appState.apiMode = 'demo';
+                    debugLog('✅ GitHub Pages: Demo mode with built-in API key');
+                    this.showInfo('Demo mode active - Limited to 100 recent videos');
+                    return 'demo';
+                } else {
+                    console.warn('⚠️ GitHub Pages: No demo API key found');
+                    this.appState.apiMode = 'live';
+                    this.showWarning('Demo API key not available. Please enter your own.');
+                    return 'live';
+                }
+            }
         }
-        
-        return 'web';
     }
-} 
+}

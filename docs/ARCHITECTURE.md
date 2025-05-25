@@ -104,8 +104,16 @@ export class AnalyticsService {
 ### Utility Functions
 ```javascript
 // environment.js - Environment detection and management
-export function detectEnvironment() { ... }
-export function switchToMode(mode) { ... }
+export function detectEnvironment() {
+    const hostname = window.location.hostname;
+    const isGitHubPages = hostname.includes('github.io');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || 
+                       hostname.startsWith('localhost') || hostname.includes('10.100.102.7');
+    
+    if (isLocalhost) return 'local';
+    if (isGitHubPages) return 'github-pages';
+    return 'local'; // Default fallback
+}
 
 // formatter.js - Data formatting utilities
 export function formatViewCount(count) { ... }
@@ -295,3 +303,80 @@ export const CONFIG = {
 - GitHub Pages with automatic CI/CD
 - Optimized build pipeline
 - Multi-environment support 
+
+## 🌍 Environment Management
+
+### **Unified Development Approach**
+
+The application now uses a **unified environment system** that ensures consistent behavior between local development and production:
+
+#### **Local Development**
+- **Environment**: `local`
+- **API Key Source**: Auto-loaded from `.env` file
+- **Interface**: Identical to GitHub Pages (no mode toggle)
+- **Variables Checked**: `VITE_DEMO_API_KEY`, `VITE_YOUTUBE_API_KEY`, `YOUTUBE_API_KEY`
+- **Status Display**: "API Key: Found in .env file" or "Not found in .env file"
+
+#### **GitHub Pages Production**
+- **Environment**: `github-pages`
+- **API Key Source**: Demo mode (built-in) or Live mode (user input)
+- **Interface**: Demo/Live mode toggle with API key input for live mode
+- **Demo API Key**: Injected via GitHub Actions from secrets
+- **Mode Switching**: Users can toggle between Demo and Live modes
+
+### **Environment Detection Logic**
+
+```javascript
+export function detectEnvironment() {
+    const hostname = window.location.hostname;
+    const isGitHubPages = hostname.includes('github.io');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || 
+                       hostname.startsWith('localhost') || hostname.includes('10.100.102.7');
+    
+    if (isLocalhost) return 'local';
+    if (isGitHubPages) return 'github-pages';
+    return 'local'; // Default fallback
+}
+```
+
+### **API Key Initialization**
+
+#### **Local Development**
+```javascript
+// Auto-load from .env file
+const apiKey = import.meta.env.VITE_DEMO_API_KEY || 
+               import.meta.env.VITE_YOUTUBE_API_KEY || 
+               import.meta.env.YOUTUBE_API_KEY || null;
+
+if (apiKey) {
+    // Auto-configure with found key
+    this.setApiKey(apiKey);
+    this.appState.apiMode = 'local-auto';
+}
+```
+
+#### **GitHub Pages**
+```javascript
+// Check for demo mode or user preference
+const urlParams = new URLSearchParams(window.location.search);
+const modeParam = urlParams.get('mode');
+const savedMode = localStorage.getItem('yt_hub_mode');
+
+if (modeParam === 'live' || savedMode === 'live') {
+    // Live mode - user provides API key
+    this.appState.apiMode = 'live';
+} else {
+    // Demo mode - built-in API key
+    const demoApiKey = import.meta.env.VITE_DEMO_API_KEY;
+    this.setApiKey(demoApiKey);
+    this.appState.apiMode = 'demo';
+}
+```
+
+### **Benefits of Unified Approach**
+
+1. **Consistent Development**: Local and production behave identically
+2. **Proper Workflow**: Test locally → push stable versions
+3. **No False Bugs**: Same behavior across environments
+4. **Clean Interface**: No confusing development banners
+5. **Easy Setup**: Auto-load API keys from `.env` file 

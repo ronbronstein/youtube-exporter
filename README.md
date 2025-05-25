@@ -105,6 +105,92 @@ cp .env.example .env
 YOUTUBE_API_KEY=your_api_key_here
 ```
 
+## 🧑‍💻 Local Development Setup
+
+*For developers who want to test locally before pushing to GitHub Pages*
+
+### Prerequisites
+- **Node.js 18.0.0+** (for Vite development server)
+- **npm** (comes with Node.js)
+- **Git** (for version control)
+
+### Development Workflow
+
+1. **Clone and Install**
+```bash
+git clone https://github.com/ronbronstein/youtube-exporter.git
+cd youtube-exporter
+npm install
+```
+
+2. **Set Up Environment Variables**
+```bash
+# Create local environment file
+cp .env.example .env
+
+# Edit .env and add your API key:
+# VITE_DEMO_API_KEY=your_demo_api_key_here
+# OR
+# VITE_YOUTUBE_API_KEY=your_personal_api_key_here
+```
+
+3. **Start Development Server**
+```bash
+npm run dev
+```
+*Opens at `http://localhost:5173` with hot reload*
+
+4. **Test Your Changes**
+- Make your changes
+- Test locally with demo API key
+- Verify all functionality works
+
+5. **Deploy to GitHub Pages**
+```bash
+# Build and test
+npm run build
+npm run preview
+
+# Commit and push (triggers auto-deployment)
+git add .
+git commit -m "your changes"
+git push origin main
+```
+
+### Environment Variables
+
+The app checks for API keys in this order:
+1. `VITE_DEMO_API_KEY` (same as GitHub Pages)
+2. `VITE_YOUTUBE_API_KEY` (alternative name)
+3. `YOUTUBE_API_KEY` (legacy support)
+
+### Development vs Production
+
+| Environment | API Key Source | Behavior |
+|-------------|---------------|----------|
+| **Local Development** | `.env` file | Full functionality for testing |
+| **GitHub Pages** | GitHub Actions secrets | Production deployment |
+
+### Build Commands
+
+```bash
+npm run dev          # Development server with hot reload
+npm run build        # Production build
+npm run preview      # Preview production build locally
+```
+
+### Troubleshooting Local Development
+
+**"API key not found" in local development:**
+1. Ensure `.env` file exists in project root
+2. Check that your API key is correctly formatted
+3. Restart the development server after adding `.env`
+
+**Local and GitHub Pages behave differently:**
+- Both should now behave identically
+- If issues persist, check browser console for errors
+- Verify API key is working in Google Cloud Console
+
 ## ✨ Features
 
 ### 🔍 **Comprehensive Channel Analysis**
