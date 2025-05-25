@@ -847,11 +847,31 @@ export class App extends BaseComponent {
         const analyticsSection = this.findElement('#analyticsSection');
         if (!analyticsSection || !this.appState.videos.length) return;
         
-        // Generate analytics HTML
-        const analysisHTML = this.services.analytics.generateContentAnalysisHTML();
-        analyticsSection.innerHTML = analysisHTML;
+        debugLog('📊 Rendering complete analytics sections');
         
-        debugLog('📊 Analytics rendered');
+        // Set videos data in analytics service
+        this.services.analytics.setVideosData(this.appState.videos);
+        
+        // Generate all analysis sections like the legacy app
+        const contentAnalysisHTML = this.services.analytics.generateContentAnalysisHTML();
+        const advancedAnalysisHTML = this.services.analytics.generateAdvancedAnalysisHTML();
+        const chartPanelHTML = this.services.analytics.generateChartPanelHTML('uploadChart');
+        
+        // Combine all sections with proper styling
+        analyticsSection.innerHTML = `
+            <div class="analytics-container">
+                ${contentAnalysisHTML}
+                ${advancedAnalysisHTML}
+                ${chartPanelHTML}
+            </div>
+        `;
+        
+        // Create the upload timeline chart after DOM is updated
+        setTimeout(() => {
+            this.services.analytics.createUploadTimelineChart('uploadChart');
+        }, 100);
+        
+        debugLog('📊 Complete analytics rendered with chart');
     }
     
     // UI State Management
