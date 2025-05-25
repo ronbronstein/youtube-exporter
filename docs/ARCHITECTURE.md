@@ -1,231 +1,297 @@
 # 🏗️ Architecture Documentation
 
-## Design Philosophy: Single-File Simplicity
+## Design Philosophy: Modern ES6 Modular Architecture
 
-### Core Principle: KISS (Keep It Stupid Simple)
-YouTube Research Hub intentionally uses a **single-file architecture** to maximize simplicity, portability, and maintainability for its specific use case.
+### Core Principle: Clean, Maintainable, Scalable
+YouTube Research Hub uses a **modern ES6 modular architecture** with Vite build system to maximize maintainability, performance, and developer experience.
 
-## Why Single-File?
+## Why Modular ES6?
 
 ### ✅ **Strengths**
-- **Ultimate Portability**: One file = deploy anywhere
-- **Zero Build Dependencies**: No webpack, no bundlers, no complexity
-- **Instant Setup**: Download and run locally or serve statically
-- **Easy Distribution**: Single file to share, fork, or modify
-- **Simple Debugging**: Everything in one place, easy to search
-- **Low Barrier to Entry**: Contributors don't need complex tooling
-- **Self-Contained**: Works offline, no external dependencies
+- **Clean Separation**: Each component has a single responsibility
+- **Modern Standards**: Uses latest JavaScript features and best practices
+- **Hot Reload**: Instant development feedback with Vite
+- **Tree Shaking**: Only used code included in production bundle
+- **Type Safety**: JSDoc annotations for better IDE support
+- **Easy Testing**: Isolated modules are easier to test
+- **Team Collaboration**: Multiple developers can work on different modules
 
 ### 🎯 **Perfect For**
-- **Research Tools**: Academic/business analysis where simplicity trumps scalability
-- **Local-First Applications**: User's data stays on their machine
-- **Prototype to Production**: Started simple, works great, why change?
-- **Individual Creators**: Not building for teams of 50+ developers
+- **Production Applications**: Scalable architecture for real users
+- **Modern Development**: Leverages latest web standards
+- **Performance**: Optimized bundles and lazy loading
+- **Maintainability**: Easy to understand, modify, and extend
 
-## Current Architecture (v1.2.0)
+## Current Architecture (v2.0.0 - Dec 2024)
 
 ```
-youtube_video_exporter.html (2,000+ lines)
-├── HTML Structure (lines 1-793)
-│   ├── Windows XP themed UI components
-│   ├── Form inputs and control panels
-│   ├── Results display containers
-│   └── Embedded CSS (lines 8-600)
-│
-└── JavaScript Logic (lines 794-1,655)
-    ├── Configuration Section (constants, globals)
-    ├── Error Handling (global error listeners)
-    ├── Utility Functions (formatting, helpers)
-    ├── API Layer (YouTube API integration)
-    ├── Storage & Caching (localStorage management)
-    ├── UI Components (panels, tables, grids)
-    ├── Main Analysis Workflow (entry points)
-    └── Analytics Engine (content insights)
+src/
+├── index.html                 # Application shell
+├── js/
+│   ├── main.js               # Application entry point
+│   ├── config.js             # Global configuration
+│   ├── components/           # UI Components (15 modules)
+│   │   ├── App.js           # Main application controller
+│   │   ├── BaseComponent.js # Component base class
+│   │   ├── VideoList.js     # Video display component
+│   │   ├── Results.js       # Results management
+│   │   ├── LoadingSpinner.js # Loading states
+│   │   └── MessagePanel.js  # User notifications
+│   ├── services/            # Business Logic Services
+│   │   ├── youtubeApi.js    # YouTube API integration
+│   │   ├── analytics.js     # Content analysis engine
+│   │   └── storage.js       # Local storage management
+│   └── utils/               # Utility Functions
+│       ├── environment.js   # Environment detection
+│       ├── formatter.js     # Data formatting
+│       ├── security.js      # API key validation
+│       ├── debug.js         # Development logging
+│       └── performance.js   # Performance monitoring
+├── styles/
+│   └── main.css             # Windows XP styling system
+└── assets/                  # Static assets
 ```
+
+## Recent Major Updates (Dec 2024)
+
+### UI/UX Redesign
+- **Minimalistic Design**: Replaced overwhelming card-based mode selector with compact toggle buttons
+- **Large Input Fields**: 20px padding for better usability
+- **Consolidated Messaging**: Removed redundant status indicators
+- **Functional Buttons**: Fixed mode switching with proper event listeners
+- **Mobile Responsive**: Enhanced mobile experience
+
+### Environment System Simplification
+- **Two Modes**: Simplified from 4 environments to Demo vs Full modes
+- **Smart Defaults**: GitHub Pages → Demo, Local → Full
+- **Persistent Selection**: localStorage + URL parameter support
+- **Clear Separation**: Local development vs hosted showcase versions
 
 ## Code Organization Strategy
 
-### Section-Based Organization
-Instead of file-based modules, we use **clear section comments**:
-
+### Component-Based Architecture
 ```javascript
-/* ===== CONFIGURATION SECTION ===== */
-const CONFIG = { ... };
+// BaseComponent.js - Foundation for all UI components
+export class BaseComponent {
+    constructor(container, options = {}) { ... }
+    init() { ... }
+    render() { ... }
+    onMount() { ... }
+    onDestroy() { ... }
+}
 
-/* ===== API LAYER ===== */
-async function getChannelData() { ... }
-
-/* ===== UI COMPONENTS ===== */
-function displayVideos() { ... }
-
-/* ===== ANALYTICS ENGINE ===== */
-function generateAdvancedAnalysis() { ... }
+// App.js - Main application controller
+export class App extends BaseComponent {
+    // Manages application state and coordinates components
+}
 ```
 
-### Benefits of Internal Organization
-- **Searchable**: `Ctrl+F` finds any function instantly
-- **Logical Grouping**: Related functions stay together
-- **Visual Boundaries**: Clear section dividers prevent mixing concerns
-- **Maintainable**: Easy to understand flow and dependencies
+### Service Layer Pattern
+```javascript
+// youtubeApi.js - Encapsulates all YouTube API logic
+export class YouTubeApiService {
+    async getChannelData(query) { ... }
+    async getAllChannelVideos(playlistId) { ... }
+}
+
+// analytics.js - Content analysis and insights
+export class AnalyticsService {
+    generateContentAnalysis(videos) { ... }
+    detectViralContent(videos) { ... }
+}
+```
+
+### Utility Functions
+```javascript
+// environment.js - Environment detection and management
+export function detectEnvironment() { ... }
+export function switchToMode(mode) { ... }
+
+// formatter.js - Data formatting utilities
+export function formatViewCount(count) { ... }
+export function formatDuration(seconds) { ... }
+```
 
 ## Technical Decisions
 
-### 1. **No Framework Dependencies**
-- **Why**: Maximum compatibility, no version conflicts, no build step
-- **Trade-off**: More verbose code, manual DOM manipulation
-- **Result**: Works in any browser, loads instantly
+### 1. **ES6 Modules with Vite**
+- **Why**: Modern development experience, hot reload, optimized builds
+- **Trade-off**: Build step required, but development experience is vastly improved
+- **Result**: 104KB optimized production bundle, excellent developer experience
 
-### 2. **Embedded CSS**
-- **Why**: Single file requirement, no external stylesheets
-- **Trade-off**: Larger file size, CSS mixed with HTML
-- **Result**: Windows XP styling works everywhere, no FOUC
+### 2. **Component Lifecycle Management**
+- **Why**: Predictable component behavior, proper cleanup, event management
+- **Trade-off**: More boilerplate, but prevents memory leaks and bugs
+- **Result**: Robust, maintainable UI components
 
-### 3. **localStorage for State**
-- **Why**: Local-first, no server dependencies, user privacy
-- **Trade-off**: Browser storage limits, no cross-device sync
-- **Result**: Fast, private, works offline
+### 3. **Environment-Aware Configuration**
+- **Why**: Support both local development and hosted showcase versions
+- **Trade-off**: Added complexity, but enables flexible deployment
+- **Result**: Single codebase serves multiple use cases
 
-### 4. **YouTube API Direct Integration**
-- **Why**: No backend required, users control their own keys
-- **Trade-off**: API keys visible in browser (documented limitation)
-- **Result**: Zero server costs, user owns their data
+### 4. **Windows XP Styling System**
+- **Why**: Unique visual identity, nostalgic appeal, authentic retro experience
+- **Trade-off**: Custom CSS system vs modern frameworks
+- **Result**: Distinctive, memorable user interface
 
 ## Performance Considerations
 
+### Build Optimization
+```javascript
+// vite.config.js
+export default {
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['chart.js'],
+                    utils: ['src/js/utils/formatter.js']
+                }
+            }
+        }
+    }
+};
+```
+
 ### Memory Management
-- **Batch Processing**: Videos processed in chunks of 50
-- **Lazy Loading**: Thumbnails loaded as needed
-- **Cache Strategy**: Analysis results cached locally
-- **Cleanup**: Old cache entries automatically purged
+- **Component Lifecycle**: Proper cleanup in onDestroy()
+- **Event Listeners**: Automatic cleanup via BaseComponent
+- **API Batching**: Process videos in chunks of 50
+- **Cache Strategy**: Intelligent localStorage management
 
 ### API Efficiency
 ```javascript
 const CONFIG = {
     API: {
         BATCH_SIZE: 50,        // YouTube's maximum
+        DEMO_LIMITS: {
+            maxResults: 50,     // Per API call
+            maxPages: 2         // Total: 100 videos for demo
+        },
         QUOTA_COSTS: {
             channel: 1,         // Per channel lookup
-            playlistItems: 1,    // Per 50 videos
-            videos: 1           // Per 50 detailed videos
+            playlistItems: 1,   // Per 50 videos
+            videos: 1          // Per 50 detailed videos
         }
     }
 };
 ```
 
-### UI Performance
-- **Virtual Scrolling**: Not needed (users filter datasets)
-- **Debounced Search**: 300ms delay on live filtering
-- **Progressive Enhancement**: Features load as needed
-
 ## Deployment Architecture
 
-### Dual Mode Support
+### Multi-Environment Support
 ```
-Local Mode (npm start):
-├── server.js (27 lines)
-├── .env file with API key
-└── youtube_video_exporter.html
+Local Development:
+├── npm run dev (Vite dev server)
+├── .env file with API keys
+├── Full functionality, no limitations
+└── Hot reload for development
 
-Web Mode (GitHub Pages):
-├── docs/index.html (generated)
-├── Client-side API key input
-└── Static hosting
+GitHub Pages Production:
+├── GitHub Actions CI/CD
+├── Vite production build
+├── Demo mode with built-in API key
+├── Live mode for user API keys
+└── Automatic deployment on push
 ```
 
 ### Build Process
 ```bash
-# Generate web version
-npm run build:web
+# Development
+npm run dev          # Start dev server with hot reload
 
-# What it does:
-1. Copy main HTML file
-2. Force web mode (no server check)  
-3. Add SEO meta tags
-4. Create deployment docs
+# Production
+npm run build        # Generate optimized bundle
+npm run preview      # Preview production build
+
+# Deployment
+git push origin main # Automatic GitHub Pages deployment
 ```
-
-## Scaling Philosophy
-
-### When to Stick with Single-File
-- ✅ **Tool works well** for intended use case
-- ✅ **Team size < 5 developers**
-- ✅ **No complex state management** needed
-- ✅ **Deployment simplicity** is valuable
-- ✅ **User base < 10,000**
-
-### When to Consider Refactoring
-- ❌ **File exceeds 5,000+ lines**
-- ❌ **Multiple complex features** being added monthly
-- ❌ **Team size > 10 developers**
-- ❌ **Complex state management** required
-- ❌ **Performance issues** from file size
 
 ## Design Patterns Used
 
-### 1. **Module Pattern (Simulated)**
+### 1. **Component Pattern**
 ```javascript
-/* ===== API LAYER ===== */
-// All API functions grouped together
-// Clear boundaries between concerns
+export class VideoList extends BaseComponent {
+    constructor(container, options = {}) {
+        super(container, options);
+        this.videos = [];
+        this.currentView = 'list';
+    }
+    
+    template() { return `<div class="video-list">...</div>`; }
+    onMount() { this.setupEventListeners(); }
+    onDestroy() { this.cleanup(); }
+}
 ```
 
-### 2. **Configuration Object**
+### 2. **Service Layer Pattern**
 ```javascript
-const CONFIG = {
-    API: { ... },
-    UI: { ... },
-    STORAGE: { ... }
-};
-```
-
-### 3. **Event-Driven Architecture**
-```javascript
-// Global error handling
-window.addEventListener('error', handleError);
-
-// User interactions
-document.addEventListener('DOMContentLoaded', initialize);
-```
-
-### 4. **Progressive Enhancement**
-```javascript
-// Try server API first, fallback to client
-async function initializeApiKey() {
-    try {
-        // Local mode
-    } catch {
-        // Web mode fallback
+// Separation of concerns: UI components use services for business logic
+export class App extends BaseComponent {
+    constructor() {
+        this.services = {
+            youtube: new YouTubeApiService(),
+            analytics: new AnalyticsService(),
+            storage: storageService
+        };
     }
 }
 ```
 
-## Future Architecture Considerations
-
-### What Would Trigger a Refactor?
-1. **Performance Issues**: File size impacts load time
-2. **Collaboration Challenges**: Multiple developers stepping on each other
-3. **Feature Complexity**: Adding features becomes increasingly difficult
-4. **Testing Needs**: Unit testing becomes critical
-
-### Migration Path (If Needed)
-```
-Phase 1: Extract utilities to separate files
-Phase 2: Split CSS into theme file
-Phase 3: Modularize API layer
-Phase 4: Add build step for concatenation
+### 3. **Observer Pattern**
+```javascript
+// Components emit events for loose coupling
+this.emit('videosChanged', { videos: this.filteredVideos });
+this.on('videosChanged', (data) => this.updateDisplay(data.videos));
 ```
 
-But for now, **the single-file approach serves this project perfectly**.
+### 4. **Configuration Object Pattern**
+```javascript
+// Centralized configuration with environment awareness
+export const CONFIG = {
+    API: { ... },
+    UI: { ... },
+    STORAGE: { ... },
+    ENVIRONMENTS: { ... }
+};
+```
 
-## Conclusion
+## Scaling Philosophy
 
-The single-file architecture is not a limitation—it's a **deliberate design choice** that prioritizes:
+### Current State (Perfect For)
+- ✅ **Modern development workflow** with hot reload and optimized builds
+- ✅ **Clean component architecture** easy to understand and extend
+- ✅ **15 focused modules** each with single responsibility
+- ✅ **Comprehensive documentation** and project management
+- ✅ **Production-ready deployment** with CI/CD pipeline
 
-- 🎯 **Simplicity** over complexity
-- 🚀 **Deployment ease** over development convenience  
-- 📱 **Portability** over modularity
-- 🔒 **User control** over vendor lock-in
+### Future Considerations
+- **State Management**: Consider Zustand/Redux if state becomes complex
+- **Testing**: Add Jest/Vitest for component testing
+- **TypeScript**: Migrate for better type safety
+- **PWA Features**: Add offline support and app-like experience
+- **Performance**: Implement virtual scrolling for very large datasets
 
-This architecture enables a powerful YouTube analysis tool that anyone can download, modify, and deploy without complex tooling or dependencies.
+## Recent Achievements (Dec 2024)
 
-**Sometimes the simplest solution is the best solution.** 
+### ✅ **Major UI Redesign**
+- Minimalistic, functional design
+- Large, usable input fields
+- Compact mode selector
+- Mobile-responsive layout
+
+### ✅ **Environment System Overhaul**
+- Simplified 4-environment system to 2 modes
+- Smart defaults for different deployment contexts
+- Persistent mode selection
+
+### ✅ **Comprehensive Documentation**
+- Complete project management tracking
+- Detailed code comments and annotations
+- User guides and technical documentation
+
+### ✅ **Production Deployment**
+- GitHub Pages with automatic CI/CD
+- Optimized build pipeline
+- Multi-environment support 
