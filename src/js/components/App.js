@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                     </div>
                 </div>
                 
-                <!-- Mode Selector Section (Prominent) -->
+                <!-- Mode Selector Section -->
                 <div class="mode-selector-section">
                     ${this.renderModeToggle()}
                 </div>
@@ -122,18 +122,15 @@ export class App extends BaseComponent {
                     ${this.renderSearchSection()}
                 </div>
                 
-                <!-- Main Content Area -->
-                <div class="main-content">
-                    <!-- Results Section with integrated VideoList -->
-                    <div class="results-section">
-                        <div id="resultsContainer" class="results-container"></div>
-                    </div>
-                    
-                    <!-- Analytics Section -->
-                    <div class="analytics-section" id="analyticsSection">
-                        <div class="analytics-placeholder">
-                            Select a channel to view analytics
-                        </div>
+                <!-- Results Section (Single Panel) -->
+                <div class="results-section">
+                    <div id="resultsContainer" class="results-container"></div>
+                </div>
+                
+                <!-- Analytics Section (Below Results) -->
+                <div class="analytics-section" id="analyticsSection">
+                    <div class="analytics-placeholder">
+                        Select a channel to view analytics
                     </div>
                 </div>
                 
@@ -173,15 +170,23 @@ export class App extends BaseComponent {
             
             // Connect Results and VideoList components
             this.components.results.on('viewChanged', (data) => {
-                this.components.videoList.switchView(data.view);
+                if (this.components.videoList) {
+                    this.components.videoList.switchView(data.view);
+                }
             });
             
             this.components.results.on('videosChanged', (data) => {
-                this.components.videoList.setVideos(data.videos);
+                if (this.components.videoList) {
+                    this.components.videoList.setVideos(data.videos);
+                    debugLog(`📺 VideoList updated with ${data.videos.length} videos`);
+                }
             });
             
             this.components.results.on('videosFiltered', (data) => {
-                this.components.videoList.setVideos(data.videos);
+                if (this.components.videoList) {
+                    this.components.videoList.setVideos(data.videos);
+                    debugLog(`📺 VideoList filtered to ${data.videos.length} videos`);
+                }
             });
             
             this.components.results.on('error', (data) => {
@@ -641,7 +646,11 @@ export class App extends BaseComponent {
                 const channelName = this.appState.channelData?.channelTitle || 
                                    this.appState.channelData?.snippet?.title || 
                                    'Unknown Channel';
-                this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                
+                if (this.components.results) {
+                    this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                    debugLog(`📊 Results component updated with ${this.appState.filteredVideos.length} filtered videos`);
+                }
                 
                 // Update analytics based on filtered results
                 this.services.analytics.setVideosData(this.appState.filteredVideos);
@@ -652,6 +661,15 @@ export class App extends BaseComponent {
                 this.showSuccess(`Found ${totalVideos} videos, ${filteredVideos} match your keyword filter`);
             } else {
                 // No keywords, show all videos
+                const channelName = this.appState.channelData?.channelTitle || 
+                                   this.appState.channelData?.snippet?.title || 
+                                   'Unknown Channel';
+                
+                if (this.components.results) {
+                    this.components.results.setVideos(this.appState.videos, channelName);
+                    debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
+                }
+                
                 this.showSuccess(`Analysis complete: ${this.appState.videos.length} videos found`);
             }
             
@@ -712,7 +730,11 @@ export class App extends BaseComponent {
             
             // Update Results component with channel name
             const channelName = channelData.channelTitle || channelData.snippet?.title || 'Unknown Channel';
-            this.components.results.setVideos(videos, channelName);
+            
+            if (this.components.results) {
+                this.components.results.setVideos(videos, channelName);
+                debugLog(`📊 Results component updated with ${videos.length} videos from analyzeChannel`);
+            }
             
             // Update analytics display
             this.showProgress(90, 'Generating insights...');
@@ -859,11 +881,6 @@ export class App extends BaseComponent {
             debugLog('Already in requested mode, no change needed');
             return;
         }
-        
-        // Use the new environment utility
-        import('../utils/environment.js').then(({ switchToMode }) => {
-            switchToMode(newMode);
-        });
         
         // Clear existing state when switching modes
         this.appState.apiKey = null;
@@ -1050,7 +1067,7 @@ export class App extends BaseComponent {
         const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'both';
         const searchLogic = this.findElement('input[name="searchLogic"]:checked')?.value || 'OR';
         
-        // Parse keywords
+        // Parse keywords - make case insensitive
         let keywords = [];
         if (query.includes(',')) {
             keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
@@ -1067,17 +1084,17 @@ export class App extends BaseComponent {
         this.appState.filteredVideos = this.appState.videos.filter(video => {
             let searchText = '';
             
-            // Build search text based on scope
+            // Build search text based on scope - make case insensitive
             switch (searchScope) {
                 case 'title':
-                    searchText = video.title.toLowerCase();
+                    searchText = (video.title || '').toLowerCase();
                     break;
                 case 'description':
                     searchText = (video.fullDescription || video.description || '').toLowerCase();
                     break;
                 case 'both':
                 default:
-                    searchText = `${video.title} ${video.fullDescription || video.description || ''}`.toLowerCase();
+                    searchText = `${video.title || ''} ${video.fullDescription || video.description || ''}`.toLowerCase();
                     break;
             }
             
