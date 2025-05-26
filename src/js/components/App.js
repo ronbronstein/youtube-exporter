@@ -282,9 +282,9 @@ export class App extends BaseComponent {
             
             // Load last API key (encrypted) - but NOT in demo mode
             if (this.appState.apiMode !== 'demo') {
-                const savedApiKey = storageService.getApiKey();
-                if (savedApiKey) {
-                    this.setApiKey(savedApiKey);
+            const savedApiKey = storageService.getApiKey();
+            if (savedApiKey) {
+                this.setApiKey(savedApiKey);
                     debugLog('✅ Loaded saved API key from localStorage');
                 } else {
                     debugLog('ℹ️ No saved API key found in localStorage');
@@ -1234,6 +1234,9 @@ export class App extends BaseComponent {
         // Re-render the entire interface
         this.updateHeader();
         
+        // Update cached channels list for new mode
+        this.updateCachedChannelsList();
+        
         // Initialize the new mode
         if (newMode === 'demo') {
             this.initializeDemoMode();
@@ -1509,13 +1512,13 @@ export class App extends BaseComponent {
             
             if (modeParam === 'live' || savedMode === 'live') {
                 // Live mode - try to load saved API key
-                const savedApiKey = this.services.storage.getApiKey();
-                if (savedApiKey) {
-                    this.setApiKey(savedApiKey);
-                    this.appState.apiMode = 'live';
+        const savedApiKey = this.services.storage.getApiKey();
+        if (savedApiKey) {
+            this.setApiKey(savedApiKey);
+            this.appState.apiMode = 'live';
                     debugLog('✅ GitHub Pages: Live mode with saved API key');
-                    this.showInfo('Using saved API key');
-                    return 'live';
+            this.showInfo('Using saved API key');
+            return 'live';
                 } else {
                     this.appState.apiMode = 'live';
                     debugLog('🌐 GitHub Pages: Live mode - user input required');
@@ -1543,7 +1546,7 @@ export class App extends BaseComponent {
                     debugLog('✅ GitHub Pages: Demo mode with built-in API key');
                     this.showInfo('Demo mode active - Limited to 100 recent videos');
                     return 'demo';
-                } else {
+        } else {
                     console.warn('⚠️ GitHub Pages: No demo API key found');
                     debugLog('❌ GitHub Pages: VITE_DEMO_API_KEY is null or undefined');
                     this.appState.apiMode = 'live';
@@ -1671,20 +1674,42 @@ export class App extends BaseComponent {
     
     renderCachedChannelsList() {
         const cachedChannels = this.services.storage.getAllCachedChannels();
+        const currentMode = this.appState.apiMode || 'demo';
         
-        if (cachedChannels.length === 0) {
+        // Filter cached channels based on current mode
+        // Demo mode: show channels cached in demo mode (limited to 100 videos)
+        // Live mode: show channels cached in live mode (unlimited videos)
+        const filteredChannels = cachedChannels.filter(channel => {
+            if (currentMode === 'demo') {
+                // Demo mode: show only channels with exactly 100 videos (demo limit)
+                return channel.videoCount === 100;
+            } else {
+                // Live mode: show channels with more than 100 videos (or exactly 100 if from live mode)
+                // This is a bit tricky since we can't easily distinguish, so we'll show all for now
+                // TODO: Add mode metadata to cached data in future
+                return true;
+            }
+        });
+        
+        debugLog('📋 Cached channels filtered:', {
+            total: cachedChannels.length,
+            filtered: filteredChannels.length,
+            currentMode: currentMode
+        });
+        
+        if (filteredChannels.length === 0) {
             return `
                 <div class="cached-channels-empty">
-                    <p>No cached channels yet. Analyze a channel to see it here!</p>
+                    <p>No cached channels for ${currentMode} mode yet. Analyze a channel to see it here!</p>
                 </div>
             `;
         }
         
         return `
             <div class="cached-channels-list">
-                <h3>📋 Recently Analyzed Channels</h3>
+                <h3>📋 Recently Analyzed Channels (${currentMode} mode)</h3>
                 <div class="cached-channels-grid">
-                    ${cachedChannels.map(channel => `
+                    ${filteredChannels.map(channel => `
                         <div class="cached-channel-item ${channel.isValid ? 'valid' : 'expired'}" 
                              data-channel-id="${channel.channelId}">
                             <div class="channel-info">
@@ -1843,4 +1868,4 @@ export class App extends BaseComponent {
             this.setupCachedChannelsListeners();
         }
     }
-}
+} 
