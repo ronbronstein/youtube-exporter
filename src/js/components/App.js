@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                 <div class="app-header">
                     <div class="header-top">
                         <div class="header-with-logo">
-                            <img src="./src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <img src="/src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
                             <div class="title-section">
                                 <h1 class="app-title">YouTube Research Hub</h1>
                                 <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
@@ -127,8 +127,10 @@ export class App extends BaseComponent {
                 ${this.renderFormSection()}
                 
                 <!-- Cached Channels Section -->
-                <div class="cached-channels-section">
+                <div class="cached-channels-section" id="cachedChannelsSection">
+                    <div class="cached-channels-content" id="cachedChannelsContent">
                     ${this.renderCachedChannelsList()}
+                    </div>
                 </div>
                 
                 <!-- Results Section (Single Panel) -->
@@ -256,6 +258,9 @@ export class App extends BaseComponent {
         // Set up event listeners
         this.setupEventListeners();
         
+        // Initialize cache toggle state
+        this.initializeCacheToggleState();
+        
         // Check for environment-specific initialization
         this.handleEnvironmentSpecificInit();
         
@@ -296,6 +301,27 @@ export class App extends BaseComponent {
         } catch (error) {
             debugLog('❌ Service initialization error:', error);
             this.showError('Failed to initialize application services');
+        }
+    }
+
+    initializeCacheToggleState() {
+        // Load saved cache toggle state
+        const isCollapsed = this.services.storage.getCacheToggleState();
+        const cacheSection = this.findElement('#cachedChannelsSection');
+        const toggleBtn = this.findElement('#cacheToggleBtn');
+        
+        if (cacheSection && toggleBtn) {
+            if (isCollapsed) {
+                cacheSection.classList.add('collapsed');
+                toggleBtn.textContent = '📋 Show Cache';
+                toggleBtn.classList.add('collapsed');
+                debugLog('📋 Cache section initialized as collapsed');
+            } else {
+                cacheSection.classList.remove('collapsed');
+                toggleBtn.textContent = '📋 Cache';
+                toggleBtn.classList.remove('collapsed');
+                debugLog('📋 Cache section initialized as expanded');
+            }
         }
     }
     
@@ -356,15 +382,15 @@ export class App extends BaseComponent {
         // Use the same API-first interface for ALL environments (local and GitHub Pages)
         // This matches the UX demo design exactly
         return `
-            <div class="api-section" id="apiSection">
+            <div class="api-section ${currentMode === 'demo' ? 'disabled' : ''}" id="apiSection">
                 <div class="api-label">YouTube Data API Key</div>
                 
                 <div class="api-input-row">
                     <input type="text" class="xp-input large" id="apiKeyInput" 
-                           placeholder="Enter your YouTube Data API v3 key for unlimited analysis..."
-                           ${hasValidApiKey ? `value="${'•'.repeat(20)}" disabled` : ''}>
-                    <button class="xp-button success" id="validateBtn" ${hasValidApiKey ? 'disabled' : 'disabled'}>
-                        ${hasValidApiKey ? '✅ Validated' : '🔑 Validate Key'}
+                           placeholder="${currentMode === 'demo' ? 'Not needed in demo mode' : 'Enter your YouTube Data API v3 key for unlimited analysis...'}"
+                           ${hasValidApiKey ? `value="${'•'.repeat(20)}" disabled` : currentMode === 'demo' ? 'disabled' : ''}>
+                    <button class="xp-button success" id="validateBtn" ${hasValidApiKey || currentMode === 'demo' ? 'disabled' : ''}>
+                        ${hasValidApiKey ? '✅ Validated' : currentMode === 'demo' ? '🎬 Demo Mode' : '🔑 Validate Key'}
                     </button>
                 </div>
                 
@@ -502,7 +528,7 @@ export class App extends BaseComponent {
         const disabledAttr = shouldDisableInputs ? 'disabled' : '';
         
         return `
-            <div class="form-section" id="formSection">
+            <div class="form-section ${shouldDisableInputs ? 'disabled' : ''}" id="formSection">
                 <!-- Channel URL Row - Full Width -->
                 <div class="form-row channel-row">
                     <div class="form-group">
@@ -557,11 +583,16 @@ export class App extends BaseComponent {
                     </div>
                 </div>
 
-                <!-- Analyze Button Row - Full Width -->
+                <!-- Analyze Button Row - With Cache Toggle -->
                 <div class="form-row analyze-row">
-                    <button class="xp-button success analyze-button full-width" id="searchBtn" ${disabledAttr}>
+                    <div class="analyze-button-group">
+                        <button class="xp-button success analyze-button" id="searchBtn" ${disabledAttr}>
                         📊 Analyze Now
                     </button>
+                        <button class="xp-button cache-toggle-btn" id="cacheToggleBtn" type="button">
+                            📋 Cache
+                        </button>
+                    </div>
                     <span class="demo-indicator hidden" id="demoIndicator">
                         Demo: up to 100 videos analysis
                     </span>
@@ -654,6 +685,15 @@ export class App extends BaseComponent {
         
         if (modeButtons.length === 0) {
             debugLog('⚠️ No mode toggle buttons found');
+        }
+        
+        // Cache toggle button
+        const cacheToggleBtn = this.findElement('#cacheToggleBtn');
+        if (cacheToggleBtn) {
+            this.addListener(cacheToggleBtn, 'click', this.handleCacheToggle.bind(this));
+            debugLog('✅ Cache toggle button listener attached');
+        } else {
+            debugLog('⚠️ Cache toggle button not found');
         }
         
         // Set up cached channels listeners
@@ -823,6 +863,37 @@ export class App extends BaseComponent {
         
         // Update button states
         this.updateAnalyzeButtonState();
+    }
+
+    handleCacheToggle() {
+        const cacheSection = this.findElement('#cachedChannelsSection');
+        const cacheContent = this.findElement('#cachedChannelsContent');
+        const toggleBtn = this.findElement('#cacheToggleBtn');
+        
+        if (!cacheSection || !cacheContent || !toggleBtn) {
+            debugLog('❌ Cache toggle elements not found');
+            return;
+        }
+
+        // Toggle the collapsed state
+        const isCollapsed = cacheSection.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Expand
+            cacheSection.classList.remove('collapsed');
+            toggleBtn.textContent = '📋 Cache';
+            toggleBtn.classList.remove('collapsed');
+            debugLog('📋 Cache section expanded');
+        } else {
+            // Collapse
+            cacheSection.classList.add('collapsed');
+            toggleBtn.textContent = '📋 Show Cache';
+            toggleBtn.classList.add('collapsed');
+            debugLog('📋 Cache section collapsed');
+        }
+
+        // Save state to localStorage
+        this.services.storage.saveCacheToggleState(!isCollapsed);
     }
     
     handleChannelInput(event) {
@@ -1583,13 +1654,13 @@ export class App extends BaseComponent {
         }
         
         // Pre-fill form with sample data
-        const channelInput = this.findElement('#channelUrl');
+        const channelInput = this.findElement('#channelInput');
         if (channelInput) {
             channelInput.value = '@MrBeast';
             channelInput.dispatchEvent(new Event('input', { bubbles: true }));
             debugLog('✅ Channel input pre-filled with @MrBeast');
         } else {
-            debugLog('❌ Channel input not found (#channelUrl)');
+            debugLog('❌ Channel input not found (#channelInput)');
         }
         
         // Wait for TagInput to be ready and set tags
@@ -1909,7 +1980,7 @@ export class App extends BaseComponent {
             if (currentMode === 'demo') {
                 // Demo mode: show only channels with exactly 100 videos (demo limit)
                 return channel.videoCount === 100;
-        } else {
+            } else {
                 // Live mode: show channels with more than 100 videos (or exactly 100 if from live mode)
                 // This is a bit tricky since we can't easily distinguish, so we'll show all for now
                 // TODO: Add mode metadata to cached data in future
@@ -2043,7 +2114,7 @@ export class App extends BaseComponent {
                 this.components.results.setVideos(cachedAnalysis, cacheMetadata?.channelTitle || 'Unknown Channel');
                 this.components.results.show();
                 debugLog('📊 Results component updated');
-        }
+            }
         
             // Update analytics display
             this.renderAnalytics();
@@ -2055,7 +2126,7 @@ export class App extends BaseComponent {
             }
             
             // Update channel input
-            const channelInput = this.findElement('#channelUrl');
+            const channelInput = this.findElement('#channelInput');
             if (channelInput && cacheMetadata) {
                 channelInput.value = cacheMetadata.channelTitle;
             }

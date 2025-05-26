@@ -400,6 +400,45 @@ export class StorageService {
         }
     }
 
+    /* ===== CACHE TOGGLE STATE ===== */
+
+    /**
+     * Save cache toggle state
+     * @param {boolean} isCollapsed - Whether cache section is collapsed
+     */
+    saveCacheToggleState(isCollapsed) {
+        if (!this.isAvailable) return false;
+
+        try {
+            localStorage.setItem('cache_toggle_collapsed', JSON.stringify(isCollapsed));
+            debugLog('Cache toggle state saved', { isCollapsed });
+            return true;
+        } catch (error) {
+            debugLog('Failed to save cache toggle state', error);
+            return false;
+        }
+    }
+
+    /**
+     * Load cache toggle state
+     * @returns {boolean} Whether cache section should be collapsed (default: false)
+     */
+    getCacheToggleState() {
+        if (!this.isAvailable) return false;
+
+        try {
+            const saved = localStorage.getItem('cache_toggle_collapsed');
+            if (saved !== null) {
+                const isCollapsed = JSON.parse(saved);
+                debugLog('Cache toggle state loaded', { isCollapsed });
+                return isCollapsed;
+            }
+        } catch (error) {
+            debugLog('Failed to load cache toggle state', error);
+        }
+        return false; // Default to expanded
+    }
+
     /* ===== LAST ANALYZED CHANNEL ===== */
 
     /**

@@ -505,11 +505,12 @@ tr:hover {
 /* Application Layout - Windows XP Modern */
 .app-main {
     max-width: 1200px;
-    width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: var(--xp-spacing-lg);
     background: var(--xp-window-bg);
     min-height: 100vh;
+    box-sizing: border-box;
 }
 
 /* Header Section - Windows XP Window Chrome with Logo */
@@ -3415,10 +3416,134 @@ button:disabled:hover {
 .api-section {
     background: var(--xp-input-bg);
     border: 1px inset var(--xp-window-bg);
-  border-radius: var(--xp-border-radius);
+    border-radius: var(--xp-border-radius);
     padding: var(--xp-spacing-lg);
     margin-bottom: var(--xp-spacing-lg);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    transition: all var(--xp-transition-normal);
+}
+
+.api-section.disabled {
+    opacity: 0.6;
+    background: var(--xp-window-bg-dark);
+    border: 2px inset var(--xp-window-bg-dark);
+    position: relative;
+    pointer-events: none;
+}
+
+.api-section.disabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(216, 209, 191, 0.7);
+    border-radius: var(--xp-border-radius);
+    z-index: 1;
+}
+
+.api-section.disabled input,
+.api-section.disabled button {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.api-section.disabled .api-label {
+    color: var(--xp-text-disabled);
+}
+
+/* Search section disabled state */
+.form-section.disabled {
+    opacity: 0.6;
+    background: var(--xp-window-bg-dark);
+    border: 2px inset var(--xp-window-bg-dark);
+    position: relative;
+    pointer-events: none;
+}
+
+.form-section.disabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(216, 209, 191, 0.7);
+    border-radius: var(--xp-border-radius);
+    z-index: 1;
+}
+
+.form-section.disabled input,
+.form-section.disabled button,
+.form-section.disabled select {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.form-section.disabled .form-label {
+    color: var(--xp-text-disabled);
+}
+
+/* Analyze button group with cache toggle */
+.analyze-button-group {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--xp-spacing-md);
+    align-items: center;
+}
+
+.analyze-button {
+    flex: 1;
+}
+
+.cache-toggle-btn {
+    background: linear-gradient(135deg, var(--xp-info) 0%, #2563eb 100%);
+    color: white;
+    border-color: var(--xp-info);
+    padding: var(--xp-spacing-md) var(--xp-spacing-lg);
+    font-size: var(--xp-font-size);
+    white-space: nowrap;
+    transition: all var(--xp-transition-normal);
+}
+
+.cache-toggle-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.cache-toggle-btn.collapsed {
+    background: linear-gradient(135deg, var(--xp-warning) 0%, #d97706 100%);
+    border-color: var(--xp-warning);
+}
+
+.cache-toggle-btn.collapsed:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Collapsible cache section */
+.cached-channels-section {
+    transition: all var(--xp-transition-normal);
+    overflow: hidden;
+    margin-bottom: var(--xp-spacing-lg);
+}
+
+.cached-channels-section.collapsed {
+    max-height: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.cached-channels-section:not(.collapsed) {
+    max-height: 1000px; /* Large enough to accommodate content */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cached-channels-content {
+    transition: all var(--xp-transition-normal);
 }
 
 .api-label {
