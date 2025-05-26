@@ -475,7 +475,7 @@ this.setApiKey(demoApiKey);
 - ✅ BUG-005: Demo Mode Analytics & Cached Channels (2 points)
 
 **Active Tasks**:
-- 🔄 TASK-022: Legacy Styling with Modern UX (8 points)
+- 🔄 TASK-022: Windows XP Styling - Foundation for UI Tasks (8 points)
 - 🔄 TASK-023: One-Screen Initial Layout (5 points)
 - 🔄 TASK-024: Enhanced Grid View (3 points)
 - 🔄 TASK-025: Footer & Attribution (1 point)
@@ -838,30 +838,86 @@ this.setApiKey(demoApiKey);
 
 ---
 
-### **TASK-022: Legacy Styling with Modern UX**
+### **TASK-022: Windows XP Styling - Foundation for UI Tasks**
 **Story**: STORY-013 (Design System)  
-**Status**: 🔄 IN PROGRESS  
+**Status**: 🔄 IN PROGRESS (Phase 1 Complete)  
 **Priority**: P1 (High)  
 **Assignee**: Development Team  
+**Points**: 8 story points  
 
-**Description**: Restore Windows XP retro aesthetic with modern UX improvements.
+**Description**: Restore Windows XP retro aesthetic with modern UX improvements using a structured three-phase approach.
 
-**Design Requirements**:
-- 🎨 Windows XP color scheme and borders
-- 🔲 Inset/outset button styles
-- 📝 Tahoma font family
-- 📏 Improved spacing for modern screens
-- 🔘 Subtle border radius (2-4px max)
-- 📱 Optimized for screen space efficiency
-- 🎯 Better visual hierarchy
+**Three-Phase Implementation Plan**:
 
-**Components to Update**:
-- [ ] Header styling
-- [ ] Control panel layout
-- [ ] Button styles and states
-- [ ] Analysis panel styling
+#### **Phase 1: Windows XP Design System Foundation** ✅ COMPLETED
+**Time Estimate**: 30 minutes | **Actual Time**: 2 hours  
+**Status**: 🟢 DONE  
+
+**Completed Work**:
+- ✅ **Research authentic Windows XP palette & typography** - Analyzed original XP colors, Tahoma font, spacing
+- ✅ **Create CSS custom properties** - Comprehensive variable system for colors, fonts, spacing, animations
+- ✅ **Establish base utility classes** - Enhanced hover effects, transitions, modern improvements
+- ✅ **Create comprehensive style guide** - Interactive HTML demo at `docs/style-guide.html`
+
+**Deliverables**:
+- ✅ Complete Windows XP Modern color palette with enhanced variants
+- ✅ Typography system with improved sizes (14px default, 20px headings)
+- ✅ Animation system with cubic-bezier easing and bounce effects
+- ✅ Interactive style guide showcasing all components and effects
+
+#### **Phase 2: Core Component Application** 🔄 NEXT
+**Time Estimate**: 90 minutes  
+**Status**: 🔄 READY TO START  
+
+**Planned Work**:
+- [ ] **Header & navigation styling** - Apply XP window chrome and title bars
+- [ ] **Control panels styling** - Mode selector, API inputs with XP button/input styles
+- [ ] **Form elements** - Buttons, inputs, selectors with authentic XP 3D effects
+- [ ] **Analysis panels integration** - Apply XP panel styling to analytics sections
+
+**Target Components**:
+- Header section with XP window styling
+- API key input panel with XP form styling
+- Channel input and search button
+- Mode selector (demo/live) with XP radio button styling
+- Analysis result panels with XP inset/outset borders
+
+#### **Phase 3: Testing & Polish** 🔄 PENDING
+**Time Estimate**: 30 minutes  
+**Status**: 🔄 WAITING FOR PHASE 2  
+
+**Planned Work**:
+- [ ] **Cross-device responsiveness testing** - Ensure XP styling works on mobile/tablet
+- [ ] **Demo/live mode consistency verification** - Consistent styling across modes
+- [ ] **Accessibility & contrast validation** - Ensure enhanced colors meet accessibility standards
+- [ ] **Performance optimization** - Optimize CSS and animations
+
+**Design Requirements** (From Style Guide):
+- 🎨 **Enhanced Windows XP color scheme** - Warmer backgrounds, vibrant accents, better contrast
+- 🔲 **Modern inset/outset button styles** - Subtle rounded corners (3px), gradient backgrounds
+- 📝 **Tahoma font family** - With Segoe UI fallback for modern compatibility
+- 📏 **Improved spacing system** - CSS variables for consistent spacing (4px, 8px, 12px, 16px, 24px)
+- 🔘 **Subtle border radius** - 3px for components, 6px for larger elements
+- 📱 **Enhanced hover effects** - Scale, glow, lift animations with smooth transitions
+- 🎯 **Better visual hierarchy** - Larger text sizes, improved contrast ratios
+
+**Components to Update in Phase 2**:
+- [ ] Header styling with XP window chrome
+- [ ] Control panel layout with XP panel styling
+- [ ] Button styles and states (primary, success, warning, error)
+- [ ] Analysis panel styling with XP borders
 - [ ] Video list/grid styling
 - [ ] Form inputs and selectors
+
+**Dependencies**: 
+- Blocks TASK-023 (One-Screen Layout) and TASK-024 (Enhanced Grid View)
+- Style guide completed and available at `docs/style-guide.html`
+
+**Files Created**:
+- `docs/style-guide.html` - Comprehensive interactive style guide
+
+**Time Spent**: 2 hours (Phase 1)  
+**Estimated Remaining**: 2 hours (Phases 2 & 3)
 
 ---
 
