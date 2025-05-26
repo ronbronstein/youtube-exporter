@@ -105,12 +105,15 @@ export class App extends BaseComponent {
                 <!-- Global Messages Banner -->
                 <div id="globalMessages" class="global-messages-banner"></div>
                 
-                <!-- Header Section -->
+                <!-- Header Section with Logo -->
                 <div class="app-header">
                     <div class="header-top">
-                        <div class="title-section">
-                            <h1>📺 YouTube Channel Research Hub</h1>
-                            <p>Comprehensive analysis • Content insights • Strategic planning</p>
+                        <div class="header-with-logo">
+                            <img src="./assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <div class="title-section">
+                                <h1 class="app-title">YouTube Research Hub</h1>
+                                <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1491,7 +1494,7 @@ export class App extends BaseComponent {
                            import.meta.env.VITE_YOUTUBE_API_KEY || 
                            import.meta.env.YOUTUBE_API_KEY || 
                            null;
-            
+        
             if (apiKey) {
                 this.setApiKey(apiKey);
                 this.appState.apiMode = 'local-auto';
@@ -1503,7 +1506,7 @@ export class App extends BaseComponent {
                 debugLog('⚠️ Local development: No API key found in .env file');
                 this.showWarning('Add VITE_DEMO_API_KEY to your .env file');
                 return 'manual';
-            }
+        }
         } else {
             // GitHub Pages - check for demo mode or load saved key
             const urlParams = new URLSearchParams(window.location.search);
@@ -1523,8 +1526,8 @@ export class App extends BaseComponent {
                     this.appState.apiMode = 'live';
                     debugLog('🌐 GitHub Pages: Live mode - user input required');
                     this.showInfo('Please enter your YouTube Data API key');
-                    return 'live';
-                }
+            return 'live';
+        }
             } else {
                 // Demo mode - use built-in API key
                 const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
@@ -1683,7 +1686,7 @@ export class App extends BaseComponent {
             if (currentMode === 'demo') {
                 // Demo mode: show only channels with exactly 100 videos (demo limit)
                 return channel.videoCount === 100;
-            } else {
+        } else {
                 // Live mode: show channels with more than 100 videos (or exactly 100 if from live mode)
                 // This is a bit tricky since we can't easily distinguish, so we'll show all for now
                 // TODO: Add mode metadata to cached data in future
@@ -1817,8 +1820,8 @@ export class App extends BaseComponent {
                 this.components.results.setVideos(cachedAnalysis, cacheMetadata?.channelTitle || 'Unknown Channel');
                 this.components.results.show();
                 debugLog('📊 Results component updated');
-            }
-            
+        }
+        
             // Update analytics display
             this.renderAnalytics();
             debugLog('📊 renderAnalytics() called');

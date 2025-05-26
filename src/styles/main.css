@@ -383,7 +383,7 @@ tr:hover {
     min-height: 100vh;
 }
 
-/* Header Section - Windows XP Window Chrome */
+/* Header Section - Windows XP Window Chrome with Logo */
 .app-header {
     background: var(--xp-window-bg);
     border: 2px outset var(--xp-window-bg);
@@ -408,10 +408,50 @@ tr:hover {
     align-items: center;
 }
 
+/* Header with Logo Layout */
+.header-with-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--xp-spacing-lg);
+    flex: 1;
+}
+
+.app-logo {
+    width: 48px;
+    height: 48px;
+    border: 1px outset var(--xp-button-face);
+    border-radius: var(--xp-border-radius);
+    padding: var(--xp-spacing-xs);
+    background: var(--xp-button-face);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all var(--xp-transition-normal);
+}
+
+.app-logo:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
 .title-section {
     flex: 1;
 }
 
+.app-title {
+    margin: 0;
+    font-size: var(--xp-font-size-heading);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    color: var(--xp-title-active-start);
+}
+
+.app-subtitle {
+    margin: var(--xp-spacing-xs) 0 0 0;
+    font-size: var(--xp-font-size);
+    opacity: 0.9;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+/* Legacy support for existing h1 and p in header */
 .app-header h1 {
     margin: 0;
     font-size: var(--xp-font-size-heading);
@@ -426,6 +466,28 @@ tr:hover {
     text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
 }
 
+/* Mobile Responsive Header */
+@media (max-width: 768px) {
+    .header-with-logo {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--xp-spacing-md);
+    }
+    
+    .app-logo {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .app-title {
+        font-size: var(--xp-font-size-large);
+    }
+    
+    .app-subtitle {
+        font-size: var(--xp-font-size-small);
+    }
+}
+
 /* Mode Toggle Section - Compact Windows XP Style */
 .mode-toggle {
   background: var(--xp-panel-bg);
@@ -437,9 +499,9 @@ tr:hover {
 }
 
 .mode-buttons {
-  display: flex;
+    display: flex;
   gap: 6px;
-  align-items: center;
+    align-items: center;
   justify-content: center;
 }
 
@@ -449,7 +511,7 @@ tr:hover {
   border-radius: var(--xp-border-radius);
   color: var(--xp-text-primary);
   font-family: var(--xp-font-family);
-  font-size: 11px;
+    font-size: 11px;
   font-weight: 500;
   padding: 4px 12px;
   cursor: pointer;
@@ -499,13 +561,13 @@ tr:hover {
   margin: 0 0 2px 0;
   color: var(--xp-text-primary);
   font-weight: 600;
-  display: flex;
+    display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .demo-notice p, .api-key-section p {
-  font-size: 10px;
+    font-size: 10px;
   margin: 0;
   color: var(--xp-text-secondary);
   line-height: 1.3;
@@ -571,7 +633,7 @@ tr:hover {
   font-size: 11px;
   font-weight: 600;
   padding: 6px 12px;
-  cursor: pointer;
+    cursor: pointer;
   transition: all var(--xp-transition-fast);
   white-space: nowrap;
 }
@@ -3388,4 +3450,4 @@ button:disabled:hover {
   font-size: 11px;
   text-align: center;
   color: var(--xp-text-secondary);
-}
+} 
