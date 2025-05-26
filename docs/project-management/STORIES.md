@@ -38,19 +38,25 @@ As a **project manager**, I want to **break down the redesign plan into actionab
 **Epic**: EPIC-010 (UX Redesign)  
 **Status**: 📋 PLANNED  
 **Priority**: P0 (Critical)  
-**Story Points**: 5  
+**Story Points**: 3  
 
 **User Story**:
 As a **new user**, I want to **see a clear, professional header with logo and prominent API key section** so that **I understand the tool's purpose and how to get started**.
 
 **Acceptance Criteria**:
-- [ ] Header with logo and title implemented
-- [ ] API key section prominently featured
-- [ ] Clear value proposition messaging
-- [ ] Professional appearance matching style guide
-- [ ] Mobile-responsive design
+- [ ] Header component with logo (48x48px) and title "YouTube Research Hub"
+- [ ] Logo styled with Windows XP button aesthetic (outset border, padding)
+- [ ] Title uses `--xp-title-active-start` color (#0a246a)
+- [ ] Header has bottom border separator (2px solid)
+- [ ] Flexbox layout with 16px gap between logo and title
+- [ ] Mobile-responsive: stack vertically on small screens
 
-**Reference**: `ux-demo.html` header section
+**Technical Notes**:
+- Update `src/index.html` header section
+- Reference `ux-demo.html` lines 75-83 for exact styling
+- Logo path: `src/assets/logo.png`
+
+**Reference**: `ux-demo.html` header section, `docs/redesign-plan.md` Visual Design Changes
 
 ### **STORY-022: Implement Tag-Based Keyword Input System**
 **Epic**: EPIC-010 (UX Redesign)  
@@ -62,13 +68,22 @@ As a **new user**, I want to **see a clear, professional header with logo and pr
 As a **content researcher**, I want to **add keywords using a professional tag system** so that **I can easily manage multiple search terms with a modern interface**.
 
 **Acceptance Criteria**:
-- [ ] Tag input container with Windows XP styling
-- [ ] Enter key adds tags, Backspace removes last tag
-- [ ] Visual tags with X buttons for removal
-- [ ] Responsive design for mobile devices
-- [ ] Integration with existing search logic
+- [ ] Tag input container with inset border and white background
+- [ ] Enter key adds tags, Backspace removes last tag when input empty
+- [ ] Visual tags with Windows XP button gradient styling
+- [ ] X buttons on tags with hover effects (red background)
+- [ ] Focus state with blue border and shadow
+- [ ] Minimum 40px height, flexible width
+- [ ] Integration with existing keyword search logic
+- [ ] Mobile: 44px minimum touch targets
 
-**Reference**: `ux-demo.html` tag input system
+**Technical Notes**:
+- Replace current keyword input in form
+- Reference `ux-demo.html` lines 280-350 for tag styling
+- Implement tag management in JavaScript
+- Update search logic to handle tag array
+
+**Reference**: `ux-demo.html` tag input system, `docs/redesign-plan.md` Component Architecture
 
 ### **STORY-023: Integrate Demo Mode Seamlessly**
 **Epic**: EPIC-010 (UX Redesign)  
@@ -80,13 +95,22 @@ As a **content researcher**, I want to **add keywords using a professional tag s
 As a **potential user**, I want to **try the demo without artificial limitations or confusing interfaces** so that **I can evaluate the tool's capabilities naturally**.
 
 **Acceptance Criteria**:
-- [ ] Small demo button as secondary option
-- [ ] Auto-fill form with sample data when demo activated
-- [ ] No counters or usage limitations displayed
-- [ ] Smooth transition between demo and live modes
-- [ ] Clear but non-intrusive demo indicators
+- [ ] Small orange demo button below API key section
+- [ ] Auto-fill form with sample channel and keywords when activated
+- [ ] Remove all usage counters and limitation messaging
+- [ ] Demo indicator next to analyze button (subtle orange badge)
+- [ ] Smooth mode transitions with status messages
+- [ ] "Return to normal" button when demo active
+- [ ] No artificial video limits or restrictions
 
-**Reference**: `ux-demo.html` demo integration
+**Technical Notes**:
+- Remove existing demo/live toggle system
+- Implement small demo button in API section
+- Update mode management to 'none', 'demo', 'live' states
+- Remove demo video limiting logic
+- Reference `ux-demo.html` demo button styling
+
+**Reference**: `ux-demo.html` demo integration, `docs/redesign-plan.md` Simplified Demo Approach
 
 ### **STORY-024: Enhanced API Key Security & Storage**
 **Epic**: EPIC-010 (UX Redesign)  
@@ -98,13 +122,21 @@ As a **potential user**, I want to **try the demo without artificial limitations
 As a **security-conscious user**, I want to **understand how my API key is stored and have control over it** so that **I can make informed decisions about my data security**.
 
 **Acceptance Criteria**:
-- [ ] Clear microcopy about localStorage usage
-- [ ] Option to hide/show API key after validation
-- [ ] Security guide integration
-- [ ] Data management controls
-- [ ] Clear explanation of storage risks
+- [ ] Clear microcopy explaining localStorage usage and risks
+- [ ] Option to save/not save API key with confirmation dialog
+- [ ] Hide API key after validation (show dots with "Key detected" status)
+- [ ] Link to security guide in help text
+- [ ] Clear button to remove stored API key
+- [ ] Warning about not sharing or committing keys
 
-**Reference**: `docs/redesign-plan.md` security section
+**Technical Notes**:
+- Update API key validation flow
+- Add storage confirmation dialog
+- Implement key hiding/showing toggle
+- Add security warnings in help text
+- Reference existing encryption service
+
+**Reference**: `docs/redesign-plan.md` API Key Management section
 
 ---
 
