@@ -219,6 +219,8 @@ input[type="text"]:focus, input[type="password"]:focus {
     cursor: text;
     transition: all var(--xp-transition-normal);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .tag-input-container:hover {
@@ -503,6 +505,7 @@ tr:hover {
 /* Application Layout - Windows XP Modern */
 .app-main {
     max-width: 1200px;
+    width: 1200px;
     margin: 0 auto;
     padding: var(--xp-spacing-lg);
     background: var(--xp-window-bg);
@@ -2186,7 +2189,23 @@ button:disabled:hover {
     
     .app-main {
         max-width: 100%;
+        width: 100%;
         padding: 8px;
+    }
+    
+    /* Mobile layout adjustments */
+    .keywords-options-row {
+        grid-template-columns: 1fr;
+        gap: var(--xp-spacing-md);
+    }
+    
+    .options-column {
+        flex-direction: column;
+        gap: var(--xp-spacing-md);
+    }
+    
+    .analyze-button {
+        max-width: 100%;
     }
     
     .header-top {
@@ -3562,33 +3581,24 @@ button:disabled:hover {
     font-size: var(--xp-font-size-large);
 }
 
-/* Channel URL Row */
+/* Channel URL Row - Full Width */
 .channel-row {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--xp-spacing-sm);
 }
 
-/* Keywords Row */
-.keywords-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--xp-spacing-sm);
-}
-
-/* Search Options Row */
-.options-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--xp-spacing-lg);
-}
-
-/* Options and Analyze Row - Two Column Layout */
-.options-analyze-row {
+/* Keywords and Options Row - Keywords left, options right */
+.keywords-options-row {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: var(--xp-spacing-xl);
     align-items: start;
+}
+
+.keywords-column {
+    display: flex;
+    flex-direction: column;
 }
 
 .options-column {
@@ -3596,13 +3606,19 @@ button:disabled:hover {
     gap: var(--xp-spacing-lg);
 }
 
-.analyze-column {
+/* Analyze Button Row - Full Width */
+.analyze-row {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--xp-spacing-sm);
-    justify-content: center;
-    padding-top: var(--xp-spacing-md);
+    padding-top: var(--xp-spacing-lg);
+    border-top: 1px solid var(--xp-border-dark);
+}
+
+/* Full width elements */
+.full-width {
+    width: 100%;
 }
 
 .radio-group.compact {
@@ -3660,6 +3676,9 @@ button:disabled:hover {
     padding: var(--xp-spacing-lg) var(--xp-spacing-xl);
     font-size: var(--xp-font-size-large);
     font-weight: bold;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
 }
 
 /* Demo Mode Indicator */

@@ -503,33 +503,33 @@ export class App extends BaseComponent {
         
         return `
             <div class="form-section" id="formSection">
-                <!-- Channel URL Row -->
+                <!-- Channel URL Row - Full Width -->
                 <div class="form-row channel-row">
                     <div class="form-group">
                         <label class="form-label" for="channelUrl">
                             <span class="form-icon">📺</span>
                             Channel URL
                         </label>
-                        <input type="text" class="xp-input large" id="channelInput" 
+                        <input type="text" class="xp-input large full-width" id="channelInput" 
                                placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : '@channelname or https://youtube.com/@channel'}"
                                ${disabledAttr}>
                     </div>
                 </div>
 
-                <!-- Keywords Row -->
-                <div class="form-row keywords-row">
-                    <div class="form-group">
-                        <label class="form-label" for="keywords">
-                            <span class="form-icon">🏷️</span>
-                            Keywords (optional)
-                        </label>
-                        <div id="keywordTagInput" class="tag-input-container"></div>
+                <!-- Keywords and Options Row - Keywords take left column, options take right -->
+                <div class="form-row keywords-options-row">
+                    <!-- Left Column: Keywords -->
+                    <div class="keywords-column">
+                        <div class="form-group">
+                            <label class="form-label" for="keywords">
+                                <span class="form-icon">🏷️</span>
+                                Keywords (optional)
+                            </label>
+                            <div id="keywordTagInput" class="tag-input-container full-width"></div>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Options and Analyze Row -->
-                <div class="form-row options-analyze-row">
-                    <!-- Left Column: Search Options -->
+                    
+                    <!-- Right Column: Search Options -->
                     <div class="options-column">
                         <div class="radio-group compact">
                             <div class="radio-group-title">Keywords Logic:</div>
@@ -555,16 +555,16 @@ export class App extends BaseComponent {
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Column: Analyze Button -->
-                    <div class="analyze-column">
-                        <button class="xp-button success analyze-button" id="searchBtn" ${disabledAttr}>
-                            📊 Analyze Channel
-                        </button>
-                        <span class="demo-indicator hidden" id="demoIndicator">
-                            Demo: up to 100 videos analysis
-                        </span>
-                    </div>
+                </div>
+
+                <!-- Analyze Button Row - Full Width -->
+                <div class="form-row analyze-row">
+                    <button class="xp-button success analyze-button full-width" id="searchBtn" ${disabledAttr}>
+                        📊 Analyze Now
+                    </button>
+                    <span class="demo-indicator hidden" id="demoIndicator">
+                        Demo: up to 100 videos analysis
+                    </span>
                 </div>
             </div>
         `;
@@ -756,8 +756,7 @@ export class App extends BaseComponent {
         const formSection = this.findElement('#formSection');
         
         // Check current demo state more reliably
-        const isCurrentlyDemo = this.appState.apiMode === 'demo' || 
-                               (this.appState.currentEnvironment === 'github-pages' && this.appState.apiKey);
+        const isCurrentlyDemo = this.appState.apiMode === 'demo';
         
         if (isCurrentlyDemo) {
             // Return to normal mode
@@ -793,7 +792,7 @@ export class App extends BaseComponent {
                 this.setApiKey(demoApiKey);
             }
             
-            // Update button UI
+            // Update button UI immediately
             demoBtn.textContent = '🔄 Return to normal';
             demoBtn.classList.remove('demo');
             demoBtn.classList.add('warning');
@@ -801,13 +800,22 @@ export class App extends BaseComponent {
             if (demoIndicator) demoIndicator.classList.remove('hidden');
             if (formSection) formSection.classList.add('demo-active');
             
-            // Pre-fill with sample data
-            const channelInput = this.findElement('#channelInput');
-            if (channelInput) channelInput.value = '@MrBeast';
-            
-            if (this.components.tagInput) {
-                this.components.tagInput.setTags(['viral', 'trending']);
-            }
+            // Pre-fill with sample data - use setTimeout to ensure components are ready
+            setTimeout(() => {
+                const channelInput = this.findElement('#channelInput');
+                if (channelInput) {
+                    channelInput.value = '@MrBeast';
+                    debugLog('✅ Channel input pre-filled with @MrBeast');
+                }
+                
+                if (this.components.tagInput) {
+                    this.components.tagInput.setTags(['viral', 'trending']);
+                    debugLog('✅ Tags pre-filled with viral, trending');
+                }
+                
+                // Update button states after pre-filling
+                this.updateAnalyzeButtonState();
+            }, 100);
             
             this.showInfo('🎬 Demo mode active - Using sample data, limited to 100 videos');
             debugLog('🎬 Demo mode enabled with sample data');
@@ -883,6 +891,18 @@ export class App extends BaseComponent {
                 this.services.analytics.setVideosData(this.appState.filteredVideos);
                 this.renderAnalytics();
                 
+                // Ensure results are visible
+                const resultsEl = this.findElement('#resultsContainer');
+                const analyticsEl = this.findElement('#analyticsSection');
+                if (resultsEl) {
+                    resultsEl.style.display = 'block';
+                    resultsEl.style.visibility = 'visible';
+                }
+                if (analyticsEl) {
+                    analyticsEl.style.display = 'block';
+                    analyticsEl.style.visibility = 'visible';
+                }
+                
                 const totalVideos = this.appState.videos.length;
                 const filteredVideos = this.appState.filteredVideos.length;
                 this.showSuccess(`Found ${totalVideos} videos, ${filteredVideos} match your keyword filter`);
@@ -896,6 +916,18 @@ export class App extends BaseComponent {
                     this.components.results.setVideos(this.appState.videos, channelName);
                     this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
+                }
+                
+                // Ensure results are visible
+                const resultsEl = this.findElement('#resultsContainer');
+                const analyticsEl = this.findElement('#analyticsSection');
+                if (resultsEl) {
+                    resultsEl.style.display = 'block';
+                    resultsEl.style.visibility = 'visible';
+                }
+                if (analyticsEl) {
+                    analyticsEl.style.display = 'block';
+                    analyticsEl.style.visibility = 'visible';
                 }
                 
                 this.showSuccess(`Analysis complete: ${this.appState.videos.length} videos found`);
@@ -1240,6 +1272,7 @@ export class App extends BaseComponent {
             const resultsEl = this.findElement('#resultsContainer');
             if (resultsEl) {
                 resultsEl.style.display = 'block';
+                resultsEl.style.visibility = 'visible';
                 debugLog('📊 Results container shown');
             }
             
@@ -1247,6 +1280,14 @@ export class App extends BaseComponent {
             if (this.components.results) {
                 this.components.results.show();
                 debugLog('📊 Results component shown');
+            }
+            
+            // Show analytics section
+            const analyticsEl = this.findElement('#analyticsSection');
+            if (analyticsEl) {
+                analyticsEl.style.display = 'block';
+                analyticsEl.style.visibility = 'visible';
+                debugLog('📊 Analytics section shown');
             }
         }
     }
@@ -1516,6 +1557,56 @@ export class App extends BaseComponent {
         debugLog('🌐 Live mode initialized');
     }
     
+    initializeDemoUI() {
+        debugLog('🎭 Initializing demo UI state...');
+        
+        // Update demo button state
+        const demoBtn = this.findElement('#demoBtn');
+        const demoIndicator = this.findElement('#demoIndicator');
+        const formSection = this.findElement('#formSection');
+        
+        if (demoBtn) {
+            demoBtn.textContent = '🔄 Return to normal';
+            demoBtn.classList.remove('demo');
+            demoBtn.classList.add('warning');
+            debugLog('✅ Demo button updated');
+        }
+        
+        if (demoIndicator) {
+            demoIndicator.classList.remove('hidden');
+            debugLog('✅ Demo indicator shown');
+        }
+        
+        if (formSection) {
+            formSection.classList.add('demo-active');
+            debugLog('✅ Form section marked as demo-active');
+        }
+        
+        // Pre-fill form with sample data
+        const channelInput = this.findElement('#channelUrl');
+        if (channelInput) {
+            channelInput.value = '@MrBeast';
+            channelInput.dispatchEvent(new Event('input', { bubbles: true }));
+            debugLog('✅ Channel input pre-filled with @MrBeast');
+        } else {
+            debugLog('❌ Channel input not found (#channelUrl)');
+        }
+        
+        // Wait for TagInput to be ready and set tags
+        setTimeout(() => {
+            if (this.components.tagInput) {
+                this.components.tagInput.setTags(['viral', 'trending']);
+                debugLog('✅ Tags pre-filled with viral, trending');
+            } else {
+                debugLog('❌ TagInput component not ready');
+            }
+        }, 100);
+        
+        // Update button states
+        this.updateAnalyzeButtonState();
+        debugLog('✅ Demo UI initialization complete');
+    }
+    
     applyKeywordFilter(query) {
         if (!query || !this.appState.videos) return;
         
@@ -1640,7 +1731,7 @@ export class App extends BaseComponent {
                     this.showInfo('Please enter your YouTube Data API key');
             return 'live';
         }
-            } else {
+                        } else {
                 // Demo mode - use built-in API key
                 const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
                 debugLog('🔍 GitHub Pages Demo Mode Debug:', {
@@ -1658,10 +1749,16 @@ export class App extends BaseComponent {
                 if (demoApiKey) {
                     this.appState.apiMode = 'demo';  // Set demo mode BEFORE setApiKey
                     this.setApiKey(demoApiKey);
+                    
+                    // Initialize demo UI state properly
+                    setTimeout(() => {
+                        this.initializeDemoUI();
+                    }, 200);
+                    
                     debugLog('✅ GitHub Pages: Demo mode with built-in API key');
                     this.showInfo('Demo mode active - Limited to 100 recent videos');
                     return 'demo';
-        } else {
+                } else {
                     console.warn('⚠️ GitHub Pages: No demo API key found');
                     debugLog('❌ GitHub Pages: VITE_DEMO_API_KEY is null or undefined');
                     this.appState.apiMode = 'live';
@@ -1957,7 +2054,7 @@ export class App extends BaseComponent {
             }
             
             // Update channel input
-            const channelInput = this.findElement('#channelInput');
+            const channelInput = this.findElement('#channelUrl');
             if (channelInput && cacheMetadata) {
                 channelInput.value = cacheMetadata.channelTitle;
             }
