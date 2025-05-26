@@ -2,53 +2,181 @@
 
 *Active tasks and current work tracking*
 
-**Sprint**: UX Redesign & User Testing Preparation Sprint  
+**Sprint**: Critical Bug Fixes & UX Polish Sprint  
 **Start Date**: December 2024  
 **End Date**: January 2025  
-**Sprint Goal**: Implement UX redesign and prepare for user testing phase  
+**Sprint Goal**: Fix critical functionality issues and polish UX based on user feedback  
 
 ---
 
 ## 🎯 **SPRINT SUMMARY**
 
 **Sprint Objectives**:
-1. 📋 Break down redesign plan into actionable stories
-2. 🎨 Begin implementation of API-first interface design
-3. 🏷️ Implement tag-based keyword input system
-4. 🎭 Integrate seamless demo mode
-5. 🔒 Enhance API key security and storage
-6. 👥 Prepare user testing protocol
+1. 🔧 Fix critical functionality issues (validate button, cache loading)
+2. 🎨 Implement proper state management for API key and search sections
+3. 📐 Fix layout and centering issues
+4. 🖼️ Resolve logo display problems
+5. 📱 Improve demo mode video list display
+6. 🗂️ Redesign cache section as collapsible toggle
 
-**Current Sprint Velocity**: 21 points completed  
-**Story Points Planned**: 21 points  
-**Progress**: 100% complete (5 tasks done)
+**Current Sprint Velocity**: 23 points planned  
+**Story Points Planned**: 23 points  
+**Progress**: 0% complete (8 new critical tasks)
 
 ---
 
 ## 🚨 **ACTIVE TASKS**
 
-### **TASK-030: Analyze Redesign Plan and Create Stories**
-**Story**: STORY-020 (Create UX Redesign Stories from Redesign Plan)  
-**Status**: ✅ COMPLETED  
+### **TASK-035: Fix API Key Validation Button**
+**Story**: STORY-025 (Fix API Key Validation Functionality)  
+**Status**: 🔄 IN PROGRESS  
 **Priority**: P0 (Critical)  
 **Assignee**: Development Team  
-**Completed**: Today  
+**Story Points**: 3  
 
-**Description**: Break down the comprehensive redesign plan into actionable user stories for systematic implementation.
+**Description**: Fix the "Validate Key" button that is currently not responding to clicks or processing API keys correctly.
 
 **Acceptance Criteria**:
-- [x] Review `docs/redesign-plan.md` section by section
-- [x] Create individual stories for each major component
-- [x] Reference `ux-demo.html` for detailed specifications
-- [x] Estimate story points for development planning
-- [x] Prioritize stories based on user impact
+- [ ] Debug event listeners and button ID references
+- [ ] Verify API key validation logic with YouTube API
+- [ ] Test with valid/invalid API keys
+- [ ] Ensure proper error handling and success states
+- [ ] Fix button state management (enabled/disabled)
 
-**Results**: Enhanced 4 existing stories (STORY-021 through STORY-024) with detailed acceptance criteria and technical specifications  
-**Time Actual**: 2 hours
+**Technical Notes**: Check button ID consistency, event listener attachment, and API service integration
+
+### **TASK-036: Implement API Key Section State Management**
+**Story**: STORY-026 (Implement API Key Section State Management)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 2  
+
+**Description**: Gray out API key section when in demo mode to provide clear visual indication.
+
+**Acceptance Criteria**:
+- [ ] API key input field disabled/grayed in demo mode
+- [ ] Validate button disabled in demo mode
+- [ ] Clear visual styling for disabled state
+- [ ] Proper state restoration when exiting demo mode
+- [ ] Consistent disabled styling across components
+
+**Technical Notes**: Add CSS disabled classes, update demo mode toggle logic
+
+### **TASK-037: Fix Page Width and Centering**
+**Story**: STORY-027 (Fix Page Width and Centering)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 2  
+
+**Description**: Fix page layout to be properly centered with 1200px width on desktop.
+
+**Acceptance Criteria**:
+- [ ] Page container fixed at 1200px width on desktop
+- [ ] Content properly centered horizontally
+- [ ] Responsive behavior maintained on smaller screens
+- [ ] No horizontal scrolling on standard screens
+- [ ] Consistent margins and padding
+
+**Technical Notes**: Update `.app-main` CSS, ensure proper centering with `margin: 0 auto`
+
+### **TASK-038: Fix Logo Display**
+**Story**: STORY-028 (Fix Logo Display and Path)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 1  
+
+**Description**: Resolve logo not displaying issue and ensure proper file path resolution.
+
+**Acceptance Criteria**:
+- [ ] Logo displays correctly in header
+- [ ] Correct file path resolution for Vite build
+- [ ] Proper sizing (48x48px) maintained
+- [ ] Windows XP button styling applied
+- [ ] Fallback handling if logo not found
+
+**Technical Notes**: Verify logo file exists, check HTML img src, ensure Vite asset loading
 
 ---
 
-## 📋 **PLANNED TASKS (This Sprint)**
+### **TASK-039: Implement Search Section State Management**
+**Story**: STORY-029 (Implement Search Section State Management)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 3  
+
+**Description**: Disable search section until API key is validated to guide user flow.
+
+**Acceptance Criteria**:
+- [ ] Channel input disabled until API key validated
+- [ ] Keywords input disabled until API key validated
+- [ ] Analyze button disabled until API key validated
+- [ ] Clear visual indication of disabled state
+- [ ] Proper enabling when API key is validated
+- [ ] Helpful placeholder text explaining requirement
+
+**Technical Notes**: Update form state management, connect to API key validation state
+
+### **TASK-040: Redesign Cache Section as Collapsible Toggle**
+**Story**: STORY-030 (Implement Collapsible Cache Section)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P1 (High)  
+**Assignee**: Development Team  
+**Story Points**: 5  
+
+**Description**: Move cached results to a collapsible section next to the analyze button for cleaner interface.
+
+**Acceptance Criteria**:
+- [ ] Cache section as collapsible toggle next to analyze button
+- [ ] Clean, compact design that doesn't clutter interface
+- [ ] Easy access to cached channels
+- [ ] Proper spacing and alignment with analyze button
+- [ ] Responsive behavior on mobile devices
+
+**Technical Notes**: Redesign cache layout, implement collapsible functionality, update CSS positioning
+
+### **TASK-041: Fix Cache Load Button Functionality**
+**Story**: STORY-031 (Fix Cache Load Button Functionality)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 3  
+
+**Description**: Fix cache load buttons that are currently not responding to clicks.
+
+**Acceptance Criteria**:
+- [ ] Load button responds to clicks
+- [ ] Cached data loads into interface correctly
+- [ ] Analytics and video list display properly
+- [ ] Form pre-fills with cached channel information
+- [ ] Proper error handling for corrupted cache
+
+**Technical Notes**: Debug event listeners, verify cache loading logic, test with existing cached data
+
+### **TASK-042: Fix Demo Mode Video List Display**
+**Story**: STORY-032 (Fix Demo Mode Video List Display)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Assignee**: Development Team  
+**Story Points**: 4  
+
+**Description**: Fix demo mode to show both analytics and video list after analysis.
+
+**Acceptance Criteria**:
+- [ ] Video list displays correctly in demo mode
+- [ ] Analytics section shows properly
+- [ ] Both sections visible after demo analysis
+- [ ] Proper data flow from analysis to display components
+- [ ] Consistent behavior between demo and live modes
+
+**Technical Notes**: Debug Results component in demo mode, check video data flow to VideoList component
+
+---
+
+## 📋 **COMPLETED TASKS (Previous Sprint)**
 
 ### **TASK-031: Implement Header with Logo and API Section**
 **Story**: STORY-021 (Implement API-First Header Design)  
@@ -141,60 +269,60 @@
 
 ## 📊 **SPRINT METRICS**
 
-**Story Points**: 21 points total  
+**Story Points**: 23 points total  
 **Completed**: 0 points  
-**Remaining**: 21 points  
+**Remaining**: 23 points  
 **Sprint Progress**: 0% complete  
 **Days Remaining**: ~14 days  
 
 **Priority Distribution**:
-- P0 (Critical): 18 points (4 stories)
-- P1 (High): 3 points (1 story)
+- P0 (Critical): 18 points (7 stories)
+- P1 (High): 5 points (1 story)
 
 **Risk Assessment**:
-- 🟢 **Low Risk**: Clear requirements from redesign plan and prototype
-- 🟢 **Low Risk**: Existing codebase is stable foundation
-- 🟡 **Medium Risk**: New UX patterns may require iteration
+- 🔴 **High Risk**: Multiple critical functionality issues affecting user experience
+- 🟡 **Medium Risk**: Some issues may be interconnected requiring careful debugging
+- 🟢 **Low Risk**: Clear bug reports with specific reproduction steps
 
 ---
 
 ## 🎯 **SPRINT GOALS TRACKING**
 
-### **Goal 1: Break down redesign plan** 📋
+### **Goal 1: Fix critical functionality** 🔧
 - **Status**: 🔄 In Progress
-- **Progress**: 10% (analysis started)
+- **Progress**: 0% (8 critical issues identified)
 - **Blocker**: None
-- **Target**: End of week
+- **Target**: Week 1-2
 
-### **Goal 2: API-first interface design** 🎨
-- **Status**: 📋 Planned
-- **Progress**: 0% (waiting for stories)
-- **Blocker**: TASK-030 completion
+### **Goal 2: Implement state management** 🎨
+- **Status**: 🔄 In Progress
+- **Progress**: 0% (API key and search section states)
+- **Blocker**: None
+- **Target**: Week 1
+
+### **Goal 3: Fix layout and display** 📐
+- **Status**: 🔄 In Progress
+- **Progress**: 0% (width, centering, logo issues)
+- **Blocker**: None
+- **Target**: Week 1
+
+### **Goal 4: Improve demo mode** 📱
+- **Status**: 🔄 In Progress
+- **Progress**: 0% (video list display issue)
+- **Blocker**: None
 - **Target**: Week 2
 
-### **Goal 3: Tag-based keyword system** 🏷️
-- **Status**: 📋 Planned
-- **Progress**: 0% (waiting for header)
-- **Blocker**: TASK-031 completion
+### **Goal 5: Redesign cache section** 🗂️
+- **Status**: 🔄 In Progress
+- **Progress**: 0% (collapsible toggle design)
+- **Blocker**: None
 - **Target**: Week 2
 
-### **Goal 4: Seamless demo integration** 🎭
+### **Goal 6: Polish user experience** ✨
 - **Status**: 📋 Planned
-- **Progress**: 0% (waiting for tags)
-- **Blocker**: TASK-032 completion
+- **Progress**: 0% (dependent on bug fixes)
+- **Blocker**: Critical issues resolution
 - **Target**: Week 3
-
-### **Goal 5: Enhanced security** 🔒
-- **Status**: 📋 Planned
-- **Progress**: 0% (waiting for demo)
-- **Blocker**: TASK-033 completion
-- **Target**: Week 3
-
-### **Goal 6: User testing prep** 👥
-- **Status**: 📋 Not Started
-- **Progress**: 0% (future sprint)
-- **Blocker**: UX redesign completion
-- **Target**: Next sprint
 
 ---
 

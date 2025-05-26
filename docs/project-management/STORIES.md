@@ -10,9 +10,205 @@
 
 ## 🎯 **ACTIVE STORIES (Current Sprint)**
 
+### **STORY-025: Fix API Key Validation Functionality**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 3  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user**, I want the **"Validate Key" button to work correctly** so that **I can successfully authenticate and use the tool**.
+
+**Acceptance Criteria**:
+- [ ] Validate button responds to clicks and processes API key
+- [ ] Proper error handling for invalid keys
+- [ ] Success state shows validated status
+- [ ] Button state management (enabled/disabled) works correctly
+- [ ] Integration with YouTube API service validation
+
+**Technical Notes**:
+- Check event listeners and button ID references
+- Verify API key validation logic
+- Test with valid/invalid API keys
+
+**Related Issues**: Button not responding to clicks
+
+### **STORY-026: Implement API Key Section State Management**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 2  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user in demo mode**, I want the **API key section to be visually disabled** so that **I understand it's not needed in demo mode**.
+
+**Acceptance Criteria**:
+- [ ] API key input field grayed out/disabled in demo mode
+- [ ] Validate button disabled in demo mode
+- [ ] Clear visual indication that API key is not needed
+- [ ] Proper state restoration when exiting demo mode
+- [ ] Consistent styling with disabled state
+
+**Technical Notes**:
+- Add CSS classes for disabled state
+- Update demo mode toggle logic
+- Apply disabled styling to input and button
+
+**Related Issues**: API key area should be grayed out in demo mode
+
+### **STORY-027: Fix Page Width and Centering**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 2  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user on desktop**, I want the **page to be properly centered with 1200px width** so that **the interface looks professional and well-organized**.
+
+**Acceptance Criteria**:
+- [ ] Page container fixed at 1200px width on desktop
+- [ ] Content properly centered horizontally
+- [ ] Responsive behavior on smaller screens
+- [ ] Consistent margins and padding
+- [ ] No horizontal scrolling on standard screens
+
+**Technical Notes**:
+- Update CSS for `.app-main` container
+- Ensure proper centering with `margin: 0 auto`
+- Test on various screen sizes
+
+**Related Issues**: Page width not fixed and not centered
+
+### **STORY-028: Fix Logo Display and Path**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 1  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user**, I want to **see the YouTube Research Hub logo** so that **the interface looks complete and professional**.
+
+**Acceptance Criteria**:
+- [ ] Logo displays correctly in header
+- [ ] Correct file path resolution
+- [ ] Proper sizing (48x48px)
+- [ ] Windows XP button styling applied
+- [ ] Fallback handling if logo not found
+
+**Technical Notes**:
+- Verify logo file exists at correct path
+- Check HTML img src attribute
+- Ensure proper asset loading in Vite
+
+**Related Issues**: Logo not found/displaying
+
+### **STORY-029: Implement Search Section State Management**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 3  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user without a validated API key**, I want the **search section to be disabled** so that **I understand I need to validate my key first**.
+
+**Acceptance Criteria**:
+- [ ] Channel input disabled until API key validated
+- [ ] Keywords input disabled until API key validated
+- [ ] Analyze button disabled until API key validated
+- [ ] Clear visual indication of disabled state
+- [ ] Proper enabling when API key is validated
+- [ ] Helpful placeholder text explaining requirement
+
+**Technical Notes**:
+- Update form state management logic
+- Add disabled styling to form elements
+- Connect to API key validation state
+
+**Related Issues**: Search section should be grayed out before API key validation
+
+### **STORY-030: Implement Collapsible Cache Section**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P1 (High)  
+**Story Points**: 5  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user**, I want the **cached results in a collapsible section next to the analyze button** so that **the interface is cleaner and cache is easily accessible**.
+
+**Acceptance Criteria**:
+- [ ] Cache section as collapsible toggle next to analyze button
+- [ ] Clean, compact design that doesn't clutter interface
+- [ ] Easy access to cached channels
+- [ ] Proper spacing and alignment with analyze button
+- [ ] Responsive behavior on mobile devices
+
+**Technical Notes**:
+- Redesign cache section layout
+- Implement collapsible/expandable functionality
+- Update CSS for proper positioning
+- Ensure mobile responsiveness
+
+**Related Issues**: Cached results should be in toggle next to analyze button
+
+### **STORY-031: Fix Cache Load Button Functionality**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 3  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user**, I want the **cache load button to work correctly** so that **I can quickly access previously analyzed channels**.
+
+**Acceptance Criteria**:
+- [ ] Load button responds to clicks
+- [ ] Cached data loads into interface correctly
+- [ ] Analytics and video list display properly
+- [ ] Form pre-fills with cached channel information
+- [ ] Proper error handling for corrupted cache
+
+**Technical Notes**:
+- Debug event listeners for load buttons
+- Verify cache loading logic
+- Test with existing cached data
+- Check data format compatibility
+
+**Related Issues**: Cache load button not working
+
+### **STORY-032: Fix Demo Mode Video List Display**
+**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
+**Status**: 🔄 IN PROGRESS  
+**Priority**: P0 (Critical)  
+**Story Points**: 4  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **user in demo mode**, I want to **see both analytics and video list after analysis** so that **I can fully evaluate the tool's capabilities**.
+
+**Acceptance Criteria**:
+- [ ] Video list displays correctly in demo mode
+- [ ] Analytics section shows properly
+- [ ] Both sections visible after demo analysis
+- [ ] Proper data flow from analysis to display components
+- [ ] Consistent behavior between demo and live modes
+
+**Technical Notes**:
+- Debug Results component in demo mode
+- Check video data flow to VideoList component
+- Verify component visibility and rendering
+- Test demo mode analysis end-to-end
+
+**Related Issues**: Demo mode shows analysis but not videos
+
 ### **STORY-020: Create UX Redesign Stories from Redesign Plan**
 **Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: 📋 TODO  
+**Status**: ✅ COMPLETED  
 **Priority**: P0 (Critical)  
 **Story Points**: 2  
 **Assignee**: Development Team  
@@ -21,14 +217,15 @@
 As a **project manager**, I want to **break down the redesign plan into actionable user stories** so that **the development team can implement the new UX systematically**.
 
 **Acceptance Criteria**:
-- [ ] Review `docs/redesign-plan.md` comprehensively
-- [ ] Create individual stories for each major component
-- [ ] Estimate story points for each story
-- [ ] Prioritize stories based on user impact
-- [ ] Reference `ux-demo.html` prototype for specifications
+- [x] Review `docs/redesign-plan.md` comprehensively
+- [x] Create individual stories for each major component
+- [x] Estimate story points for each story
+- [x] Prioritize stories based on user impact
+- [x] Reference `ux-demo.html` prototype for specifications
 
 **Related Tasks**: Analysis of redesign plan, story creation  
-**Dependencies**: None
+**Dependencies**: None  
+**Completion Notes**: Stories STORY-025 through STORY-032 created based on user feedback
 
 ---
 
