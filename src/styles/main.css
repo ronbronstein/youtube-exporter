@@ -205,6 +205,132 @@ input[type="text"]:focus, input[type="password"]:focus {
     background: var(--xp-input-bg);
 }
 
+/* Tag Input System - Windows XP Modern */
+.tag-input-container {
+    border: 1px inset var(--xp-window-bg);
+    background: var(--xp-input-bg);
+    border-radius: var(--xp-border-radius);
+    padding: var(--xp-spacing-sm);
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--xp-spacing-xs);
+    align-items: center;
+    cursor: text;
+    transition: all var(--xp-transition-normal);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tag-input-container:hover {
+    border-color: var(--xp-input-border);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(44, 90, 160, 0.1);
+}
+
+.tag-input-container.focused {
+    border-color: var(--xp-input-border-focus);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 3px rgba(44, 90, 160, 0.2);
+}
+
+.tag-input-container.disabled {
+    background: var(--xp-window-bg);
+    border-color: var(--xp-button-shadow);
+    cursor: default;
+    opacity: 0.6;
+}
+
+.tag {
+    background: linear-gradient(135deg, var(--xp-button-face) 0%, var(--xp-window-bg-dark) 100%);
+    border: 1px outset var(--xp-button-face);
+    border-radius: var(--xp-border-radius);
+    padding: var(--xp-spacing-xs) var(--xp-spacing-sm);
+    font-size: var(--xp-font-size-small);
+    display: flex;
+    align-items: center;
+    gap: var(--xp-spacing-xs);
+    transition: all var(--xp-transition-normal);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    max-width: 200px;
+}
+
+.tag:hover {
+    background: linear-gradient(135deg, var(--xp-button-face-hover) 0%, var(--xp-window-bg-dark) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.tag-text {
+    color: var(--xp-text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tag-remove {
+    background: none;
+    border: none;
+    color: var(--xp-text-secondary);
+    cursor: pointer;
+    font-size: var(--xp-font-size);
+    font-weight: bold;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all var(--xp-transition-fast);
+    line-height: 1;
+}
+
+.tag-remove:hover {
+    background: var(--xp-error);
+    color: white;
+    transform: scale(1.1);
+}
+
+.tag-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--xp-font-family);
+    font-size: var(--xp-font-size);
+    color: var(--xp-text);
+    flex: 1;
+    min-width: 120px;
+    padding: var(--xp-spacing-xs);
+}
+
+.tag-input::placeholder {
+    color: var(--xp-text-disabled);
+    font-style: italic;
+}
+
+/* Mobile responsive tag input */
+@media (max-width: 768px) {
+    .tag-input-container {
+        min-height: 44px; /* Touch-friendly height */
+        padding: var(--xp-spacing-md);
+    }
+    
+    .tag {
+        min-height: 32px; /* Touch-friendly tag height */
+        padding: var(--xp-spacing-sm) var(--xp-spacing-md);
+    }
+    
+    .tag-remove {
+        width: 20px;
+        height: 20px;
+        font-size: var(--xp-font-size-large);
+    }
+    
+    .tag-input {
+        min-width: 100px;
+        font-size: var(--xp-font-size-large);
+    }
+}
+
 /* Checkbox and Radio Styling */
 input[type="checkbox"], input[type="radio"] {
     margin-right: var(--xp-spacing-sm);
@@ -1001,7 +1127,8 @@ tr:hover {
 
 .search-inputs-large {
     display: flex;
-    gap: var(--xp-spacing-sm);
+    flex-direction: column;
+    gap: var(--xp-spacing-lg);
     margin-bottom: var(--xp-spacing-md);
 }
 
@@ -1015,6 +1142,31 @@ tr:hover {
     color: var(--xp-text);
     transition: all var(--xp-transition-normal);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Keyword input wrapper styling */
+.keyword-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--xp-spacing-sm);
+}
+
+.keyword-input-wrapper .form-label {
+    display: flex;
+    align-items: center;
+    gap: var(--xp-spacing-sm);
+    font-weight: bold;
+    margin-bottom: var(--xp-spacing-sm);
+    color: var(--xp-text);
+    font-size: var(--xp-font-size);
+}
+
+.keyword-input-wrapper .form-icon {
+    font-size: var(--xp-font-size-large);
+}
+
+.keyword-tag-input {
+    /* Container for TagInput component */
 }
 
 .channel-input-large:focus, .keyword-input-large:focus {

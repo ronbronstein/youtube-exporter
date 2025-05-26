@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Research Hub - UX Demo</title>
+    <style>
+        /* Windows XP Modern Color Palette - From Style Guide */
+        :root {
+            --xp-window-bg: #ece9d8;
+            --xp-window-bg-light: #f8f6f3;
+            --xp-window-bg-dark: #d8d1bf;
+            --xp-button-face: #ece9d8;
+            --xp-button-face-hover: #f2efeb;
+            --xp-button-shadow: #8a867a;
+            --xp-button-highlight: #ffffff;
+            --xp-button-dark-shadow: #716f64;
+            --xp-text: #1a1a1a;
+            --xp-text-secondary: #4a4a4a;
+            --xp-text-disabled: #999999;
+            --xp-text-selected: #ffffff;
+            --xp-title-active-start: #0a246a;
+            --xp-title-active-mid: #4a7bc8;
+            --xp-title-active-end: #a6caf0;
+            --xp-border-dark: #707070;
+            --xp-border-light: #ffffff;
+            --xp-border-focus: #2c5aa0;
+            --xp-selection-bg: #2c5aa0;
+            --xp-selection-bg-hover: #3d6bb1;
+            --xp-input-bg: #ffffff;
+            --xp-input-bg-hover: #fafafa;
+            --xp-input-border: #7f9db9;
+            --xp-input-border-focus: #2c5aa0;
+            --xp-success: #22c55e;
+            --xp-warning: #f59e0b;
+            --xp-error: #ef4444;
+            --xp-info: #3b82f6;
+            --xp-font-family: 'Tahoma', 'Segoe UI', 'MS Sans Serif', sans-serif;
+            --xp-font-size: 14px;
+            --xp-font-size-small: 12px;
+            --xp-font-size-large: 16px;
+            --xp-font-size-heading: 20px;
+            --xp-spacing-xs: 4px;
+            --xp-spacing-sm: 8px;
+            --xp-spacing-md: 12px;
+            --xp-spacing-lg: 16px;
+            --xp-spacing-xl: 24px;
+            --xp-border-radius: 3px;
+            --xp-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: var(--xp-spacing-xl);
+            font-family: var(--xp-font-family);
+            font-size: var(--xp-font-size);
+            background: var(--xp-window-bg);
+            color: var(--xp-text);
+            line-height: 1.4;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--xp-window-bg-light);
+            border: 2px inset var(--xp-window-bg);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-xl);
+        }
+
+        /* Header with Logo */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: var(--xp-spacing-lg);
+            margin-bottom: var(--xp-spacing-xl);
+            padding-bottom: var(--xp-spacing-lg);
+            border-bottom: 2px solid var(--xp-border-dark);
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border: 1px outset var(--xp-button-face);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-xs);
+            background: var(--xp-button-face);
+        }
+
+        .demo-title {
+            font-size: var(--xp-font-size-heading);
+            font-weight: bold;
+            color: var(--xp-title-active-start);
+            margin: 0;
+        }
+
+        /* API Key Section - Primary Focus */
+        .api-section {
+            background: var(--xp-input-bg);
+            border: 1px inset var(--xp-window-bg);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-xl);
+            margin-bottom: var(--xp-spacing-xl);
+        }
+
+        .api-label {
+            font-size: var(--xp-font-size-large);
+            font-weight: bold;
+            color: var(--xp-title-active-start);
+            margin-bottom: var(--xp-spacing-lg);
+        }
+
+        .api-input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: var(--xp-spacing-md);
+            align-items: end;
+            margin-bottom: var(--xp-spacing-md);
+        }
+
+        .xp-input {
+            border: 1px inset var(--xp-window-bg);
+            padding: var(--xp-spacing-md) var(--xp-spacing-sm);
+            font-family: var(--xp-font-family);
+            font-size: var(--xp-font-size);
+            background: var(--xp-input-bg);
+            color: var(--xp-text);
+            border-radius: var(--xp-border-radius);
+            transition: all var(--xp-transition-normal);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .xp-input:hover {
+            background: var(--xp-input-bg-hover);
+            border-color: var(--xp-input-border);
+        }
+
+        .xp-input:focus {
+            outline: none;
+            border-color: var(--xp-input-border-focus);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 3px rgba(44, 90, 160, 0.2);
+        }
+
+        .xp-input.large {
+            padding: var(--xp-spacing-lg) var(--xp-spacing-md);
+            font-size: var(--xp-font-size-large);
+        }
+
+        /* Windows XP Button Styles - From Style Guide */
+        .xp-button {
+            background: linear-gradient(135deg, var(--xp-button-face) 0%, var(--xp-window-bg-dark) 100%);
+            border: 1px outset var(--xp-button-face);
+            padding: var(--xp-spacing-md) var(--xp-spacing-xl);
+            font-family: var(--xp-font-family);
+            font-size: var(--xp-font-size);
+            cursor: pointer;
+            color: var(--xp-text);
+            border-radius: var(--xp-border-radius);
+            transition: all var(--xp-transition-normal);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        .xp-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--xp-button-face-hover) 0%, var(--xp-window-bg-dark) 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border-color: var(--xp-border-focus);
+        }
+
+        .xp-button:active:not(:disabled) {
+            border: 1px inset var(--xp-button-face);
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .xp-button:disabled {
+            color: var(--xp-text-disabled);
+            background: var(--xp-button-face);
+            cursor: default;
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .xp-button.success {
+            background: linear-gradient(135deg, var(--xp-success) 0%, #16a34a 100%);
+            color: white;
+            border-color: var(--xp-success);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .xp-button.success:hover:not(:disabled) {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+
+        .xp-button.warning {
+            background: linear-gradient(135deg, var(--xp-warning) 0%, #d97706 100%);
+            color: white;
+            border-color: var(--xp-warning);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .xp-button.warning:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Small Demo Button */
+        .xp-button.demo {
+            background: linear-gradient(135deg, var(--xp-warning) 0%, #d97706 100%);
+            color: white;
+            border-color: var(--xp-warning);
+            padding: var(--xp-spacing-xs) var(--xp-spacing-md);
+            font-size: var(--xp-font-size-small);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .xp-button.demo:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .api-help {
+            font-size: var(--xp-font-size-small);
+            color: var(--xp-text-secondary);
+            margin-bottom: var(--xp-spacing-md);
+            line-height: 1.5;
+        }
+
+        .api-help a {
+            color: var(--xp-selection-bg);
+            text-decoration: none;
+        }
+
+        .api-help a:hover {
+            text-decoration: underline;
+        }
+
+        .demo-button-container {
+            text-align: center;
+            padding-top: var(--xp-spacing-md);
+            border-top: 1px solid var(--xp-border-dark);
+        }
+
+        /* Form Section - Always Visible */
+        .form-section {
+            background: var(--xp-window-bg);
+            border: 2px inset var(--xp-window-bg);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-xl);
+        }
+
+        .form-row {
+            margin-bottom: var(--xp-spacing-xl);
+        }
+
+        .form-group {
+            margin-bottom: var(--xp-spacing-md);
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: var(--xp-spacing-sm);
+            font-weight: bold;
+            margin-bottom: var(--xp-spacing-sm);
+            color: var(--xp-text);
+            font-size: var(--xp-font-size);
+        }
+
+        .form-icon {
+            font-size: var(--xp-font-size-large);
+        }
+
+        /* Channel URL Row */
+        .channel-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--xp-spacing-sm);
+        }
+
+        /* Keywords Row */
+        .keywords-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--xp-spacing-sm);
+        }
+
+        /* Search Options Row */
+        .options-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--xp-spacing-lg);
+        }
+
+        /* Tag Input System */
+        .tag-input-container {
+            border: 1px inset var(--xp-window-bg);
+            background: var(--xp-input-bg);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-sm);
+            min-height: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--xp-spacing-xs);
+            align-items: center;
+            cursor: text;
+            transition: all var(--xp-transition-normal);
+        }
+
+        .tag-input-container:hover {
+            border-color: var(--xp-input-border);
+        }
+
+        .tag-input-container.focused {
+            border-color: var(--xp-input-border-focus);
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.2);
+        }
+
+        .tag {
+            background: linear-gradient(135deg, var(--xp-button-face) 0%, var(--xp-window-bg-dark) 100%);
+            border: 1px outset var(--xp-button-face);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-xs) var(--xp-spacing-sm);
+            font-size: var(--xp-font-size-small);
+            display: flex;
+            align-items: center;
+            gap: var(--xp-spacing-xs);
+            transition: all var(--xp-transition-normal);
+        }
+
+        .tag:hover {
+            background: linear-gradient(135deg, var(--xp-button-face-hover) 0%, var(--xp-window-bg-dark) 100%);
+            transform: translateY(-1px);
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: var(--xp-text-secondary);
+            cursor: pointer;
+            font-size: var(--xp-font-size-small);
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all var(--xp-transition-normal);
+        }
+
+        .tag-remove:hover {
+            background: var(--xp-error);
+            color: white;
+        }
+
+        .tag-input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--xp-font-family);
+            font-size: var(--xp-font-size);
+            color: var(--xp-text);
+            flex: 1;
+            min-width: 120px;
+            padding: var(--xp-spacing-xs);
+        }
+
+        /* Radio Button Groups */
+        .radio-group {
+            background: var(--xp-window-bg-light);
+            border: 1px inset var(--xp-window-bg);
+            border-radius: var(--xp-border-radius);
+            padding: var(--xp-spacing-md);
+        }
+
+        .radio-group-title {
+            font-weight: bold;
+            font-size: var(--xp-font-size-small);
+            margin-bottom: var(--xp-spacing-sm);
+            color: var(--xp-text);
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: var(--xp-spacing-xs);
+            margin-bottom: var(--xp-spacing-xs);
+            cursor: pointer;
+        }
+
+        .radio-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .radio-option label {
+            font-size: var(--xp-font-size-small);
+            cursor: pointer;
+            color: var(--xp-text);
+        }
+
+        /* Analyze Section */
+        .analyze-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: var(--xp-spacing-lg);
+            border-top: 1px solid var(--xp-border-dark);
+        }
+
+        .analyze-button {
+            padding: var(--xp-spacing-lg) var(--xp-spacing-xl);
+            font-size: var(--xp-font-size-large);
+            font-weight: bold;
+        }
+
+        /* Demo Mode Indicator */
+        .demo-indicator {
+            font-size: var(--xp-font-size-small);
+            color: var(--xp-warning);
+            font-weight: bold;
+            background: rgba(245, 158, 11, 0.1);
+            padding: var(--xp-spacing-xs) var(--xp-spacing-sm);
+            border-radius: var(--xp-border-radius);
+            border: 1px solid var(--xp-warning);
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: var(--xp-spacing-md);
+            border-radius: var(--xp-border-radius);
+            margin-top: var(--xp-spacing-md);
+            font-size: var(--xp-font-size-small);
+        }
+
+        .status-message.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--xp-success);
+            color: var(--xp-success);
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--xp-error);
+            color: var(--xp-error);
+        }
+
+        .status-message.info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--xp-info);
+            color: var(--xp-info);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Demo Mode Styling */
+        .demo-active {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--xp-warning);
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header with Logo -->
+        <div class="header">
+            <img src="src/assets/logo.png" alt="YouTube Research Hub" class="logo">
+            <h1 class="demo-title">YouTube Research Hub</h1>
+        </div>
+
+        <!-- API Key Section - Primary Focus -->
+        <div class="api-section" id="apiSection">
+            <div class="api-label">YouTube Data API Key</div>
+            
+            <div class="api-input-row">
+                <input type="text" class="xp-input large" id="apiKeyInput" placeholder="Enter your YouTube Data API v3 key for unlimited analysis...">
+                <button class="xp-button success" id="validateBtn" disabled>
+                    🔑 Validate Key
+                </button>
+            </div>
+            
+            <div class="api-help">
+                🚀 Get your <strong>free API key</strong> in just 5 minutes at <a href="https://console.developers.google.com" target="_blank">Google Cloud Console</a><br>
+                ✅ 100% free forever • 🔒 Private & secure • ⚡ Unlimited analysis power
+            </div>
+            
+            <div class="demo-button-container">
+                <button class="xp-button demo" id="demoBtn">
+                    🎬 Try with sample channel first
+                </button>
+            </div>
+            
+            <div id="statusMessage" class="status-message hidden"></div>
+        </div>
+
+        <!-- Form Section - Always Visible -->
+        <div class="form-section" id="formSection">
+            <!-- Channel URL Row -->
+            <div class="form-row channel-row">
+                <div class="form-group">
+                    <label class="form-label" for="channelUrl">
+                        <span class="form-icon">📺</span>
+                        Channel URL
+                    </label>
+                    <input type="text" class="xp-input large" id="channelUrl" placeholder="@channelname or https://youtube.com/@channel">
+                </div>
+            </div>
+
+            <!-- Keywords Row -->
+            <div class="form-row keywords-row">
+                <div class="form-group">
+                    <label class="form-label" for="keywords">
+                        <span class="form-icon">🏷️</span>
+                        Keywords (optional)
+                    </label>
+                    <div class="tag-input-container" id="tagContainer">
+                        <input type="text" class="tag-input" id="tagInput" placeholder="Type keyword and press Enter to add...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Options Row -->
+            <div class="form-row options-row">
+                <div class="radio-group">
+                    <div class="radio-group-title">Keywords Logic:</div>
+                    <div class="radio-option">
+                        <input type="radio" id="logicAny" name="keywordLogic" value="any" checked>
+                        <label for="logicAny">Any (OR)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="logicAll" name="keywordLogic" value="all">
+                        <label for="logicAll">All (AND)</label>
+                    </div>
+                </div>
+
+                <div class="radio-group">
+                    <div class="radio-group-title">Search In:</div>
+                    <div class="radio-option">
+                        <input type="radio" id="searchTitle" name="searchScope" value="title" checked>
+                        <label for="searchTitle">Title only</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc">
+                        <label for="searchTitleDesc">Title & Description</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analyze Section -->
+            <div class="analyze-section">
+                <div>
+                    <button class="xp-button success analyze-button" id="analyzeBtn">
+                        📊 Analyze Channel
+                    </button>
+                </div>
+                <div>
+                    <span class="demo-indicator hidden" id="demoIndicator">
+                        Demo: up to 25 videos analysis
+                    </span>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentMode = 'none'; // 'none', 'demo', 'live'
+        let tags = [];
+        
+        // Sample channels for demo
+        const sampleChannels = [
+            { name: 'MrBeast', url: '@MrBeast', description: 'Popular creator with viral content' },
+            { name: 'Veritasium', url: '@veritasium', description: 'Educational science content' },
+            { name: 'Marques Brownlee', url: '@mkbhd', description: 'Tech reviews and analysis' }
+        ];
+
+        // DOM elements
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const validateBtn = document.getElementById('validateBtn');
+        const demoBtn = document.getElementById('demoBtn');
+        const apiSection = document.getElementById('apiSection');
+        const formSection = document.getElementById('formSection');
+        const statusMessage = document.getElementById('statusMessage');
+        const demoIndicator = document.getElementById('demoIndicator');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const tagContainer = document.getElementById('tagContainer');
+        const tagInput = document.getElementById('tagInput');
+        const channelUrl = document.getElementById('channelUrl');
+
+
+        // API key input handling
+        apiKeyInput.addEventListener('input', function() {
+            const hasKey = this.value.trim().length > 0;
+            validateBtn.disabled = !hasKey;
+        });
+
+        // Validate API key
+        validateBtn.addEventListener('click', function() {
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!apiKey) {
+                showStatus('Please enter an API key', 'error');
+                return;
+            }
+
+            // Simulate API validation
+            this.textContent = '⏳ Validating...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                // Simulate validation result
+                const isValid = apiKey.length > 10;
+                
+                if (isValid) {
+                    setMode('live');
+                    showStatus('✅ API key validated! Full access unlocked.', 'success');
+                } else {
+                    showStatus('❌ Invalid API key. Please check and try again.', 'error');
+                    this.textContent = '🔑 Validate Key';
+                    this.disabled = false;
+                }
+            }, 1500);
+        });
+
+        // Demo mode toggle
+        demoBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (currentMode === 'demo') {
+                // Return to normal mode
+                setMode('none');
+                channelUrl.value = '';
+                tags = [];
+                renderTags();
+                showStatus('🔄 Returned to normal mode', 'info');
+            } else {
+                // Enter demo mode
+                const randomChannel = sampleChannels[Math.floor(Math.random() * sampleChannels.length)];
+                
+                // Pre-fill the form
+                channelUrl.value = randomChannel.url;
+                
+                // Add some sample keywords
+                tags = ['viral', 'trending'];
+                renderTags();
+                
+                setMode('demo');
+                showStatus(`🎬 Demo mode: Analyzing ${randomChannel.name} (${randomChannel.description})`, 'info');
+                
+                // Focus on analyze button
+                analyzeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+
+
+        // Set mode function
+        function setMode(mode) {
+            currentMode = mode;
+            
+            if (mode === 'demo') {
+                // Show demo indicator
+                demoIndicator.classList.remove('hidden');
+                
+                // Style changes for demo mode
+                formSection.classList.add('demo-active');
+                
+                // Change demo button text
+                demoBtn.textContent = '🔄 Return to normal';
+                demoBtn.classList.remove('demo');
+                demoBtn.classList.add('warning');
+                
+            } else if (mode === 'live') {
+                // Hide demo indicator
+                demoIndicator.classList.add('hidden');
+                
+                // Remove demo styling
+                formSection.classList.remove('demo-active');
+                
+                // Update API section
+                validateBtn.textContent = '✅ Validated';
+                validateBtn.disabled = true;
+                demoBtn.style.display = 'none';
+                
+            } else {
+                // Normal mode
+                demoIndicator.classList.add('hidden');
+                formSection.classList.remove('demo-active');
+                
+                // Reset demo button
+                demoBtn.textContent = '🎬 Try with sample channel first';
+                demoBtn.classList.remove('warning');
+                demoBtn.classList.add('demo');
+            }
+        }
+
+        // Status message function
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            statusMessage.classList.remove('hidden');
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    statusMessage.classList.add('hidden');
+                }, 4000);
+            }
+        }
+
+        // Tag input system
+        tagInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                e.preventDefault();
+                addTag(this.value.trim());
+                this.value = '';
+            } else if (e.key === 'Backspace' && !this.value && tags.length > 0) {
+                removeTag(tags.length - 1);
+            }
+        });
+
+        tagContainer.addEventListener('click', function() {
+            tagInput.focus();
+        });
+
+        tagInput.addEventListener('focus', function() {
+            tagContainer.classList.add('focused');
+        });
+
+        tagInput.addEventListener('blur', function() {
+            tagContainer.classList.remove('focused');
+        });
+
+        function addTag(text) {
+            if (tags.includes(text)) return;
+            
+            tags.push(text);
+            renderTags();
+        }
+
+        function removeTag(index) {
+            tags.splice(index, 1);
+            renderTags();
+        }
+
+        function renderTags() {
+            // Remove existing tags
+            const existingTags = tagContainer.querySelectorAll('.tag');
+            existingTags.forEach(tag => tag.remove());
+            
+            // Add tags before input
+            tags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag';
+                tagElement.innerHTML = `
+                    <span>${tag}</span>
+                    <button class="tag-remove" onclick="removeTag(${index})">×</button>
+                `;
+                tagContainer.insertBefore(tagElement, tagInput);
+            });
+        }
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', function() {
+            const url = channelUrl.value.trim();
+            
+            if (!url) {
+                showStatus('Please enter a channel URL', 'error');
+                return;
+            }
+            
+            // Get selected options
+            const keywordLogic = document.querySelector('input[name="keywordLogic"]:checked').value;
+            const searchScope = document.querySelector('input[name="searchScope"]:checked').value;
+            
+            // Simulate analysis
+            this.textContent = '⏳ Analyzing...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                const logicText = keywordLogic === 'any' ? 'OR' : 'AND';
+                const scopeText = searchScope === 'title' ? 'titles' : 'titles & descriptions';
+                
+                showStatus(`🎯 Analysis complete! Found content using ${logicText} logic in ${scopeText}`, 'success');
+                this.textContent = '📊 Analyze Channel';
+                this.disabled = false;
+            }, 3000);
+        });
+
+        // Make removeTag globally accessible
+        window.removeTag = removeTag;
+    </script>
+</body>
+</html> 

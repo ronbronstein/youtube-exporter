@@ -14,6 +14,7 @@ import { VideoList } from './VideoList.js';
 import { Results } from './Results.js';
 import { LoadingSpinner, GlobalLoading } from './LoadingSpinner.js';
 import { MessagePanel, GlobalMessages } from './MessagePanel.js';
+import { TagInput } from './TagInput.js';
 import { YouTubeApiService } from '../services/youtubeApi.js';
 import { storageService } from '../services/storage.js';
 import { analyticsService } from '../services/analytics.js';
@@ -47,7 +48,8 @@ export class App extends BaseComponent {
             videoList: null,
             loadingSpinner: null,
             messagePanel: null,
-            results: null
+            results: null,
+            tagInput: null
         };
         
         // Service instances
@@ -187,7 +189,7 @@ export class App extends BaseComponent {
             debugLog('❌ Results component initialization failed:', error);
         }
         
-        // Wait for Results to be fully mounted before initializing VideoList
+        // Wait for Results to be fully mounted before initializing VideoList and TagInput
         setTimeout(() => {
             try {
                 // Initialize VideoList inside Results component  
@@ -224,6 +226,35 @@ export class App extends BaseComponent {
                 
             } catch (error) {
                 debugLog('❌ VideoList component initialization failed:', error);
+            }
+            
+            // Initialize TagInput component
+            try {
+                const tagInputContainer = this.findElement('#keywordTagInput');
+                if (tagInputContainer) {
+                    const currentMode = this.appState.apiMode || 'demo';
+                    const hasApiKey = !!this.appState.apiKey;
+                    const shouldDisable = currentMode === 'live' && !hasApiKey;
+                    
+                    this.components.tagInput = new TagInput(tagInputContainer, {
+                        placeholder: shouldDisable ? 'Enter API key above to unlock' : 'Type keyword and press Enter to add...',
+                        maxTags: 10,
+                        disabled: shouldDisable
+                    }).init();
+                    
+                    // Listen for tag changes
+                    this.components.tagInput.on('tagsChanged', (data) => {
+                        debugLog(`🏷️ Tags changed: ${data.tags.join(', ')}`);
+                        // Update analyze button state when tags change
+                        this.updateAnalyzeButtonState();
+                    });
+                    
+                    debugLog('✅ TagInput component initialized');
+                } else {
+                    debugLog('❌ TagInput container not found');
+                }
+            } catch (error) {
+                debugLog('❌ TagInput component initialization failed:', error);
             }
         }, 100); // Increased timeout to ensure DOM is ready
         
@@ -486,13 +517,13 @@ export class App extends BaseComponent {
                         class="channel-input-large ${disabledClass}"
                         ${disabledAttr}
                     >
-                    <input 
-                        type="text" 
-                        id="keywordInput" 
-                        placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : 'Filter by keywords (optional): AI, tutorial, etc.'}"
-                        class="keyword-input-large ${disabledClass}"
-                        ${disabledAttr}
-                    >
+                    <div class="keyword-input-wrapper">
+                        <label class="form-label">
+                            <span class="form-icon">🏷️</span>
+                            Keywords (optional)
+                        </label>
+                        <div id="keywordTagInput" class="keyword-tag-input"></div>
+                    </div>
                 </div>
                 
                 <!-- Compact Options -->
@@ -718,7 +749,6 @@ export class App extends BaseComponent {
         }
         
         const channelInput = this.findElement('#channelInput');
-        const keywordInput = this.findElement('#keywordInput');
         
         if (!channelInput) {
             debugLog('❌ Channel input element not found');
@@ -736,8 +766,8 @@ export class App extends BaseComponent {
             return;
         }
         
-        // Get keyword filter if provided
-        const keywords = keywordInput ? keywordInput.value.trim() : '';
+        // Get keywords from TagInput component
+        const keywords = this.components.tagInput ? this.components.tagInput.getTags().join(' ') : '';
         
         debugLog('🚀 Starting unified channel search', { 
             channelQuery, 

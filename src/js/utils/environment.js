@@ -98,14 +98,14 @@ function initializeGitHubPages() {
         debugLog('🌐 GitHub Pages: Live mode - User provides API key');
     } else {
         // Demo mode - built-in API key
-        const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
-        if (demoApiKey) {
-            updateGlobalState('youtubeApiKey', demoApiKey);
-            updateGlobalState('apiMode', 'demo');
+    const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
+    if (demoApiKey) {
+        updateGlobalState('youtubeApiKey', demoApiKey);
+        updateGlobalState('apiMode', 'demo');
             updateGlobalState('apiKeySource', 'demo-builtin');
             CONFIG.DEMO.ENABLED = true;
             debugLog('✅ GitHub Pages: Demo mode - Built-in API key loaded');
-        } else {
+    } else {
             console.warn('⚠️ GitHub Pages: No demo API key found');
             updateGlobalState('apiMode', 'live');
             updateGlobalState('apiKeySource', 'user-input');
