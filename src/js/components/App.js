@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                 <div class="app-header">
                     <div class="header-top">
                         <div class="header-with-logo">
-                            <img src="./assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <img src="./src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
                             <div class="title-section">
                                 <h1 class="app-title">YouTube Research Hub</h1>
                                 <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
@@ -527,41 +527,40 @@ export class App extends BaseComponent {
                     </div>
                 </div>
 
-                <!-- Search Options Row -->
-                <div class="form-row options-row">
-                    <div class="radio-group">
-                        <div class="radio-group-title">Keywords Logic:</div>
-                        <div class="radio-option">
-                            <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
-                            <label for="logicAny">Any (OR)</label>
+                <!-- Options and Analyze Row -->
+                <div class="form-row options-analyze-row">
+                    <!-- Left Column: Search Options -->
+                    <div class="options-column">
+                        <div class="radio-group compact">
+                            <div class="radio-group-title">Keywords Logic:</div>
+                            <div class="radio-option">
+                                <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
+                                <label for="logicAny">Any (OR)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
+                                <label for="logicAll">All (AND)</label>
+                            </div>
                         </div>
-                        <div class="radio-option">
-                            <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
-                            <label for="logicAll">All (AND)</label>
+
+                        <div class="radio-group compact">
+                            <div class="radio-group-title">Search In:</div>
+                            <div class="radio-option">
+                                <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
+                                <label for="searchTitle">Title only</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
+                                <label for="searchTitleDesc">Title & Description</label>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="radio-group">
-                        <div class="radio-group-title">Search In:</div>
-                        <div class="radio-option">
-                            <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
-                            <label for="searchTitle">Title only</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
-                            <label for="searchTitleDesc">Title & Description</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Analyze Section -->
-                <div class="analyze-section">
-                    <div>
-                        <button class="xp-button success analyze-button" id="searchBtn">
+                    
+                    <!-- Right Column: Analyze Button -->
+                    <div class="analyze-column">
+                        <button class="xp-button success analyze-button" id="searchBtn" ${disabledAttr}>
                             📊 Analyze Channel
                         </button>
-                    </div>
-                    <div>
                         <span class="demo-indicator hidden" id="demoIndicator">
                             Demo: up to 100 videos analysis
                         </span>
@@ -756,9 +755,17 @@ export class App extends BaseComponent {
         const demoIndicator = this.findElement('#demoIndicator');
         const formSection = this.findElement('#formSection');
         
-        if (this.appState.apiMode === 'demo') {
+        // Check current demo state more reliably
+        const isCurrentlyDemo = this.appState.apiMode === 'demo' || 
+                               (this.appState.currentEnvironment === 'github-pages' && this.appState.apiKey);
+        
+        if (isCurrentlyDemo) {
             // Return to normal mode
             this.appState.apiMode = 'none';
+            this.appState.apiKey = null;
+            this.services.youtube = null;
+            
+            // Update button UI
             demoBtn.textContent = '🎬 Try with sample channel first';
             demoBtn.classList.remove('warning');
             demoBtn.classList.add('demo');
@@ -786,7 +793,7 @@ export class App extends BaseComponent {
                 this.setApiKey(demoApiKey);
             }
             
-            // Update UI
+            // Update button UI
             demoBtn.textContent = '🔄 Return to normal';
             demoBtn.classList.remove('demo');
             demoBtn.classList.add('warning');
