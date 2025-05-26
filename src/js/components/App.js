@@ -353,31 +353,18 @@ export class App extends BaseComponent {
         const currentMode = this.appState.apiMode || 'demo';
         const hasValidApiKey = !!this.appState.apiKey;
         
-        // Local development - show clean API key status
-        if (currentEnvironment === 'local') {
-            const apiKeySource = hasValidApiKey ? 'Found in .env file' : 'Not found in .env file';
-            
-            return `
-                <div class="api-section">
-                    <div class="api-label">Development Mode</div>
-                    <div class="api-help">
-                        🔐 API Key: ${apiKeySource}<br>
-                        ${hasValidApiKey ? '✅ Ready for unlimited analysis' : '⚠️ Add VITE_DEMO_API_KEY to your .env file'}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // GitHub Pages - API-first interface like UX demo
+        // Use the same API-first interface for ALL environments (local and GitHub Pages)
+        // This matches the UX demo design exactly
         return `
             <div class="api-section" id="apiSection">
                 <div class="api-label">YouTube Data API Key</div>
                 
                 <div class="api-input-row">
                     <input type="text" class="xp-input large" id="apiKeyInput" 
-                           placeholder="Enter your YouTube Data API v3 key for unlimited analysis...">
-                    <button class="xp-button success" id="validateBtn" disabled>
-                        🔑 Validate Key
+                           placeholder="Enter your YouTube Data API v3 key for unlimited analysis..."
+                           ${hasValidApiKey ? `value="${'•'.repeat(20)}" disabled` : ''}>
+                    <button class="xp-button success" id="validateBtn" ${hasValidApiKey ? 'disabled' : 'disabled'}>
+                        ${hasValidApiKey ? '✅ Validated' : '🔑 Validate Key'}
                     </button>
                 </div>
                 
@@ -385,6 +372,7 @@ export class App extends BaseComponent {
                     🚀 Get your <strong>free API key</strong> in just 5 minutes at 
                     <a href="https://console.developers.google.com" target="_blank">Google Cloud Console</a><br>
                     ✅ 100% free forever • 🔒 Private & secure • ⚡ Unlimited analysis power
+                    ${currentEnvironment === 'local' ? '<br>🔧 <strong>Local Dev</strong>: API key auto-loaded from .env file' : ''}
                 </div>
                 
                 <div class="demo-button-container">
@@ -396,6 +384,7 @@ export class App extends BaseComponent {
                 ${hasValidApiKey ? `
                     <div class="status-message success">
                         ✅ API key validated! Full access unlocked.
+                        ${currentEnvironment === 'local' ? ' (Auto-loaded from .env)' : ''}
                     </div>
                 ` : ''}
                 
@@ -586,35 +575,33 @@ export class App extends BaseComponent {
     setupEventListeners() {
         debugLog('🔌 Setting up event listeners...');
         
-        // API Key events (GitHub Pages only)
-        if (this.appState.currentEnvironment !== 'local') {
-            const apiKeyInput = this.findElement('#apiKeyInput');
-            const validateBtn = this.findElement('#validateBtn');
-            const demoBtn = this.findElement('#demoBtn');
-            
-            if (apiKeyInput) {
-                this.addListener(apiKeyInput, 'input', this.handleApiKeyInput.bind(this));
-                this.addListener(apiKeyInput, 'keydown', (e) => {
-                    if (e.key === 'Enter' && !validateBtn.disabled) this.handleValidateApiKey();
-                });
-                debugLog('✅ API key input listeners attached');
-            } else {
-                debugLog('⚠️ API key input not found');
-            }
-            
-            if (validateBtn) {
-                this.addListener(validateBtn, 'click', this.handleValidateApiKey.bind(this));
-                debugLog('✅ Validate API key button listener attached');
-            } else {
-                debugLog('⚠️ Validate API key button not found');
-            }
-            
-            if (demoBtn) {
-                this.addListener(demoBtn, 'click', this.handleDemoMode.bind(this));
-                debugLog('✅ Demo button listener attached');
-            } else {
-                debugLog('⚠️ Demo button not found');
-            }
+        // API Key events (all environments now have the same UI)
+        const apiKeyInput = this.findElement('#apiKeyInput');
+        const validateBtn = this.findElement('#validateBtn');
+        const demoBtn = this.findElement('#demoBtn');
+        
+        if (apiKeyInput && !apiKeyInput.disabled) {
+            this.addListener(apiKeyInput, 'input', this.handleApiKeyInput.bind(this));
+            this.addListener(apiKeyInput, 'keydown', (e) => {
+                if (e.key === 'Enter' && !validateBtn.disabled) this.handleValidateApiKey();
+            });
+            debugLog('✅ API key input listeners attached');
+        } else {
+            debugLog('⚠️ API key input not found or disabled (auto-loaded)');
+        }
+        
+        if (validateBtn && !validateBtn.disabled) {
+            this.addListener(validateBtn, 'click', this.handleValidateApiKey.bind(this));
+            debugLog('✅ Validate API key button listener attached');
+        } else {
+            debugLog('⚠️ Validate API key button not found or disabled (auto-loaded)');
+        }
+        
+        if (demoBtn) {
+            this.addListener(demoBtn, 'click', this.handleDemoMode.bind(this));
+            debugLog('✅ Demo button listener attached');
+        } else {
+            debugLog('⚠️ Demo button not found');
         }
         
         // Channel analysis events

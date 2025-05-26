@@ -3396,7 +3396,7 @@ button:disabled:hover {
 .api-section {
     background: var(--xp-input-bg);
     border: 1px inset var(--xp-window-bg);
-    border-radius: var(--xp-border-radius);
+  border-radius: var(--xp-border-radius);
     padding: var(--xp-spacing-xl);
     margin-bottom: var(--xp-spacing-xl);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
