@@ -164,6 +164,39 @@
 **Related Stories**: TBD  
 **Business Value**: Expand user base and improve accessibility
 
+### **EPIC-009: UX Redesign - API-First Approach**
+**Status**: 📋 PLANNED  
+**Priority**: P0 (Critical)  
+**Owner**: Development Team  
+**Timeline**: Q1 2025  
+
+**Description**: Complete UX redesign transitioning from dual-path system to streamlined API-first approach with integrated demo functionality, maintaining Windows XP aesthetics while modernizing user experience.
+
+**Acceptance Criteria**:
+- ✅ Single interface eliminating confusing dual-path navigation
+- ✅ API-first design with prominent API key section
+- ✅ Integrated demo mode without artificial limitations
+- ✅ Professional tag-based keyword input system
+- ✅ Enhanced security with API key hiding and storage options
+- ✅ Comprehensive error handling with detailed user feedback
+- ✅ Mobile-responsive design with touch optimization
+- ✅ Windows XP modern styling maintained throughout
+
+**Key Features**:
+- **API Key Management**: Environment variable detection, secure storage options, masked display
+- **Demo Integration**: Unlimited demo mode with sample data, no counters or restrictions
+- **Enhanced UX**: Tag input system, smart form validation, progressive enhancement
+- **Security**: Clear microcopy about storage risks, API key security guide integration
+- **Mobile-First**: Responsive design with 44px touch targets, adaptive layouts
+
+**Related Stories**: TBD  
+**Business Value**: Eliminate user confusion, improve onboarding, create professional enterprise-ready tool
+
+**Reference Documents**: 
+- `docs/redesign-plan.md` - Complete implementation plan
+- `ux-demo.html` - Interactive prototype
+- `docs/style-guide.html` - Windows XP modern design system
+
 ---
 
 ## 🎯 NEW EPICS - Legacy UX Restoration
