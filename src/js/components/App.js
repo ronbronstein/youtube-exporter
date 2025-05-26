@@ -459,8 +459,8 @@ export class App extends BaseComponent {
                         placeholder="AIza... (paste your YouTube Data API v3 key here)"
                         class="api-key-input-large"
                     >
-                    <button id="saveApiKeyBtn" class="save-key-btn-minimal" disabled>
-                        Validate & Use
+                    <button id="validateBtn" class="save-key-btn-minimal" disabled>
+                        🔑 Validate Key
                     </button>
                 </div>
                 
@@ -604,7 +604,7 @@ export class App extends BaseComponent {
         }
         
         // Channel analysis events
-        const channelInput = this.findElement('#channelInput');
+        const channelInput = this.findElement('#channelInput'); // This should match the form
         const searchBtn = this.findElement('#searchBtn');
         
         if (channelInput) {
@@ -683,7 +683,7 @@ export class App extends BaseComponent {
         }
         
         const apiKey = event.target.value.trim();
-        const saveBtn = this.findElement('#saveApiKeyBtn');
+        const saveBtn = this.findElement('#validateBtn');
         
         // Simple validation - API key should start with AIza and be at least 35 characters
         const isValid = apiKey.startsWith('AIza') && apiKey.length >= 35;
@@ -1711,27 +1711,13 @@ export class App extends BaseComponent {
                 return 'manual';
         }
         } else {
-            // GitHub Pages - check for demo mode or load saved key
+            // GitHub Pages - prioritize live mode, demo is optional
             const urlParams = new URLSearchParams(window.location.search);
             const modeParam = urlParams.get('mode');
             const savedMode = localStorage.getItem('yt_hub_mode');
             
-            if (modeParam === 'live' || savedMode === 'live') {
-                // Live mode - try to load saved API key
-        const savedApiKey = this.services.storage.getApiKey();
-        if (savedApiKey) {
-            this.setApiKey(savedApiKey);
-            this.appState.apiMode = 'live';
-                    debugLog('✅ GitHub Pages: Live mode with saved API key');
-            this.showInfo('Using saved API key');
-            return 'live';
-                } else {
-                    this.appState.apiMode = 'live';
-                    debugLog('🌐 GitHub Pages: Live mode - user input required');
-                    this.showInfo('Please enter your YouTube Data API key');
-            return 'live';
-        }
-                        } else {
+            // Always start in live mode unless explicitly requesting demo
+            if (modeParam === 'demo' || savedMode === 'demo') {
                 // Demo mode - use built-in API key
                 const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
                 debugLog('🔍 GitHub Pages Demo Mode Debug:', {
@@ -1763,6 +1749,21 @@ export class App extends BaseComponent {
                     debugLog('❌ GitHub Pages: VITE_DEMO_API_KEY is null or undefined');
                     this.appState.apiMode = 'live';
                     this.showWarning('Demo API key not available. Please enter your own.');
+                    return 'live';
+                }
+            } else {
+                // Live mode (default) - try to load saved API key
+                const savedApiKey = this.services.storage.getApiKey();
+                if (savedApiKey) {
+                    this.setApiKey(savedApiKey);
+                    this.appState.apiMode = 'live';
+                    debugLog('✅ GitHub Pages: Live mode with saved API key');
+                    this.showInfo('Using saved API key');
+                    return 'live';
+                } else {
+                    this.appState.apiMode = 'live';
+                    debugLog('🌐 GitHub Pages: Live mode - user input required');
+                    this.showInfo('Please enter your YouTube Data API key');
                     return 'live';
                 }
             }
