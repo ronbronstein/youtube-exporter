@@ -120,16 +120,11 @@ export class App extends BaseComponent {
                     </div>
                 </div>
                 
-                <!-- Mode Selector Section -->
-                <div class="mode-selector-section">
-                    ${this.renderModeToggle()}
-                </div>
+                <!-- API Key Section - Primary Focus -->
+                ${this.renderApiSection()}
                 
-                <!-- Control Panel -->
-                <div class="control-panel">
-                    ${this.renderApiKeySection()}
-                    ${this.renderSearchSection()}
-                </div>
+                <!-- Form Section - Always Visible -->
+                ${this.renderFormSection()}
                 
                 <!-- Cached Channels Section -->
                 <div class="cached-channels-section">
@@ -353,32 +348,58 @@ export class App extends BaseComponent {
      * 
      * @returns {string} HTML for mode selector or local development banner
      */
-    renderModeToggle() {
+    renderApiSection() {
         const currentEnvironment = this.appState.currentEnvironment;
+        const currentMode = this.appState.apiMode || 'demo';
+        const hasValidApiKey = !!this.appState.apiKey;
         
-        // Local development - no mode toggle, clean interface
+        // Local development - show clean API key status
         if (currentEnvironment === 'local') {
-            return ''; // No mode selector for local development
+            const apiKeySource = hasValidApiKey ? 'Found in .env file' : 'Not found in .env file';
+            
+            return `
+                <div class="api-section">
+                    <div class="api-label">Development Mode</div>
+                    <div class="api-help">
+                        🔐 API Key: ${apiKeySource}<br>
+                        ${hasValidApiKey ? '✅ Ready for unlimited analysis' : '⚠️ Add VITE_DEMO_API_KEY to your .env file'}
+                    </div>
+                </div>
+            `;
         }
         
-        // GitHub Pages - show demo/live mode selector
-        const currentMode = this.appState.apiMode || 'demo';
+        // GitHub Pages - API-first interface like UX demo
         return `
-            <div class="mode-selector-minimal">
-                <div class="mode-toggle-compact">
-                    <button class="mode-btn-compact ${currentMode === 'demo' ? 'active' : ''}" data-mode="demo">
-                        🎭 Try Demo
-                    </button>
-                    <button class="mode-btn-compact ${currentMode === 'live' ? 'active' : ''}" data-mode="live">
-                        🚀 Full Version
+            <div class="api-section" id="apiSection">
+                <div class="api-label">YouTube Data API Key</div>
+                
+                <div class="api-input-row">
+                    <input type="text" class="xp-input large" id="apiKeyInput" 
+                           placeholder="Enter your YouTube Data API v3 key for unlimited analysis...">
+                    <button class="xp-button success" id="validateBtn" disabled>
+                        🔑 Validate Key
                     </button>
                 </div>
-                <div class="mode-description">
-                    ${currentMode === 'demo' ? 
-                        'Demo: Test the tool with sample data, limited to 100 videos' : 
-                        'Full: Use your own API key for unlimited analysis'
-                    }
+                
+                <div class="api-help">
+                    🚀 Get your <strong>free API key</strong> in just 5 minutes at 
+                    <a href="https://console.developers.google.com" target="_blank">Google Cloud Console</a><br>
+                    ✅ 100% free forever • 🔒 Private & secure • ⚡ Unlimited analysis power
                 </div>
+                
+                <div class="demo-button-container">
+                    <button class="xp-button demo" id="demoBtn">
+                        🎬 Try with sample channel first
+                    </button>
+                </div>
+                
+                ${hasValidApiKey ? `
+                    <div class="status-message success">
+                        ✅ API key validated! Full access unlocked.
+                    </div>
+                ` : ''}
+                
+                <div id="statusMessage" class="status-message hidden"></div>
             </div>
         `;
     }
@@ -482,84 +503,79 @@ export class App extends BaseComponent {
      * 
      * @returns {string} HTML for search section
      */
-    renderSearchSection() {
+    renderFormSection() {
         const currentEnvironment = this.appState.currentEnvironment;
         const currentMode = this.appState.apiMode || 'demo';
         const hasApiKey = !!this.appState.apiKey;
         
-        // Determine if inputs should be disabled
+        // Determine if inputs should be disabled (only for live mode without API key)
         const shouldDisableInputs = currentMode === 'live' && !hasApiKey;
         const disabledAttr = shouldDisableInputs ? 'disabled' : '';
-        const disabledClass = shouldDisableInputs ? 'disabled' : '';
-        
-        // Determine status message based on environment and mode
-        let statusMessage = '';
-        if (currentEnvironment === 'local') {
-            statusMessage = hasApiKey ? 'Local development: Full functionality' : 'API key required';
-        } else if (currentMode === 'demo') {
-            statusMessage = 'Demo: 100 video limit';
-        } else if (currentMode === 'live') {
-            statusMessage = hasApiKey ? 'Full: Unlimited videos' : 'Enter API key to unlock';
-        } else {
-            statusMessage = 'Ready to analyze';
-        }
         
         return `
-            <div class="search-section-minimal">
-                <h3>🔍 Analyze YouTube Channel</h3>
-                
-                <!-- Large Input Fields -->
-                <div class="search-inputs-large ${disabledClass}">
-                    <input 
-                        type="text" 
-                        id="channelInput" 
-                        placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : 'Enter channel URL, @handle, or channel ID'}"
-                        class="channel-input-large ${disabledClass}"
-                        ${disabledAttr}
-                    >
-                    <div class="keyword-input-wrapper">
-                        <label class="form-label">
+            <div class="form-section" id="formSection">
+                <!-- Channel URL Row -->
+                <div class="form-row channel-row">
+                    <div class="form-group">
+                        <label class="form-label" for="channelUrl">
+                            <span class="form-icon">📺</span>
+                            Channel URL
+                        </label>
+                        <input type="text" class="xp-input large" id="channelInput" 
+                               placeholder="${shouldDisableInputs ? 'Enter API key above to unlock' : '@channelname or https://youtube.com/@channel'}"
+                               ${disabledAttr}>
+                    </div>
+                </div>
+
+                <!-- Keywords Row -->
+                <div class="form-row keywords-row">
+                    <div class="form-group">
+                        <label class="form-label" for="keywords">
                             <span class="form-icon">🏷️</span>
                             Keywords (optional)
                         </label>
-                        <div id="keywordTagInput" class="keyword-tag-input"></div>
+                        <div id="keywordTagInput" class="tag-input-container"></div>
                     </div>
                 </div>
-                
-                <!-- Compact Options -->
-                <div class="search-options-compact ${disabledClass}">
-                    <div class="option-group-inline">
-                        <label>Search in:</label>
-                        <label class="radio-inline">
-                            <input type="radio" name="searchScope" value="both" checked ${disabledAttr}> 
-                            Title & Description
-                        </label>
-                        <label class="radio-inline">
-                            <input type="radio" name="searchScope" value="title" ${disabledAttr}> 
-                            Title Only
-                        </label>
+
+                <!-- Search Options Row -->
+                <div class="form-row options-row">
+                    <div class="radio-group">
+                        <div class="radio-group-title">Keywords Logic:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
+                            <label for="logicAny">Any (OR)</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
+                            <label for="logicAll">All (AND)</label>
+                        </div>
                     </div>
-                    
-                    <div class="option-group-inline">
-                        <label>Keywords:</label>
-                        <label class="radio-inline">
-                            <input type="radio" name="searchLogic" value="OR" checked ${disabledAttr}> 
-                            Any (OR)
-                        </label>
-                        <label class="radio-inline">
-                            <input type="radio" name="searchLogic" value="AND" ${disabledAttr}> 
-                            All (AND)
-                        </label>
+
+                    <div class="radio-group">
+                        <div class="radio-group-title">Search In:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
+                            <label for="searchTitle">Title only</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
+                            <label for="searchTitleDesc">Title & Description</label>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Large Search Button -->
-                <div class="search-action-large">
-                    <button id="searchBtn" class="search-btn-large" disabled>
-                        🔍 Analyze Channel
-                    </button>
-                    <div class="search-status ${shouldDisableInputs ? 'locked' : ''}">
-                        ${statusMessage}
+
+                <!-- Analyze Section -->
+                <div class="analyze-section">
+                    <div>
+                        <button class="xp-button success analyze-button" id="searchBtn">
+                            📊 Analyze Channel
+                        </button>
+                    </div>
+                    <div>
+                        <span class="demo-indicator hidden" id="demoIndicator">
+                            Demo: up to 100 videos analysis
+                        </span>
                     </div>
                 </div>
             </div>
@@ -570,26 +586,34 @@ export class App extends BaseComponent {
     setupEventListeners() {
         debugLog('🔌 Setting up event listeners...');
         
-        // API Key events (live environment only)
-        if (this.appState.currentEnvironment === 'live') {
+        // API Key events (GitHub Pages only)
+        if (this.appState.currentEnvironment !== 'local') {
             const apiKeyInput = this.findElement('#apiKeyInput');
-            const saveKeyBtn = this.findElement('#saveApiKeyBtn');
+            const validateBtn = this.findElement('#validateBtn');
+            const demoBtn = this.findElement('#demoBtn');
             
             if (apiKeyInput) {
                 this.addListener(apiKeyInput, 'input', this.handleApiKeyInput.bind(this));
                 this.addListener(apiKeyInput, 'keydown', (e) => {
-                    if (e.key === 'Enter') this.handleSaveApiKey();
+                    if (e.key === 'Enter' && !validateBtn.disabled) this.handleValidateApiKey();
                 });
                 debugLog('✅ API key input listeners attached');
             } else {
                 debugLog('⚠️ API key input not found');
             }
             
-            if (saveKeyBtn) {
-                this.addListener(saveKeyBtn, 'click', this.handleSaveApiKey.bind(this));
-                debugLog('✅ Save API key button listener attached');
+            if (validateBtn) {
+                this.addListener(validateBtn, 'click', this.handleValidateApiKey.bind(this));
+                debugLog('✅ Validate API key button listener attached');
             } else {
-                debugLog('⚠️ Save API key button not found');
+                debugLog('⚠️ Validate API key button not found');
+            }
+            
+            if (demoBtn) {
+                this.addListener(demoBtn, 'click', this.handleDemoMode.bind(this));
+                debugLog('✅ Demo button listener attached');
+            } else {
+                debugLog('⚠️ Demo button not found');
             }
         }
         
@@ -689,8 +713,10 @@ export class App extends BaseComponent {
         this.updateAnalyzeButtonState();
     }
     
-    handleSaveApiKey() {
+    handleValidateApiKey() {
         const apiKeyInput = this.findElement('#apiKeyInput');
+        const validateBtn = this.findElement('#validateBtn');
+        
         if (!apiKeyInput) {
             debugLog('❌ API key input not found');
             return;
@@ -713,10 +739,16 @@ export class App extends BaseComponent {
             return;
         }
         
-        // Use our storage service instead of direct localStorage
+        // Show validation in progress
+        validateBtn.textContent = '⏳ Validating...';
+        validateBtn.disabled = true;
+        
+        // Use our storage service to save the API key
         const saved = this.services.storage.saveApiKey(apiKey);
         if (!saved) {
             this.showError('Failed to save API key. Please try again.');
+            validateBtn.textContent = '🔑 Validate Key';
+            validateBtn.disabled = false;
             return;
         }
         
@@ -724,15 +756,71 @@ export class App extends BaseComponent {
         this.setApiKey(apiKey);
         this.appState.apiMode = 'live';
         
-        // Clear the input for security
-        apiKeyInput.value = '';
-        
-        // Update the entire UI to reflect the validated state
-        this.updateUIAfterApiKeyChange();
+        // Update UI to show validated state
+        this.updateUIAfterApiKeyValidation();
         
         this.showSuccess('✅ API key validated! You can now analyze channels.');
         
-        debugLog('🔑 API key saved via storage service and UI updated');
+        debugLog('🔑 API key validated and saved');
+    }
+    
+    handleDemoMode() {
+        const demoBtn = this.findElement('#demoBtn');
+        const demoIndicator = this.findElement('#demoIndicator');
+        const formSection = this.findElement('#formSection');
+        
+        if (this.appState.apiMode === 'demo') {
+            // Return to normal mode
+            this.appState.apiMode = 'none';
+            demoBtn.textContent = '🎬 Try with sample channel first';
+            demoBtn.classList.remove('warning');
+            demoBtn.classList.add('demo');
+            
+            if (demoIndicator) demoIndicator.classList.add('hidden');
+            if (formSection) formSection.classList.remove('demo-active');
+            
+            // Clear form
+            const channelInput = this.findElement('#channelInput');
+            if (channelInput) channelInput.value = '';
+            
+            if (this.components.tagInput) {
+                this.components.tagInput.clearTags();
+            }
+            
+            this.showInfo('🔄 Returned to normal mode');
+            debugLog('🔄 Demo mode disabled');
+        } else {
+            // Enter demo mode
+            this.appState.apiMode = 'demo';
+            
+            // Initialize demo with built-in API key
+            const demoApiKey = import.meta.env.VITE_DEMO_API_KEY;
+            if (demoApiKey) {
+                this.setApiKey(demoApiKey);
+            }
+            
+            // Update UI
+            demoBtn.textContent = '🔄 Return to normal';
+            demoBtn.classList.remove('demo');
+            demoBtn.classList.add('warning');
+            
+            if (demoIndicator) demoIndicator.classList.remove('hidden');
+            if (formSection) formSection.classList.add('demo-active');
+            
+            // Pre-fill with sample data
+            const channelInput = this.findElement('#channelInput');
+            if (channelInput) channelInput.value = '@MrBeast';
+            
+            if (this.components.tagInput) {
+                this.components.tagInput.setTags(['viral', 'trending']);
+            }
+            
+            this.showInfo('🎬 Demo mode active - Using sample data, limited to 100 videos');
+            debugLog('🎬 Demo mode enabled with sample data');
+        }
+        
+        // Update button states
+        this.updateAnalyzeButtonState();
     }
     
     handleChannelInput(event) {
@@ -1624,22 +1712,35 @@ export class App extends BaseComponent {
     }
 
     /**
-     * Update the entire UI after API key changes
+     * Update the UI after API key validation
      */
-    updateUIAfterApiKeyChange() {
-        // Re-render the control panel to update disabled states
-        const controlPanel = this.findElement('.control-panel');
-        if (controlPanel) {
-            controlPanel.innerHTML = this.renderApiKeySection() + this.renderSearchSection();
+    updateUIAfterApiKeyValidation() {
+        const validateBtn = this.findElement('#validateBtn');
+        const apiKeyInput = this.findElement('#apiKeyInput');
+        const statusMessage = this.findElement('#statusMessage');
+        
+        if (validateBtn) {
+            validateBtn.textContent = '✅ Validated';
+            validateBtn.disabled = true;
+            validateBtn.classList.add('validated');
         }
         
-        // Re-attach event listeners
-        this.setupEventListeners();
+        if (apiKeyInput) {
+            apiKeyInput.type = 'password';
+            apiKeyInput.value = '••••••••••••••••';
+            apiKeyInput.disabled = true;
+        }
+        
+        if (statusMessage) {
+            statusMessage.textContent = '✅ API key validated! Full access unlocked.';
+            statusMessage.className = 'status-message success';
+            statusMessage.classList.remove('hidden');
+        }
         
         // Update button state
         this.updateAnalyzeButtonState();
         
-        debugLog('✅ UI updated after API key change');
+        debugLog('✅ UI updated after API key validation');
     }
 
     showCacheStatus(cacheMetadata) {
