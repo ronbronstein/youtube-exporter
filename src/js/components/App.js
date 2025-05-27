@@ -264,6 +264,21 @@ export class App extends BaseComponent {
         // Check for environment-specific initialization
         this.handleEnvironmentSpecificInit();
         
+        // Set initial form state based on current mode and API key
+        setTimeout(() => {
+            const currentMode = this.appState.apiMode || 'live';
+            const hasApiKey = !!this.appState.apiKey;
+            const shouldDisableInputs = currentMode === 'live' && !hasApiKey;
+            
+            if (shouldDisableInputs) {
+                this.updateFormInputsState(true);
+                debugLog('📝 Initial form state: disabled (no API key in live mode)');
+            } else {
+                this.updateFormInputsState(false);
+                debugLog('📝 Initial form state: enabled');
+            }
+        }, 150);
+        
         // Debug: Check if critical elements exist
         debugLog('🔍 Checking critical elements after mount:');
         debugLog('  - Channel input:', !!this.findElement('#channelInput'));
@@ -794,13 +809,14 @@ export class App extends BaseComponent {
         const demoBtn = this.findElement('#demoBtn');
         const demoIndicator = this.findElement('#demoIndicator');
         const formSection = this.findElement('#formSection');
+        const apiSection = this.findElement('#apiSection');
         
         // Check current demo state more reliably
         const isCurrentlyDemo = this.appState.apiMode === 'demo';
         
         if (isCurrentlyDemo) {
-            // Return to normal mode
-            this.appState.apiMode = 'none';
+            // Return to normal mode (live mode)
+            this.appState.apiMode = 'live';
             this.appState.apiKey = null;
             this.services.youtube = null;
             
@@ -809,10 +825,37 @@ export class App extends BaseComponent {
             demoBtn.classList.remove('warning');
             demoBtn.classList.add('demo');
             
+            // Hide demo indicator
             if (demoIndicator) demoIndicator.classList.add('hidden');
-            if (formSection) formSection.classList.remove('demo-active');
             
-            // Clear form
+            // Remove demo styling from form
+            if (formSection) {
+                formSection.classList.remove('demo-active');
+                formSection.classList.add('disabled'); // Disable until API key is entered
+            }
+            
+            // Show API section again
+            if (apiSection) {
+                apiSection.classList.remove('disabled');
+                apiSection.style.display = 'block';
+            }
+            
+            // Reset API key input
+            const apiKeyInput = this.findElement('#apiKeyInput');
+            const validateBtn = this.findElement('#validateBtn');
+            if (apiKeyInput) {
+                apiKeyInput.type = 'text';
+                apiKeyInput.value = '';
+                apiKeyInput.disabled = false;
+                apiKeyInput.placeholder = 'Enter your YouTube Data API v3 key for unlimited analysis...';
+            }
+            if (validateBtn) {
+                validateBtn.textContent = '🔑 Validate Key';
+                validateBtn.disabled = true;
+                validateBtn.classList.remove('validated');
+            }
+            
+            // Clear form and disable inputs
             const channelInput = this.findElement('#channelInput');
             if (channelInput) channelInput.value = '';
             
@@ -820,8 +863,11 @@ export class App extends BaseComponent {
                 this.components.tagInput.clearTags();
             }
             
-            this.showInfo('🔄 Returned to normal mode');
-            debugLog('🔄 Demo mode disabled');
+            // Disable form inputs since no API key
+            this.updateFormInputsState(true);
+            
+            this.showInfo('🔄 Returned to live mode - Enter your API key to continue');
+            debugLog('🔄 Demo mode disabled, returned to live mode');
         } else {
             // Enter demo mode
             this.appState.apiMode = 'demo';
@@ -837,8 +883,22 @@ export class App extends BaseComponent {
             demoBtn.classList.remove('demo');
             demoBtn.classList.add('warning');
             
+            // Show demo indicator
             if (demoIndicator) demoIndicator.classList.remove('hidden');
-            if (formSection) formSection.classList.add('demo-active');
+            
+            // Enable and style form for demo
+            if (formSection) {
+                formSection.classList.add('demo-active');
+                formSection.classList.remove('disabled');
+            }
+            
+            // Hide API section in demo mode
+            if (apiSection) {
+                apiSection.style.display = 'none';
+            }
+            
+            // Enable form inputs for demo
+            this.updateFormInputsState(false);
             
             // Pre-fill with sample data - use setTimeout to ensure components are ready
             setTimeout(() => {
@@ -1881,6 +1941,8 @@ export class App extends BaseComponent {
         const validateBtn = this.findElement('#validateBtn');
         const apiKeyInput = this.findElement('#apiKeyInput');
         const statusMessage = this.findElement('#statusMessage');
+        const formSection = this.findElement('#formSection');
+        const apiSection = this.findElement('#apiSection');
         
         if (validateBtn) {
             validateBtn.textContent = '✅ Validated';
@@ -1900,10 +1962,66 @@ export class App extends BaseComponent {
             statusMessage.classList.remove('hidden');
         }
         
+        // CRITICAL FIX: Enable the form section after API key validation
+        if (formSection) {
+            formSection.classList.remove('disabled');
+            debugLog('✅ Form section enabled after API key validation');
+        }
+        
+        if (apiSection) {
+            apiSection.classList.remove('disabled');
+            debugLog('✅ API section enabled after validation');
+        }
+        
+        // Enable all form inputs
+        this.updateFormInputsState(false); // false = not disabled
+        
         // Update button state
         this.updateAnalyzeButtonState();
         
         debugLog('✅ UI updated after API key validation');
+    }
+
+    /**
+     * Update the state of form inputs (enable/disable)
+     */
+    updateFormInputsState(disabled = false) {
+        const channelInput = this.findElement('#channelInput');
+        const searchBtn = this.findElement('#searchBtn');
+        const radioInputs = this.container.querySelectorAll('input[type="radio"]');
+        
+        if (channelInput) {
+            channelInput.disabled = disabled;
+            channelInput.placeholder = disabled ? 
+                'Enter API key above to unlock' : 
+                '@channelname or https://youtube.com/@channel';
+        }
+        
+        if (searchBtn) {
+            // Don't force enable if other conditions aren't met
+            if (!disabled) {
+                this.updateAnalyzeButtonState();
+            } else {
+                searchBtn.disabled = true;
+            }
+        }
+        
+        // Update radio buttons
+        if (radioInputs && radioInputs.length > 0) {
+            radioInputs.forEach(radio => {
+                radio.disabled = disabled;
+            });
+        }
+        
+        // Update TagInput component
+        if (this.components.tagInput) {
+            this.components.tagInput.setDisabled(disabled);
+            this.components.tagInput.setPlaceholder(disabled ? 
+                'Enter API key above to unlock' : 
+                'Type keyword and press Enter to add...');
+        }
+        
+        debugLog(`📝 Form inputs ${disabled ? 'disabled' : 'enabled'}`);
     }
 
     showCacheStatus(cacheMetadata) {
