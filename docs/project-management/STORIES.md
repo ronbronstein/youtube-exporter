@@ -10,360 +10,121 @@
 
 ## 🎯 **ACTIVE STORIES (Current Sprint)**
 
-### **STORY-025: Fix API Key Validation Functionality**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 3  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user**, I want the **"Validate Key" button to work correctly** so that **I can successfully authenticate and use the tool**.
-
-**Acceptance Criteria**:
-- [x] Validate button responds to clicks and processes API key
-- [x] Proper error handling for invalid keys
-- [x] Success state shows validated status
-- [x] Button state management (enabled/disabled) works correctly
-- [x] Integration with YouTube API service validation
-
-**Technical Notes**:
-- Check event listeners and button ID references
-- Verify API key validation logic
-- Test with valid/invalid API keys
-
-**Related Issues**: Button not responding to clicks
-
-### **STORY-026: Implement API Key Section State Management**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 2  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user in demo mode**, I want the **API key section to be visually disabled** so that **I understand it's not needed in demo mode**.
-
-**Acceptance Criteria**:
-- [x] API key input field grayed out/disabled in demo mode
-- [x] Validate button disabled in demo mode
-- [x] Clear visual indication that API key is not needed
-- [x] Proper state restoration when exiting demo mode
-- [x] Consistent styling with disabled state
-
-**Technical Notes**:
-- Add CSS classes for disabled state
-- Update demo mode toggle logic
-- Apply disabled styling to input and button
-
-**Related Issues**: API key area should be grayed out in demo mode
-
-### **STORY-027: Fix Page Width and Centering**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 2  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user on desktop**, I want the **page to be properly centered with 1200px width** so that **the interface looks professional and well-organized**.
-
-**Acceptance Criteria**:
-- [x] Page container fixed at 1200px width on desktop
-- [x] Content properly centered horizontally
-- [x] Responsive behavior on smaller screens
-- [x] Consistent margins and padding
-- [x] No horizontal scrolling on standard screens
-
-**Technical Notes**:
-- Update CSS for `.app-main` container
-- Ensure proper centering with `margin: 0 auto`
-- Test on various screen sizes
-
-**Related Issues**: Page width not fixed and not centered
-
-### **STORY-028: Fix Logo Display and Path**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 1  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user**, I want to **see the YouTube Research Hub logo** so that **the interface looks complete and professional**.
-
-**Acceptance Criteria**:
-- [x] Logo displays correctly in header
-- [x] Correct file path resolution
-- [x] Proper sizing (48x48px)
-- [x] Windows XP button styling applied
-- [x] Fallback handling if logo not found
-
-**Technical Notes**:
-- Verify logo file exists at correct path
-- Check HTML img src attribute
-- Ensure proper asset loading in Vite
-
-**Related Issues**: Logo not found/displaying
-
-### **STORY-029: Implement Search Section State Management**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 3  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user without a validated API key**, I want the **search section to be disabled** so that **I understand I need to validate my key first**.
-
-**Acceptance Criteria**:
-- [x] Channel input disabled until API key validated
-- [x] Keywords input disabled until API key validated
-- [x] Analyze button disabled until API key validated
-- [x] Clear visual indication of disabled state
-- [x] Proper enabling when API key is validated
-- [x] Helpful placeholder text explaining requirement
-
-**Technical Notes**:
-- Update form state management logic
-- Add disabled styling to form elements
-- Connect to API key validation state
-
-**Related Issues**: Search section should be grayed out before API key validation
-
-### **STORY-030: Implement Collapsible Cache Section**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P1 (High)  
-**Story Points**: 5  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user**, I want the **cached results in a collapsible section next to the analyze button** so that **the interface is cleaner and cache is easily accessible**.
-
-**Acceptance Criteria**:
-- [x] Cache section as collapsible toggle next to analyze button
-- [x] Clean, compact design that doesn't clutter interface
-- [x] Easy access to cached channels
-- [x] Proper spacing and alignment with analyze button
-- [x] Responsive behavior on mobile devices
-
-**Technical Notes**:
-- Redesign cache section layout
-- Implement collapsible/expandable functionality
-- Update CSS for proper positioning
-- Ensure mobile responsiveness
-
-**Related Issues**: Cached results should be in toggle next to analyze button
-
-### **STORY-031: Fix Cache Load Button Functionality**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 3  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user**, I want the **cache load button to work correctly** so that **I can quickly access previously analyzed channels**.
-
-**Acceptance Criteria**:
-- [x] Load button responds to clicks
-- [x] Cached data loads into interface correctly
-- [x] Analytics and video list display properly
-- [x] Form pre-fills with cached channel information
-- [x] Proper error handling for corrupted cache
-
-**Technical Notes**:
-- Debug event listeners for load buttons
-- Verify cache loading logic
-- Test with existing cached data
-- Check data format compatibility
-
-**Related Issues**: Cache load button not working
-
-### **STORY-032: Fix Demo Mode Video List Display**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 4  
-**Assignee**: Development Team  
-**Completed**: December 2024
-
-**User Story**:
-As a **user in demo mode**, I want to **see both analytics and video list after analysis** so that **I can fully evaluate the tool's capabilities**.
-
-**Acceptance Criteria**:
-- [x] Video list displays correctly in demo mode
-- [x] Analytics section shows properly
-- [x] Both sections visible after demo analysis
-- [x] Proper data flow from analysis to display components
-- [x] Consistent behavior between demo and live modes
-
-**Technical Notes**:
-- Debug Results component in demo mode
-- Check video data flow to VideoList component
-- Verify component visibility and rendering
-- Test demo mode analysis end-to-end
-
-**Related Issues**: Demo mode shows analysis but not videos
-
-### **STORY-020: Create UX Redesign Stories from Redesign Plan**
-**Epic**: EPIC-010 (UX Redesign - API-First Professional Interface)  
-**Status**: ✅ COMPLETED  
-**Priority**: P0 (Critical)  
-**Story Points**: 2  
-**Assignee**: Development Team  
-
-**User Story**:
-As a **project manager**, I want to **break down the redesign plan into actionable user stories** so that **the development team can implement the new UX systematically**.
-
-**Acceptance Criteria**:
-- [x] Review `docs/redesign-plan.md` comprehensively
-- [x] Create individual stories for each major component
-- [x] Estimate story points for each story
-- [x] Prioritize stories based on user impact
-- [x] Reference `ux-demo.html` prototype for specifications
-
-**Related Tasks**: Analysis of redesign plan, story creation  
-**Dependencies**: None  
-**Completion Notes**: Stories STORY-025 through STORY-032 created based on user feedback
-
----
-
-## 📋 **PLANNED STORIES (Next Sprint)**
-
-### **STORY-021: Implement API-First Header Design**
-**Epic**: EPIC-010 (UX Redesign)  
-**Status**: 📋 PLANNED  
-**Priority**: P0 (Critical)  
-**Story Points**: 3  
-
-**User Story**:
-As a **new user**, I want to **see a clear, professional header with logo and prominent API key section** so that **I understand the tool's purpose and how to get started**.
-
-**Acceptance Criteria**:
-- [ ] Header component with logo (48x48px) and title "YouTube Research Hub"
-- [ ] Logo styled with Windows XP button aesthetic (outset border, padding)
-- [ ] Title uses `--xp-title-active-start` color (#0a246a)
-- [ ] Header has bottom border separator (2px solid)
-- [ ] Flexbox layout with 16px gap between logo and title
-- [ ] Mobile-responsive: stack vertically on small screens
-
-**Technical Notes**:
-- Update `src/index.html` header section
-- Reference `ux-demo.html` lines 75-83 for exact styling
-- Logo path: `src/assets/logo.png`
-
-**Reference**: `ux-demo.html` header section, `docs/redesign-plan.md` Visual Design Changes
-
-### **STORY-022: Implement Tag-Based Keyword Input System**
-**Epic**: EPIC-010 (UX Redesign)  
-**Status**: 📋 PLANNED  
-**Priority**: P0 (Critical)  
-**Story Points**: 8  
-
-**User Story**:
-As a **content researcher**, I want to **add keywords using a professional tag system** so that **I can easily manage multiple search terms with a modern interface**.
-
-**Acceptance Criteria**:
-- [ ] Tag input container with inset border and white background
-- [ ] Enter key adds tags, Backspace removes last tag when input empty
-- [ ] Visual tags with Windows XP button gradient styling
-- [ ] X buttons on tags with hover effects (red background)
-- [ ] Focus state with blue border and shadow
-- [ ] Minimum 40px height, flexible width
-- [ ] Integration with existing keyword search logic
-- [ ] Mobile: 44px minimum touch targets
-
-**Technical Notes**:
-- Replace current keyword input in form
-- Reference `ux-demo.html` lines 280-350 for tag styling
-- Implement tag management in JavaScript
-- Update search logic to handle tag array
-
-**Reference**: `ux-demo.html` tag input system, `docs/redesign-plan.md` Component Architecture
-
-### **STORY-023: Integrate Demo Mode Seamlessly**
-**Epic**: EPIC-010 (UX Redesign)  
-**Status**: 📋 PLANNED  
-**Priority**: P0 (Critical)  
-**Story Points**: 5  
-
-**User Story**:
-As a **potential user**, I want to **try the demo without artificial limitations or confusing interfaces** so that **I can evaluate the tool's capabilities naturally**.
-
-**Acceptance Criteria**:
-- [ ] Small orange demo button below API key section
-- [ ] Auto-fill form with sample channel and keywords when activated
-- [ ] Remove all usage counters and limitation messaging
-- [ ] Demo indicator next to analyze button (subtle orange badge)
-- [ ] Smooth mode transitions with status messages
-- [ ] "Return to normal" button when demo active
-- [ ] No artificial video limits or restrictions
-
-**Technical Notes**:
-- Remove existing demo/live toggle system
-- Implement small demo button in API section
-- Update mode management to 'none', 'demo', 'live' states
-- Remove demo video limiting logic
-- Reference `ux-demo.html` demo button styling
-
-**Reference**: `ux-demo.html` demo integration, `docs/redesign-plan.md` Simplified Demo Approach
-
-### **STORY-024: Enhanced API Key Security & Storage**
-**Epic**: EPIC-010 (UX Redesign)  
-**Status**: 📋 PLANNED  
-**Priority**: P1 (High)  
-**Story Points**: 3  
-
-**User Story**:
-As a **security-conscious user**, I want to **understand how my API key is stored and have control over it** so that **I can make informed decisions about my data security**.
-
-**Acceptance Criteria**:
-- [ ] Clear microcopy explaining localStorage usage and risks
-- [ ] Option to save/not save API key with confirmation dialog
-- [ ] Hide API key after validation (show dots with "Key detected" status)
-- [ ] Link to security guide in help text
-- [ ] Clear button to remove stored API key
-- [ ] Warning about not sharing or committing keys
-
-**Technical Notes**:
-- Update API key validation flow
-- Add storage confirmation dialog
-- Implement key hiding/showing toggle
-- Add security warnings in help text
-- Reference existing encryption service
-
-**Reference**: `docs/redesign-plan.md` API Key Management section
-
----
-
-## 🔮 **BACKLOG STORIES**
-
-### **STORY-025: User Testing Protocol Development**
+### **STORY-033: User Testing Protocol Development**
 **Epic**: EPIC-011 (User Testing & Feedback Collection)  
-**Status**: 📋 BACKLOG  
+**Status**: 📋 ACTIVE  
 **Priority**: P0 (Critical)  
 **Story Points**: 3  
+**Assignee**: Development Team  
 
 **User Story**:
 As a **product manager**, I want to **create a structured user testing protocol** so that **I can collect meaningful feedback from 10 test users**.
 
 **Acceptance Criteria**:
-- [ ] User testing script and scenarios
-- [ ] Feedback collection forms
-- [ ] User recruitment strategy
-- [ ] Testing session structure
+- [ ] User testing script with guided scenarios
+- [ ] Feedback collection forms (digital and printable)
+- [ ] User recruitment strategy and criteria
+- [ ] Testing session structure and timing
 - [ ] Data analysis framework
 
-### **STORY-026: Enhanced API Key Encryption**
+**Technical Notes**:
+- Create standardized testing scenarios
+- Design feedback forms for different user types
+- Establish recruitment criteria for diverse user base
+
+### **STORY-034: Feedback Collection Infrastructure**
+**Epic**: EPIC-011 (User Testing & Feedback Collection)  
+**Status**: 📋 ACTIVE  
+**Priority**: P0 (Critical)  
+**Story Points**: 2  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **researcher**, I want to **have proper infrastructure for collecting user feedback** so that **I can efficiently gather and organize insights from testing sessions**.
+
+**Acceptance Criteria**:
+- [ ] Digital feedback forms (Google Forms or similar)
+- [ ] Screen recording setup for sessions
+- [ ] Note-taking templates
+- [ ] Feedback categorization system
+- [ ] Data storage and privacy compliance
+
+**Technical Notes**:
+- Set up digital forms with proper validation
+- Configure screen recording tools
+- Create templates for consistent data collection
+
+### **STORY-035: User Recruitment**
+**Epic**: EPIC-011 (User Testing & Feedback Collection)  
+**Status**: 📋 ACTIVE  
+**Priority**: P0 (Critical)  
+**Story Points**: 4  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **product manager**, I want to **recruit 10 diverse test users** so that **I can get representative feedback on the application's usability**.
+
+**Acceptance Criteria**:
+- [ ] Define user personas and recruitment criteria
+- [ ] Reach out through appropriate channels
+- [ ] Schedule testing sessions
+- [ ] Prepare users with pre-session information
+- [ ] Ensure diverse representation (experience levels, use cases)
+
+**Technical Notes**:
+- Target different user segments (beginners, power users, content creators)
+- Use multiple recruitment channels for diversity
+- Prepare onboarding materials for test users
+
+### **STORY-036: User Testing Execution**
+**Epic**: EPIC-011 (User Testing & Feedback Collection)  
+**Status**: 📋 PLANNED  
+**Priority**: P0 (Critical)  
+**Story Points**: 4  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **researcher**, I want to **conduct structured user testing sessions** so that **I can observe real user behavior and collect actionable feedback**.
+
+**Acceptance Criteria**:
+- [ ] Complete 10 user testing sessions
+- [ ] Record sessions (with permission)
+- [ ] Collect comprehensive feedback
+- [ ] Document user behavior and pain points
+- [ ] Gather suggestions for improvements
+
+**Technical Notes**:
+- Follow standardized testing protocol
+- Maintain consistent session structure
+- Document both quantitative and qualitative feedback
+
+### **STORY-037: Feedback Analysis**
+**Epic**: EPIC-011 (User Testing & Feedback Collection)  
+**Status**: 📋 PLANNED  
+**Priority**: P0 (Critical)  
+**Story Points**: 2  
+**Assignee**: Development Team  
+
+**User Story**:
+As a **product manager**, I want to **analyze collected feedback and create an improvement roadmap** so that **I can prioritize future development based on real user needs**.
+
+**Acceptance Criteria**:
+- [ ] Categorize and prioritize feedback
+- [ ] Identify common patterns and issues
+- [ ] Create improvement roadmap with priorities
+- [ ] Document insights and recommendations
+- [ ] Present findings to stakeholders
+
+**Technical Notes**:
+- Use data analysis tools for pattern recognition
+- Create visual summaries of findings
+- Prioritize improvements by impact and effort
+
+---
+
+## 📋 **BACKLOG STORIES**
+
+### **STORY-038: Enhanced API Key Encryption**
 **Epic**: EPIC-012 (Enhanced Security & Trust)  
 **Status**: 📋 BACKLOG  
 **Priority**: P1 (High)  
@@ -379,7 +140,7 @@ As a **user**, I want **enhanced encryption for my stored API key** so that **my
 - [ ] Encryption key rotation options
 - [ ] Security audit documentation
 
-### **STORY-027: Multi-Channel Comparison Tool**
+### **STORY-039: Multi-Channel Comparison Tool**
 **Epic**: EPIC-013 (Advanced Analytics & Insights)  
 **Status**: 📋 BACKLOG  
 **Priority**: P2 (Medium)  
@@ -395,7 +156,7 @@ As a **content strategist**, I want to **compare multiple YouTube channels side 
 - [ ] Export comparison reports
 - [ ] Performance benchmarking features
 
-### **STORY-028: Advanced Caching Strategy**
+### **STORY-040: Advanced Caching Strategy**
 **Epic**: EPIC-014 (Performance & Scalability)  
 **Status**: 📋 BACKLOG  
 **Priority**: P2 (Medium)  
@@ -411,28 +172,61 @@ As a **power user**, I want **advanced caching options and management** so that 
 - [ ] Offline mode capabilities
 - [ ] Cache performance metrics
 
+### **STORY-041: Accessibility Compliance**
+**Epic**: EPIC-016 (Accessibility & Compliance)  
+**Status**: 📋 BACKLOG  
+**Priority**: P2 (Medium)  
+**Story Points**: 8  
+
+**User Story**:
+As a **user with accessibility needs**, I want **WCAG 2.1 compliant interface** so that **I can use the application with assistive technologies**.
+
+**Acceptance Criteria**:
+- [ ] Screen reader compatibility
+- [ ] Keyboard navigation support
+- [ ] High contrast mode
+- [ ] Focus indicators
+- [ ] Alternative text for images
+
+### **STORY-042: Performance Optimization**
+**Epic**: EPIC-014 (Performance & Scalability)  
+**Status**: 📋 BACKLOG  
+**Priority**: P2 (Medium)  
+**Story Points**: 5  
+
+**User Story**:
+As a **user**, I want **faster application performance** so that **I can analyze channels quickly without waiting**.
+
+**Acceptance Criteria**:
+- [ ] Virtual scrolling for large video lists
+- [ ] Bundle size optimization (<100KB)
+- [ ] Memory usage optimization
+- [ ] Progressive loading features
+- [ ] CDN integration for static assets
+
 ---
 
 ## 📊 **STORY STATUS OVERVIEW**
 
 | Story ID | Epic | Status | Priority | Points | Sprint |
 |----------|------|--------|----------|--------|---------|
-| STORY-020 | EPIC-010 | 📋 Todo | P0 | 2 | Current |
-| STORY-021 | EPIC-010 | 📋 Planned | P0 | 5 | Next |
-| STORY-022 | EPIC-010 | 📋 Planned | P0 | 8 | Next |
-| STORY-023 | EPIC-010 | 📋 Planned | P0 | 5 | Next |
-| STORY-024 | EPIC-010 | 📋 Planned | P1 | 3 | Next |
-| STORY-025 | EPIC-011 | 📋 Backlog | P0 | 3 | Future |
-| STORY-026 | EPIC-012 | 📋 Backlog | P1 | 5 | Future |
-| STORY-027 | EPIC-013 | 📋 Backlog | P2 | 13 | Future |
-| STORY-028 | EPIC-014 | 📋 Backlog | P2 | 8 | Future |
+| STORY-033 | EPIC-011 | 📋 Active | P0 | 3 | Current |
+| STORY-034 | EPIC-011 | 📋 Active | P0 | 2 | Current |
+| STORY-035 | EPIC-011 | 📋 Active | P0 | 4 | Current |
+| STORY-036 | EPIC-011 | 📋 Planned | P0 | 4 | Current |
+| STORY-037 | EPIC-011 | 📋 Planned | P0 | 2 | Current |
+| STORY-038 | EPIC-012 | 📋 Backlog | P1 | 5 | Future |
+| STORY-039 | EPIC-013 | 📋 Backlog | P2 | 13 | Future |
+| STORY-040 | EPIC-014 | 📋 Backlog | P2 | 8 | Future |
+| STORY-041 | EPIC-016 | 📋 Backlog | P2 | 8 | Future |
+| STORY-042 | EPIC-014 | 📋 Backlog | P2 | 5 | Future |
 
 ---
 
 ## 🏷️ **STATUS LEGEND**
 
-- 📋 **TODO**: Ready to start in current sprint
-- 📋 **PLANNED**: Defined for next sprint
+- 📋 **ACTIVE**: Currently being worked on in this sprint
+- 📋 **PLANNED**: Scheduled for later in current sprint
 - 📋 **BACKLOG**: Future work, prioritized
 - 🟢 **COMPLETED**: Finished and deployed (see project-history.md)
 
@@ -442,6 +236,4 @@ As a **power user**, I want **advanced caching options and management** so that 
 - **Epics**: See `EPICS.md` for high-level objectives
 - **Current Work**: See `CURRENT-SPRINT.md` for active tasks
 - **Design References**: 
-  - `ux-demo.html` - Interactive prototype for UX stories
-  - `docs/style-guide.html` - Windows XP modern design system
-  - `docs/redesign-plan.md` - Complete redesign strategy 
+  - `docs/style-guide.html` - Windows XP modern design system 

@@ -10,54 +10,12 @@
 
 ## 🎯 **ACTIVE EPICS**
 
-### **EPIC-010: UX Redesign - API-First Professional Interface**
-**Status**: 🔄 IN PROGRESS  
-**Priority**: P0 (Critical)  
-**Owner**: Development Team  
-**Timeline**: Q1 2025  
-**Story Points**: 21 points estimated
-
-**Description**: Complete UX redesign implementing the comprehensive redesign plan to create a professional, API-first interface that eliminates user confusion and provides enterprise-ready functionality.
-
-**Business Value**: 
-- Eliminate user confusion with streamlined single-interface approach
-- Improve onboarding experience for new users
-- Create professional tool suitable for business use
-- Increase user conversion from demo to full version
-
-**Key Features**:
-- **API-First Design**: Prominent API key section with clear value proposition
-- **Integrated Demo**: Seamless demo functionality without artificial limitations
-- **Tag-Based Keywords**: Professional tag input system for better UX
-- **Enhanced Security**: API key hiding, storage options, and security guidance
-- **Mobile-First**: Responsive design with 44px touch targets
-- **Windows XP Modern**: Maintain beloved aesthetic with modern UX principles
-
-**Reference Documents**:
-- `docs/redesign-plan.md` - Complete implementation strategy
-- `ux-demo.html` - Interactive prototype demonstrating new flow
-- `docs/style-guide.html` - Windows XP modern design system
-
-**Success Criteria**:
-- [ ] Single interface eliminates dual-path confusion
-- [ ] API key section prominently featured with clear benefits
-- [ ] Demo mode integrated without counters or restrictions
-- [ ] Tag-based keyword input system implemented
-- [ ] Mobile-responsive with touch optimization
-- [ ] Professional appearance suitable for enterprise use
-- [ ] User testing shows improved onboarding experience
-
-**Related Stories**: TBD (to be created from redesign plan)
-
----
-
-## 📋 **PLANNED EPICS**
-
 ### **EPIC-011: User Testing & Feedback Collection**
-**Status**: 📋 PLANNED  
+**Status**: 🔄 ACTIVE  
 **Priority**: P0 (Critical)  
 **Owner**: Development Team  
 **Timeline**: Q1 2025  
+**Story Points**: 8 points estimated
 
 **Description**: Onboard 10 users to test the application and collect comprehensive feedback for future improvements.
 
@@ -71,11 +29,16 @@
 
 **Business Value**: Validate current UX and identify real user needs for future development
 
+---
+
+## 📋 **PLANNED EPICS**
+
 ### **EPIC-012: Enhanced Security & Trust**
 **Status**: 📋 PLANNED  
 **Priority**: P1 (High)  
 **Owner**: Development Team  
 **Timeline**: Q1 2025  
+**Story Points**: 13 points estimated
 
 **Description**: Implement enhanced security features and build user trust through transparency and best practices.
 
@@ -94,6 +57,7 @@
 **Priority**: P2 (Medium)  
 **Owner**: Development Team  
 **Timeline**: Q2 2025  
+**Story Points**: 21 points estimated
 
 **Description**: Expand analytics capabilities with advanced insights, trend analysis, and competitive intelligence features.
 
@@ -112,6 +76,7 @@
 **Priority**: P2 (Medium)  
 **Owner**: Development Team  
 **Timeline**: Q2 2025  
+**Story Points**: 13 points estimated
 
 **Description**: Optimize application performance and implement scalability improvements for handling large datasets and high user volume.
 
@@ -156,8 +121,7 @@
 
 | Epic ID | Name | Status | Priority | Points | Target |
 |---------|------|--------|----------|--------|---------|
-| EPIC-010 | UX Redesign | 🔄 In Progress | P0 | 21 | Q1 2025 |
-| EPIC-011 | User Testing | 📋 Planned | P0 | 8 | Q1 2025 |
+| EPIC-011 | User Testing | 🔄 Active | P0 | 8 | Q1 2025 |
 | EPIC-012 | Enhanced Security | 📋 Planned | P1 | 13 | Q1 2025 |
 | EPIC-013 | Advanced Analytics | 📋 Planned | P2 | 21 | Q2 2025 |
 | EPIC-014 | Performance | 📋 Planned | P2 | 13 | Q2 2025 |
@@ -166,7 +130,7 @@
 
 ## 🏷️ **STATUS LEGEND**
 
-- 🔄 **IN PROGRESS**: Currently being worked on
+- 🔄 **ACTIVE**: Currently being worked on
 - 📋 **PLANNED**: Defined and ready for development
 - 💭 **CONCEPT**: High-level idea, needs detailed planning
 - 🟢 **COMPLETED**: Finished and deployed (see project-history.md)
@@ -176,5 +140,4 @@
 - **Completed Work**: See `project-history.md` for all completed epics and achievements
 - **Stories**: See `STORIES.md` for detailed user stories
 - **Current Work**: See `CURRENT-SPRINT.md` for active tasks
-- **Design System**: See `docs/style-guide.html` for Windows XP modern components
-- **UX Prototype**: See `ux-demo.html` for redesign demonstration 
+- **Design System**: See `docs/style-guide.html` for Windows XP modern components 
