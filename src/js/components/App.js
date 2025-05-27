@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                 <div class="app-header">
                     <div class="header-top">
                         <div class="header-with-logo">
-                            <img src="./src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <img src="./assets/logo.png" alt="YouTube Research Hub" class="app-logo">
                             <div class="title-section">
                                 <h1 class="app-title">YouTube Research Hub</h1>
                                 <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
@@ -905,10 +905,10 @@ export class App extends BaseComponent {
             }
             
             // Add return to normal button in demo mode
-            const formSection = this.findElement('#formSection');
-            if (formSection) {
+            const formSectionForButton = this.findElement('#formSection');
+            if (formSectionForButton) {
                 // Remove any existing return button
-                const existingReturnBtn = formSection.querySelector('.return-to-normal-btn');
+                const existingReturnBtn = formSectionForButton.querySelector('.return-to-normal-btn');
                 if (existingReturnBtn) existingReturnBtn.remove();
                 
                 // Add return button at the top of form section
@@ -919,7 +919,7 @@ export class App extends BaseComponent {
                         🔄 Return to Normal Mode
                     </button>
                 `;
-                formSection.insertBefore(returnBtn, formSection.firstChild);
+                formSectionForButton.insertBefore(returnBtn, formSectionForButton.firstChild);
                 
                 // Add event listener
                 const returnButton = returnBtn.querySelector('#returnToNormalBtn');
@@ -2071,9 +2071,6 @@ export class App extends BaseComponent {
         // Update TagInput component
         if (this.components.tagInput) {
             this.components.tagInput.setDisabled(disabled);
-            this.components.tagInput.setPlaceholder(disabled ? 
-                'Enter API key above to unlock' : 
-                'Type keyword and press Enter to add...');
         }
         
         debugLog(`📝 Form inputs ${disabled ? 'disabled' : 'enabled'}`);
