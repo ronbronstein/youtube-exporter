@@ -2200,6 +2200,15 @@ button:disabled:hover {
         gap: var(--xp-spacing-md);
     }
     
+    .keywords-column {
+        margin-bottom: var(--xp-spacing-md);
+    }
+    
+    .options-column {
+        flex-direction: column;
+        gap: var(--xp-spacing-md);
+    }
+    
     .options-column {
         flex-direction: column;
         gap: var(--xp-spacing-md);
@@ -3682,6 +3691,8 @@ button:disabled:hover {
     border-radius: var(--xp-border-radius);
     padding: var(--xp-spacing-lg);
     margin-bottom: var(--xp-spacing-lg);
+    overflow: visible;
+    box-sizing: border-box;
 }
 
 .form-row {
@@ -3724,6 +3735,8 @@ button:disabled:hover {
 .keywords-column {
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Prevent flex item from overflowing */
+    overflow: visible;
 }
 
 .options-column {

@@ -1787,8 +1787,8 @@ export class App extends BaseComponent {
             const modeParam = urlParams.get('mode');
             const savedMode = localStorage.getItem('yt_hub_mode');
             
-            // Always start in live mode unless explicitly requesting demo
-            if (modeParam === 'demo' || savedMode === 'demo') {
+            // Always start in live mode unless explicitly requesting demo via URL parameter
+            if (modeParam === 'demo') {
                 // Demo mode - use built-in API key
                 const demoApiKey = import.meta.env.VITE_DEMO_API_KEY || null;
                 debugLog('🔍 GitHub Pages Demo Mode Debug:', {
@@ -1829,12 +1829,12 @@ export class App extends BaseComponent {
                     this.setApiKey(savedApiKey);
                     this.appState.apiMode = 'live';
                     debugLog('✅ GitHub Pages: Live mode with saved API key');
-                    this.showInfo('Using saved API key');
+                    // Don't show notification on initial load - user already has working setup
                     return 'live';
                 } else {
                     this.appState.apiMode = 'live';
                     debugLog('🌐 GitHub Pages: Live mode - user input required');
-                    this.showInfo('Please enter your YouTube Data API key');
+                    // Don't show notification on initial load - only when user needs guidance
                     return 'live';
                 }
             }
