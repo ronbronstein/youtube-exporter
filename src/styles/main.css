@@ -3708,6 +3708,63 @@ button:disabled:hover {
     box-shadow: 0 4px 8px rgba(238, 90, 82, 0.4);
 }
 
+/* Section Titles */
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--xp-text-primary);
+    margin: 0 0 20px 0;
+    padding: 0;
+    border-bottom: 2px solid var(--xp-accent-primary);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* API Validated Bar */
+.api-validated-bar {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--xp-border-radius);
+    margin-bottom: var(--xp-spacing-lg);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.validated-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.validated-icon {
+    font-size: 18px;
+}
+
+.validated-text {
+    font-weight: 600;
+    flex: 1;
+}
+
+.change-key-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.change-key-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
 /* Form Section - Always Visible */
 .form-section {
     background: var(--xp-window-bg);
@@ -3751,9 +3808,11 @@ button:disabled:hover {
 /* Keywords and Options Row - Keywords left, options right */
 .keywords-options-row {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(300px, 2fr) minmax(200px, 1fr);
     gap: var(--xp-spacing-xl);
     align-items: start;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .keywords-column {
@@ -3765,7 +3824,10 @@ button:disabled:hover {
 
 .options-column {
     display: flex;
+    flex-direction: column;
     gap: var(--xp-spacing-lg);
+    min-width: 0;
+    overflow: hidden;
 }
 
 /* Analyze Button Row - Full Width */
@@ -3786,6 +3848,7 @@ button:disabled:hover {
 .radio-group.compact {
     min-width: auto;
     flex: 1;
+    text-align: center;
 }
 
 /* Radio Button Groups */

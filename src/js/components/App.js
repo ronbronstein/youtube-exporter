@@ -487,8 +487,9 @@ export class App extends BaseComponent {
         const hasValidApiKey = !!this.appState.apiKey;
         return `
             <div class="api-key-section-minimal">
+                <h2 class="section-title">🔐 API Configuration</h2>
                 <div class="api-key-header-minimal">
-                    <h3>🔐 Enter Your YouTube API Key</h3>
+                    <h3>Enter Your YouTube API Key</h3>
                     <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="get-key-link">
                         Get free API key →
                     </a>
@@ -545,6 +546,7 @@ export class App extends BaseComponent {
         
         return `
             <div class="form-section ${shouldDisableInputs ? 'disabled' : ''}" id="formSection">
+                <h2 class="section-title">📊 Channel Analysis</h2>
                 <!-- Channel URL Row - Full Width -->
                 <div class="form-row channel-row">
                     <div class="form-group">
@@ -1993,28 +1995,49 @@ export class App extends BaseComponent {
      * Update the UI after API key validation
      */
     updateUIAfterApiKeyValidation() {
-        const validateBtn = this.findElement('#validateBtn');
-        const apiKeyInput = this.findElement('#apiKeyInput');
-        const statusMessage = this.findElement('#statusMessage');
+        const apiSectionMinimal = this.findElement('.api-key-section-minimal');
         const formSection = this.findElement('#formSection');
         const apiSection = this.findElement('#apiSection');
         
-        if (validateBtn) {
-            validateBtn.textContent = '✅ Validated';
-            validateBtn.disabled = true;
-            validateBtn.classList.add('validated');
-        }
-        
-        if (apiKeyInput) {
-            apiKeyInput.type = 'password';
-            apiKeyInput.value = '••••••••••••••••';
-            apiKeyInput.disabled = true;
-        }
-        
-        if (statusMessage) {
-            statusMessage.textContent = '✅ API key validated! Full access unlocked.';
-            statusMessage.className = 'status-message success';
-            statusMessage.classList.remove('hidden');
+        if (apiSectionMinimal) {
+            // Collapse the API section to a success bar
+            apiSectionMinimal.innerHTML = `
+                <h2 class="section-title">🔐 API Configuration</h2>
+                <div class="api-validated-bar">
+                    <div class="validated-content">
+                        <span class="validated-icon">✅</span>
+                        <span class="validated-text">API key validated and ready</span>
+                        <button class="change-key-btn" id="changeKeyBtn">
+                            🔄 Change Key
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listener for change key button
+            const changeKeyBtn = this.findElement('#changeKeyBtn');
+            if (changeKeyBtn) {
+                this.addListener(changeKeyBtn, 'click', () => {
+                    // Reset API key and show full section again
+                    this.appState.apiKey = null;
+                    this.services.youtube = null;
+                    localStorage.removeItem('yt_hub_api_key');
+                    
+                    // Re-render the API section
+                    const apiContainer = this.findElement('.api-key-section-minimal').parentElement;
+                    if (apiContainer) {
+                        const newApiSection = document.createElement('div');
+                        newApiSection.innerHTML = this.renderApiSection();
+                        apiContainer.replaceChild(newApiSection.firstElementChild, this.findElement('.api-key-section-minimal'));
+                        this.setupEventListeners(); // Re-setup listeners
+                    }
+                    
+                    // Disable form inputs again
+                    this.updateFormInputsState(true);
+                    
+                    this.showInfo('API key cleared. Please enter a new key.');
+                });
+            }
         }
         
         // CRITICAL FIX: Enable the form section after API key validation
@@ -2034,7 +2057,7 @@ export class App extends BaseComponent {
         // Update button state
         this.updateAnalyzeButtonState();
         
-        debugLog('✅ UI updated after API key validation');
+        debugLog('✅ UI updated after API key validation - section collapsed');
     }
 
     /**
