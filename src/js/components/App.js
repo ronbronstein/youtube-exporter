@@ -376,7 +376,7 @@ export class App extends BaseComponent {
      */
     renderApiSection() {
         const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode || 'demo';
+        const currentMode = this.appState.apiMode || 'live';
         const hasValidApiKey = !!this.appState.apiKey;
         
         // Use the same API-first interface for ALL environments (local and GitHub Pages)
@@ -426,7 +426,7 @@ export class App extends BaseComponent {
 
     renderApiKeySection() {
         const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode || 'demo'; // Default to demo for GitHub Pages
+        const currentMode = this.appState.apiMode || 'live'; // Default to live mode
         
         // Local development - show clean API key status
         if (currentEnvironment === 'local') {
@@ -520,7 +520,7 @@ export class App extends BaseComponent {
      */
     renderFormSection() {
         const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode || 'demo';
+        const currentMode = this.appState.apiMode || 'live';
         const hasApiKey = !!this.appState.apiKey;
         
         // Determine if inputs should be disabled (only for live mode without API key)
