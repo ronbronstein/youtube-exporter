@@ -1806,6 +1806,9 @@ tr:hover {
     border: 1px solid var(--xp-border-dark);
     border-radius: var(--xp-border-radius);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .analytics-container {
@@ -3682,6 +3685,27 @@ button:disabled:hover {
     text-align: center;
     padding-top: var(--xp-spacing-md);
     border-top: 1px solid var(--xp-border-dark);
+}
+
+.return-to-normal-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--xp-border-radius);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(238, 90, 82, 0.3);
+}
+
+.return-to-normal-btn:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(238, 90, 82, 0.4);
 }
 
 /* Form Section - Always Visible */

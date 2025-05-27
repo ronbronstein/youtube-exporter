@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                 <div class="app-header">
                     <div class="header-top">
                         <div class="header-with-logo">
-                            <img src="/src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <img src="./src/assets/logo.png" alt="YouTube Research Hub" class="app-logo">
                             <div class="title-section">
                                 <h1 class="app-title">YouTube Research Hub</h1>
                                 <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
@@ -320,20 +320,21 @@ export class App extends BaseComponent {
     }
 
     initializeCacheToggleState() {
-        // Load saved cache toggle state
-        const isCollapsed = this.services.storage.getCacheToggleState();
+        // Default to collapsed (closed) state
+        const savedState = this.services.storage.getCacheToggleState();
+        const isCollapsed = savedState !== null ? savedState : true; // Default to collapsed
         const cacheSection = this.findElement('#cachedChannelsSection');
         const toggleBtn = this.findElement('#cacheToggleBtn');
         
         if (cacheSection && toggleBtn) {
             if (isCollapsed) {
                 cacheSection.classList.add('collapsed');
-                toggleBtn.textContent = '📋 Show Cache';
+                toggleBtn.textContent = '📋 Open Cache';
                 toggleBtn.classList.add('collapsed');
-                debugLog('📋 Cache section initialized as collapsed');
+                debugLog('📋 Cache section initialized as collapsed (default)');
             } else {
                 cacheSection.classList.remove('collapsed');
-                toggleBtn.textContent = '📋 Cache';
+                toggleBtn.textContent = '📋 Close Cache';
                 toggleBtn.classList.remove('collapsed');
                 debugLog('📋 Cache section initialized as expanded');
             }
@@ -605,7 +606,7 @@ export class App extends BaseComponent {
                         📊 Analyze Now
                     </button>
                         <button class="xp-button cache-toggle-btn" id="cacheToggleBtn" type="button">
-                            📋 Cache
+                            📋 Open Cache
                         </button>
                     </div>
                     <span class="demo-indicator hidden" id="demoIndicator">
@@ -840,6 +841,12 @@ export class App extends BaseComponent {
                 apiSection.style.display = 'block';
             }
             
+            // Remove return to normal button
+            const existingReturnBtn = this.container.querySelector('.return-to-normal-btn');
+            if (existingReturnBtn) {
+                existingReturnBtn.remove();
+            }
+            
             // Reset API key input
             const apiKeyInput = this.findElement('#apiKeyInput');
             const validateBtn = this.findElement('#validateBtn');
@@ -892,9 +899,33 @@ export class App extends BaseComponent {
                 formSection.classList.remove('disabled');
             }
             
-            // Hide API section in demo mode
+            // Hide API section in demo mode, but add return button
             if (apiSection) {
                 apiSection.style.display = 'none';
+            }
+            
+            // Add return to normal button in demo mode
+            const formSection = this.findElement('#formSection');
+            if (formSection) {
+                // Remove any existing return button
+                const existingReturnBtn = formSection.querySelector('.return-to-normal-btn');
+                if (existingReturnBtn) existingReturnBtn.remove();
+                
+                // Add return button at the top of form section
+                const returnBtn = document.createElement('div');
+                returnBtn.className = 'return-to-normal-btn';
+                returnBtn.innerHTML = `
+                    <button class="xp-button warning" id="returnToNormalBtn">
+                        🔄 Return to Normal Mode
+                    </button>
+                `;
+                formSection.insertBefore(returnBtn, formSection.firstChild);
+                
+                // Add event listener
+                const returnButton = returnBtn.querySelector('#returnToNormalBtn');
+                returnButton.addEventListener('click', () => {
+                    this.handleDemoMode(); // This will toggle back to normal
+                });
             }
             
             // Enable form inputs for demo
@@ -941,13 +972,13 @@ export class App extends BaseComponent {
         if (isCollapsed) {
             // Expand
             cacheSection.classList.remove('collapsed');
-            toggleBtn.textContent = '📋 Cache';
+            toggleBtn.textContent = '📋 Close Cache';
             toggleBtn.classList.remove('collapsed');
             debugLog('📋 Cache section expanded');
         } else {
             // Collapse
             cacheSection.classList.add('collapsed');
-            toggleBtn.textContent = '📋 Show Cache';
+            toggleBtn.textContent = '📋 Open Cache';
             toggleBtn.classList.add('collapsed');
             debugLog('📋 Cache section collapsed');
         }
@@ -1018,6 +1049,14 @@ export class App extends BaseComponent {
                     debugLog(`📊 Results component updated with ${this.appState.filteredVideos.length} filtered videos`);
                 }
                 
+                // Ensure results section is visible
+                const resultsSection = this.findElement('.results-section');
+                if (resultsSection) {
+                    resultsSection.classList.add('has-data');
+                    resultsSection.style.display = 'block';
+                    debugLog('📊 Results section made visible');
+                }
+                
                 // Update analytics based on filtered results
                 this.services.analytics.setVideosData(this.appState.filteredVideos);
                 this.renderAnalytics();
@@ -1047,6 +1086,14 @@ export class App extends BaseComponent {
                     this.components.results.setVideos(this.appState.videos, channelName);
                     this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
+                }
+                
+                // Ensure results section is visible
+                const resultsSection = this.findElement('.results-section');
+                if (resultsSection) {
+                    resultsSection.classList.add('has-data');
+                    resultsSection.style.display = 'block';
+                    debugLog('📊 Results section made visible');
                 }
                 
                 // Ensure results are visible
@@ -1201,11 +1248,19 @@ export class App extends BaseComponent {
             // Update Results component with channel name
             const channelName = channelData.channelTitle || channelData.snippet?.title || 'Unknown Channel';
             
-            if (this.components.results) {
-                this.components.results.setVideos(processedVideos, channelName);
-                this.components.results.show();
-                debugLog(`📊 Results component updated with ${processedVideos.length} videos from fresh API`);
-            }
+                            if (this.components.results) {
+                    this.components.results.setVideos(processedVideos, channelName);
+                    this.components.results.show();
+                    debugLog(`📊 Results component updated with ${processedVideos.length} videos from fresh API`);
+                }
+                
+                // Ensure results section is visible
+                const resultsSection = this.findElement('.results-section');
+                if (resultsSection) {
+                    resultsSection.classList.add('has-data');
+                    resultsSection.style.display = 'block';
+                    debugLog('📊 Results section made visible');
+                }
             
             // Update analytics display
             this.setLoadingState(true, 'Finalizing insights...');
@@ -2232,6 +2287,14 @@ export class App extends BaseComponent {
                 this.components.results.setVideos(cachedAnalysis, cacheMetadata?.channelTitle || 'Unknown Channel');
                 this.components.results.show();
                 debugLog('📊 Results component updated');
+            }
+            
+            // Ensure results section is visible
+            const resultsSection = this.findElement('.results-section');
+            if (resultsSection) {
+                resultsSection.classList.add('has-data');
+                resultsSection.style.display = 'block';
+                debugLog('📊 Results section made visible');
             }
         
             // Update analytics display
