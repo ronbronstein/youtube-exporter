@@ -187,6 +187,18 @@ export class Results extends BaseComponent {
         debugLog(`📊 Results updated: ${this.videos.length} total, ${this.filteredVideos.length} filtered`);
     }
     
+    setSearchFilter(query = '') {
+        const titleFilter = this.findElement('#titleFilter');
+        if (titleFilter) {
+            titleFilter.value = query;
+            // Apply the filter immediately if there's a query
+            if (query.trim()) {
+                this.filterResults(query);
+            }
+            debugLog(`🔍 Search filter set to: "${query}"`);
+        }
+    }
+    
     switchView(view) {
         if (this.currentView === view) return;
         

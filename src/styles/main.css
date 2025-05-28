@@ -5772,3 +5772,65 @@ button:disabled:hover {
   text-align: center;
   color: var(--xp-text-secondary);
 } 
+
+/* ===== POST-ANALYSIS OVERLAY ===== */
+.post-analysis-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(192, 192, 192, 0.95);
+    border: 2px outset var(--xp-button-face);
+    border-radius: var(--xp-border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.overlay-content {
+    background: var(--xp-window-bg);
+    border: 2px inset var(--xp-border-light);
+    border-radius: var(--xp-border-radius);
+    padding: var(--xp-spacing-xl);
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.overlay-message h3 {
+    color: var(--xp-text);
+    font-size: var(--xp-font-size-large);
+    margin-bottom: var(--xp-spacing-md);
+    font-weight: bold;
+}
+
+.overlay-message p {
+    color: var(--xp-text-secondary);
+    font-size: var(--xp-font-size);
+    margin-bottom: var(--xp-spacing-lg);
+    line-height: 1.4;
+}
+
+.overlay-actions {
+    display: flex;
+    gap: var(--xp-spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.overlay-actions .xp-button {
+    min-width: 140px;
+    padding: var(--xp-spacing-md) var(--xp-spacing-lg);
+    font-weight: bold;
+}
+
+/* Ensure form section has relative positioning for overlay */
+.form-section {
+    position: relative;
+}
+
+/* ===== END POST-ANALYSIS OVERLAY ===== */

@@ -1075,6 +1075,8 @@ export class App extends BaseComponent {
                 
                 if (this.components.results) {
                     this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                    // Pre-populate the search filter with the initial keywords
+                    this.components.results.setSearchFilter(keywords);
                     this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.filteredVideos.length} filtered videos`);
                 }
@@ -1106,6 +1108,9 @@ export class App extends BaseComponent {
                 const totalVideos = this.appState.videos.length;
                 const filteredVideos = this.appState.filteredVideos.length;
                 this.showSuccess(`Found ${totalVideos} videos, ${filteredVideos} match your keyword filter`);
+                
+                // Show post-analysis overlay
+                this.showPostAnalysisOverlay();
             } else {
                 // No keywords, show all videos
                 const channelName = this.appState.channelData?.channelTitle || 
@@ -1114,6 +1119,8 @@ export class App extends BaseComponent {
                 
                 if (this.components.results) {
                     this.components.results.setVideos(this.appState.videos, channelName);
+                    // Clear the search filter since no keywords were used
+                    this.components.results.setSearchFilter('');
                     this.components.results.show();
                     debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
                 }
@@ -1139,6 +1146,9 @@ export class App extends BaseComponent {
                 }
                 
                 this.showSuccess(`Analysis complete: ${this.appState.videos.length} videos found`);
+                
+                // Show post-analysis overlay
+                this.showPostAnalysisOverlay();
             }
             
         } catch (error) {
@@ -2381,5 +2391,105 @@ export class App extends BaseComponent {
             cachedSection.innerHTML = this.renderCachedChannelsList();
             this.setupCachedChannelsListeners();
         }
+    }
+    
+    showPostAnalysisOverlay() {
+        const formSection = this.findElement('#formSection');
+        if (!formSection) return;
+        
+        // Remove any existing overlay
+        this.hidePostAnalysisOverlay();
+        
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'post-analysis-overlay';
+        overlay.id = 'postAnalysisOverlay';
+        
+        const currentMode = this.appState.apiMode || 'demo';
+        const returnToNormalBtn = currentMode === 'demo' ? `
+            <button class="xp-button warning" id="returnToNormalFromOverlay">
+                🔄 Return to Normal Mode
+            </button>
+        ` : '';
+        
+        overlay.innerHTML = `
+            <div class="overlay-content">
+                <div class="overlay-message">
+                    <h3>✅ Analysis Complete!</h3>
+                    <p>Use the search filter in the results table to refine your data.</p>
+                </div>
+                <div class="overlay-actions">
+                    <button class="xp-button success" id="startNewAnalysis">
+                        🆕 Start New Analysis
+                    </button>
+                    ${returnToNormalBtn}
+                </div>
+            </div>
+        `;
+        
+        formSection.appendChild(overlay);
+        
+        // Add event listeners
+        const startNewBtn = overlay.querySelector('#startNewAnalysis');
+        const returnBtn = overlay.querySelector('#returnToNormalFromOverlay');
+        
+        if (startNewBtn) {
+            startNewBtn.addEventListener('click', () => {
+                this.hidePostAnalysisOverlay();
+                this.clearAnalysisResults();
+            });
+        }
+        
+        if (returnBtn) {
+            returnBtn.addEventListener('click', () => {
+                this.handleDemoMode(); // This will toggle back to normal mode
+            });
+        }
+        
+        debugLog('📋 Post-analysis overlay shown');
+    }
+    
+    hidePostAnalysisOverlay() {
+        const overlay = this.findElement('#postAnalysisOverlay');
+        if (overlay) {
+            overlay.remove();
+            debugLog('📋 Post-analysis overlay hidden');
+        }
+    }
+    
+    clearAnalysisResults() {
+        // Clear app state
+        this.appState.videos = [];
+        this.appState.filteredVideos = [];
+        this.appState.channelData = null;
+        this.appState.cacheMetadata = null;
+        
+        // Clear form inputs
+        const channelInput = this.findElement('#channelInput');
+        if (channelInput) channelInput.value = '';
+        
+        if (this.components.tagInput) {
+            this.components.tagInput.clearTags();
+        }
+        
+        // Clear results
+        if (this.components.results) {
+            this.components.results.clearResults();
+        }
+        
+        // Clear analytics
+        const analyticsSection = this.findElement('#analyticsSection');
+        if (analyticsSection) {
+            analyticsSection.innerHTML = `
+                <div class="analytics-placeholder">
+                    Select a channel to view analytics
+                </div>
+            `;
+        }
+        
+        // Update button states
+        this.updateAnalyzeButtonState();
+        
+        debugLog('🗑️ Analysis results cleared for new analysis');
     }
 } 
