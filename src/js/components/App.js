@@ -329,18 +329,31 @@ export class App extends BaseComponent {
     }
 
     initializeCacheToggleState() {
-        // Default to collapsed (closed) state
-        const savedState = this.services.storage.getCacheToggleState();
-        const isCollapsed = savedState !== null ? savedState : true; // Default to collapsed
+        // Check if we're in demo mode and have no cached channels
+        const currentMode = this.appState.apiMode || 'demo';
+        const cachedChannels = this.services.storage.getAllCachedChannels();
+        const hasNoCachedChannels = cachedChannels.length === 0;
+        
+        // Auto-close cache section in demo mode when no cached channels
+        let defaultCollapsed = true; // Default to collapsed
+        if (currentMode === 'demo' && hasNoCachedChannels) {
+            defaultCollapsed = true; // Force closed in demo mode with no cache
+            debugLog('📋 Demo mode with no cached channels: forcing cache section closed');
+        } else {
+            // Use saved state or default to collapsed
+            const savedState = this.services.storage.getCacheToggleState();
+            defaultCollapsed = savedState !== null ? savedState : true;
+        }
+        
         const cacheSection = this.findElement('#cachedChannelsSection');
         const toggleBtn = this.findElement('#cacheToggleBtn');
         
         if (cacheSection && toggleBtn) {
-            if (isCollapsed) {
+            if (defaultCollapsed) {
                 cacheSection.classList.add('collapsed');
                 toggleBtn.textContent = '📋 Open Cache';
                 toggleBtn.classList.add('collapsed');
-                debugLog('📋 Cache section initialized as collapsed (default)');
+                debugLog('📋 Cache section initialized as collapsed');
             } else {
                 cacheSection.classList.remove('collapsed');
                 toggleBtn.textContent = '📋 Close Cache';
@@ -555,7 +568,7 @@ export class App extends BaseComponent {
         
         return `
             <div class="form-section ${shouldDisableInputs ? 'disabled' : ''}" id="formSection">
-                <h2 class="section-title">📊 Channel Analysis</h2>
+                <h2 class="section-title">🎛️ Control Panel</h2>
                 <!-- Channel URL Row - Full Width -->
                 <div class="form-row channel-row">
                     <div class="form-group">
@@ -569,7 +582,7 @@ export class App extends BaseComponent {
                     </div>
                 </div>
 
-                <!-- Keywords and Options Row - Keywords take left column, options take right -->
+                <!-- Keywords and Options Row - All elements on same line with consistent heights -->
                 <div class="form-row keywords-options-row">
                     <!-- Left Column: Keywords -->
                     <div class="keywords-column">
@@ -582,30 +595,29 @@ export class App extends BaseComponent {
                         </div>
                     </div>
                     
-                    <!-- Right Column: Search Options -->
-                    <div class="options-column">
-                        <div class="radio-group compact">
-                            <div class="radio-group-title">Keywords Logic:</div>
-                            <div class="radio-option">
-                                <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
-                                <label for="logicAny">Any (OR)</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
-                                <label for="logicAll">All (AND)</label>
-                            </div>
+                    <!-- Middle Column: Keywords Logic -->
+                    <div class="radio-group compact">
+                        <div class="radio-group-title">Keywords Logic:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
+                            <label for="logicAny">Any (OR)</label>
                         </div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
+                            <label for="logicAll">All (AND)</label>
+                        </div>
+                    </div>
 
-                        <div class="radio-group compact">
-                            <div class="radio-group-title">Search In:</div>
-                            <div class="radio-option">
-                                <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
-                                <label for="searchTitle">Title only</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
-                                <label for="searchTitleDesc">Title & Description</label>
-                            </div>
+                    <!-- Right Column: Search In -->
+                    <div class="radio-group compact">
+                        <div class="radio-group-title">Search In:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
+                            <label for="searchTitle">Title only</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
+                            <label for="searchTitleDesc">Title & Description</label>
                         </div>
                     </div>
                 </div>
@@ -946,13 +958,17 @@ export class App extends BaseComponent {
             setTimeout(() => {
                 const channelInput = this.findElement('#channelInput');
                 if (channelInput) {
-                    channelInput.value = '@MrBeast';
-                    debugLog('✅ Channel input pre-filled with @MrBeast');
+                    channelInput.value = '@OutdoorBoys';
+                    debugLog('✅ Channel input pre-filled with @OutdoorBoys');
+                } else {
+                    debugLog('❌ Channel input not found (#channelInput)');
                 }
                 
                 if (this.components.tagInput) {
-                    this.components.tagInput.setTags(['viral', 'trending']);
-                    debugLog('✅ Tags pre-filled with viral, trending');
+                    this.components.tagInput.setTags(['Alaska']);
+                    debugLog('✅ Tags pre-filled with Alaska');
+                } else {
+                    debugLog('❌ TagInput component not ready');
                 }
                 
                 // Update button states after pre-filling
@@ -1786,9 +1802,9 @@ export class App extends BaseComponent {
         // Pre-fill form with sample data
         const channelInput = this.findElement('#channelInput');
         if (channelInput) {
-            channelInput.value = '@MrBeast';
+            channelInput.value = '@OutdoorBoys';
             channelInput.dispatchEvent(new Event('input', { bubbles: true }));
-            debugLog('✅ Channel input pre-filled with @MrBeast');
+            debugLog('✅ Channel input pre-filled with @OutdoorBoys');
         } else {
             debugLog('❌ Channel input not found (#channelInput)');
         }
@@ -1796,8 +1812,8 @@ export class App extends BaseComponent {
         // Wait for TagInput to be ready and set tags
         setTimeout(() => {
             if (this.components.tagInput) {
-                this.components.tagInput.setTags(['viral', 'trending']);
-                debugLog('✅ Tags pre-filled with viral, trending');
+                this.components.tagInput.setTags(['Alaska']);
+                debugLog('✅ Tags pre-filled with Alaska');
             } else {
                 debugLog('❌ TagInput component not ready');
             }
