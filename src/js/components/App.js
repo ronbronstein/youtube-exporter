@@ -501,6 +501,9 @@ export class App extends BaseComponent {
                     <div class="demo-description">
                         Test the tool with real YouTube data. Limited to 100 most recent videos per channel.
                     </div>
+                    <div class="demo-notice">
+                        <span class="demo-label">Demo: fetches up to 100 most recent videos, then filters by keywords</span>
+                    </div>
                 </div>
             `;
         }
@@ -633,7 +636,7 @@ export class App extends BaseComponent {
                         </button>
                     </div>
                     <span class="demo-indicator hidden" id="demoIndicator">
-                        Demo: up to 100 videos analysis
+                        Demo: fetches up to 100 recent videos, then filters by keywords
                     </span>
                 </div>
             </div>

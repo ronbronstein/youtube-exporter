@@ -350,9 +350,9 @@ export class Results extends BaseComponent {
             const filtered = this.filteredVideos.length;
             
             if (total === filtered) {
-                countElement.textContent = `${total.toLocaleString()} videos found`;
+                countElement.textContent = `${total.toLocaleString()} videos found (showing all fetched videos)`;
             } else {
-                countElement.textContent = `${filtered.toLocaleString()} of ${total.toLocaleString()} videos`;
+                countElement.textContent = `${filtered.toLocaleString()} of ${total.toLocaleString()} videos (filtered from fetched results)`;
             }
         }
     }
