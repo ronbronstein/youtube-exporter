@@ -363,7 +363,7 @@ export class App extends BaseComponent {
 
         // Get current mode and cached channels using the correct service reference
         const currentMode = this.services.storage.getMode();
-        const cachedChannels = this.services.storage.getCachedChannels();
+        const cachedChannels = this.services.storage.getAllCachedChannels();
         
         console.log('Found cached channels for mode', {
             mode: currentMode,
@@ -1362,14 +1362,27 @@ export class App extends BaseComponent {
             return;
         }
 
-        // Get the current videos (filtered videos, not total fetched)
-        const currentVideos = this.resultsComponent ? this.resultsComponent.filteredVideos || this.resultsComponent.videos : [];
-        const hasAnalyticsService = this.analyticsService !== null;
+        // Get the current videos from multiple possible sources
+        let currentVideos = [];
+        
+        if (this.components.results && this.components.results.filteredVideos) {
+            currentVideos = this.components.results.filteredVideos;
+        } else if (this.components.results && this.components.results.videos) {
+            currentVideos = this.components.results.videos;
+        } else if (this.appState.videos) {
+            currentVideos = this.appState.videos;
+        } else if (this.appState.filteredVideos) {
+            currentVideos = this.appState.filteredVideos;
+        }
+        
+        const hasAnalyticsService = this.services?.analytics !== null;
         
         console.log('🔍 DEBUG: 📊 renderAnalytics called:', {
             hasAnalyticsSection: !!analyticsSection,
             videosLength: currentVideos.length,
-            hasAnalyticsService
+            hasAnalyticsService,
+            hasResultsComponent: !!this.components.results,
+            appStateVideosLength: this.appState.videos?.length || 0
         });
 
         if (currentVideos.length === 0 || !hasAnalyticsService) {
@@ -1378,106 +1391,71 @@ export class App extends BaseComponent {
             return;
         }
 
-        console.log('🔍 DEBUG: 📊 Rendering complete analytics sections');
+        // Ensure analytics service has the data
+        this.services.analytics.setVideosData(currentVideos);
         
-        // Use filtered videos for analytics calculation
-        const analytics = this.analyticsService.generateContentAnalysis(currentVideos);
-        const advancedAnalytics = this.analyticsService.generateAdvancedAnalysis(currentVideos);
+        const analytics = this.services.analytics.generateAnalytics();
+        const channelTitle = this.appState.channelData?.channelTitle || 'Unknown Channel';
 
-        console.log(`Generating content analysis for ${currentVideos.length}`);
+        analyticsSection.innerHTML = `
+            <h3>📊 Analytics for ${channelTitle}</h3>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>📈 Performance Overview</h4>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <label>Total Videos:</label>
+                            <span class="value">${analytics.overview.totalVideos.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <label>Total Views:</label>
+                            <span class="value">${analytics.overview.totalViews.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <label>Average Views:</label>
+                            <span class="value">${analytics.overview.averageViews.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
 
-        const contentAnalysisHtml = `
-            <div class="analysis-panel" data-title="Content Analysis">
-                <h3>📊 Content Analysis</h3>
-                <div class="analysis-grid">
-                    <div class="analysis-stat">
-                        <h4>${analytics.totalVideos}</h4>
-                        <p>Total Videos Analyzed</p>
+                <div class="analytics-card">
+                    <h4>⭐ Top Performing Videos</h4>
+                    <div class="top-videos">
+                        ${analytics.topVideos.byViews.slice(0, 3).map(video => `
+                            <div class="top-video-item">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-stats">${video.viewCount?.toLocaleString() || 'N/A'} views</div>
+                            </div>
+                        `).join('')}
                     </div>
-                    <div class="analysis-stat">
-                        <h4>${analytics.avgViews.toLocaleString()}</h4>
-                        <p>Average Views</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${analytics.totalViews.toLocaleString()}</h4>
-                        <p>Total Views</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${analytics.engagementRate}%</h4>
-                        <p>Avg Engagement Rate</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${analytics.avgLikes.toLocaleString()}</h4>
-                        <p>Average Likes</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${analytics.mostPopularDay}</h4>
-                        <p>Best Upload Day</p>
+                </div>
+
+                <div class="analytics-card">
+                    <h4>📅 Upload Timeline</h4>
+                    <canvas id="uploadChart" width="600" height="300"></canvas>
+                </div>
+
+                <div class="analytics-card">
+                    <h4>🏷️ Content Insights</h4>
+                    <div class="insights-list">
+                        ${analytics.insights.map(insight => `
+                            <div class="insight-item">
+                                <span class="insight-icon">${insight.type === 'warning' ? '⚠️' : 
+                                                              insight.type === 'success' ? '✅' : 'ℹ️'}</span>
+                                <span class="insight-text">${insight.message}</span>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>
         `;
-
-        const advancedAnalysisHtml = `
-            <div class="analysis-panel" data-title="Advanced Analytics">
-                <h3>🔬 Advanced Analytics</h3>
-                <div class="analysis-grid">
-                    <div class="analysis-stat">
-                        <h4>${advancedAnalytics.viralVideos || 0}</h4>
-                        <p>Viral Videos (3x avg views)</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${advancedAnalytics.bestMonth}</h4>
-                        <p>Best Month</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${advancedAnalytics.uploadFrequency}</h4>
-                        <p>Upload Frequency</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${advancedAnalytics.avgDuration}</h4>
-                        <p>Average Duration</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${advancedAnalytics.topCategory}</h4>
-                        <p>Top Category</p>
-                    </div>
-                    <div class="analysis-stat">
-                        <h4>${(advancedAnalytics.consistencyScore * 100).toFixed(0)}%</h4>
-                        <p>Consistency Score</p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const chartPanelHtml = `
-            <div class="chart-panel">
-                <h3>📈 Upload Timeline</h3>
-                <div class="chart-container">
-                    <canvas id="uploadChart"></canvas>
-                </div>
-            </div>
-        `;
-
-        const fullAnalyticsHtml = contentAnalysisHtml + advancedAnalysisHtml + chartPanelHtml;
-
-        console.log('🔍 DEBUG: 📊 Analytics HTML generated:', {
-            contentAnalysisLength: contentAnalysisHtml.length,
-            advancedAnalysisLength: advancedAnalysisHtml.length,
-            chartPanelLength: chartPanelHtml.length
-        });
-
-        analyticsSection.innerHTML = fullAnalyticsHtml;
-        analyticsSection.style.display = 'block';
-        analyticsSection.classList.add('has-data');
-
-        console.log('🔍 DEBUG: 📊 Analytics HTML set in DOM');
-        console.log('🔍 DEBUG: 📊 Complete analytics rendered with chart');
 
         // Create the upload timeline chart
-        this.createUploadTimelineChart(currentVideos);
-        
-        console.log('🔍 DEBUG: 📊 renderAnalytics() called');
+        setTimeout(() => this.createUploadTimelineChart(currentVideos), 100);
+
+        analyticsSection.style.display = 'block';
+        console.log('🔍 DEBUG: ✅ Analytics rendered with', currentVideos.length, 'videos');
     }
     
     // UI State Management
@@ -2468,7 +2446,7 @@ export class App extends BaseComponent {
         
         // Get current mode for targeted clearing
         const currentMode = this.services.storage.getMode();
-        const cachedChannels = this.services.storage.getCachedChannels();
+        const cachedChannels = this.services.storage.getAllCachedChannels();
         
         console.log('Found cached channels for mode', {
             mode: currentMode,
@@ -2486,9 +2464,6 @@ export class App extends BaseComponent {
             localStorage.removeItem(cacheKey);
         });
 
-        // Clear the cached channels list for current mode
-        this.services.storage.clearCachedChannels();
-        
         // Clear currently displayed results and analytics
         this.clearAnalysisResults();
         
