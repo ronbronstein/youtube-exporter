@@ -329,37 +329,33 @@ export class App extends BaseComponent {
     }
 
     initializeCacheToggleState() {
-        // Check if we're in demo mode and have no cached channels
-        const currentMode = this.appState.apiMode || 'demo';
-        const cachedChannels = this.services.storage.getAllCachedChannels();
-        const hasNoCachedChannels = cachedChannels.length === 0;
+        const cacheToggleBtn = document.querySelector('.cache-toggle-btn');
+        const cachedChannelsSection = document.querySelector('.cached-channels-section');
         
-        // Auto-close cache section in demo mode when no cached channels
-        let defaultCollapsed = true; // Default to collapsed
-        if (currentMode === 'demo' && hasNoCachedChannels) {
-            defaultCollapsed = true; // Force closed in demo mode with no cache
-            debugLog('📋 Demo mode with no cached channels: forcing cache section closed');
-        } else {
-            // Use saved state or default to collapsed
-            const savedState = this.services.storage.getCacheToggleState();
-            defaultCollapsed = savedState !== null ? savedState : true;
+        if (!cacheToggleBtn || !cachedChannelsSection) {
+            console.log('🔍 DEBUG: ❌ Cache toggle elements not found');
+            return;
         }
+
+        // Get current mode and cached channels
+        const currentMode = this.storageService.getMode();
+        const cachedChannels = this.storageService.getCachedChannels();
         
-        const cacheSection = this.findElement('#cachedChannelsSection');
-        const toggleBtn = this.findElement('#cacheToggleBtn');
-        
-        if (cacheSection && toggleBtn) {
-            if (defaultCollapsed) {
-                cacheSection.classList.add('collapsed');
-                toggleBtn.textContent = '📋 Open Cache';
-                toggleBtn.classList.add('collapsed');
-                debugLog('📋 Cache section initialized as collapsed');
-            } else {
-                cacheSection.classList.remove('collapsed');
-                toggleBtn.textContent = '📋 Close Cache';
-                toggleBtn.classList.remove('collapsed');
-                debugLog('📋 Cache section initialized as expanded');
-            }
+        console.log('Found cached channels for mode', {
+            mode: currentMode,
+            count: cachedChannels.length
+        });
+
+        // Auto-collapse if no cached channels in demo mode
+        if (currentMode === 'demo' && cachedChannels.length === 0) {
+            cacheToggleBtn.classList.add('collapsed');
+            cachedChannelsSection.classList.add('collapsed');
+            console.log('🔍 DEBUG: 📋 Cache section auto-collapsed for demo mode (no cached channels)');
+        } else {
+            // Default to expanded if there are cached channels
+            cacheToggleBtn.classList.remove('collapsed');
+            cachedChannelsSection.classList.remove('collapsed');
+            console.log('🔍 DEBUG: 📋 Cache section initialized as expanded');
         }
     }
     
@@ -1336,57 +1332,128 @@ export class App extends BaseComponent {
     }
     
     renderAnalytics() {
-        const analyticsSection = this.findElement('#analyticsSection');
-        debugLog('📊 renderAnalytics called:', {
-            hasAnalyticsSection: !!analyticsSection,
-            videosLength: this.appState.videos?.length || 0,
-            hasAnalyticsService: !!this.services.analytics
-        });
-        
-        if (!analyticsSection || !this.appState.videos.length) {
-            debugLog('❌ Analytics rendering skipped:', {
-                reason: !analyticsSection ? 'No analytics section' : 'No videos',
-                analyticsSection: !!analyticsSection,
-                videosLength: this.appState.videos?.length || 0
-            });
+        const analyticsSection = this.findElement('.analytics-section');
+        if (!analyticsSection) {
+            console.log('🔍 DEBUG: ❌ Analytics section not found');
             return;
         }
+
+        // Get the current videos (filtered videos, not total fetched)
+        const currentVideos = this.resultsComponent ? this.resultsComponent.filteredVideos || this.resultsComponent.videos : [];
+        const hasAnalyticsService = this.analyticsService !== null;
         
-        debugLog('📊 Rendering complete analytics sections');
-        
-        // Set videos data in analytics service
-        this.services.analytics.setVideosData(this.appState.videos);
-        
-        // Generate all analysis sections like the legacy app
-        const contentAnalysisHTML = this.services.analytics.generateContentAnalysisHTML();
-        const advancedAnalysisHTML = this.services.analytics.generateAdvancedAnalysisHTML();
-        const chartPanelHTML = this.services.analytics.generateChartPanelHTML('uploadChart');
-        
-        debugLog('📊 Analytics HTML generated:', {
-            contentAnalysisLength: contentAnalysisHTML?.length || 0,
-            advancedAnalysisLength: advancedAnalysisHTML?.length || 0,
-            chartPanelLength: chartPanelHTML?.length || 0
+        console.log('🔍 DEBUG: 📊 renderAnalytics called:', {
+            hasAnalyticsSection: !!analyticsSection,
+            videosLength: currentVideos.length,
+            hasAnalyticsService
         });
+
+        if (currentVideos.length === 0 || !hasAnalyticsService) {
+            console.log('🔍 DEBUG: ❌ No videos or analytics service for analysis');
+            analyticsSection.style.display = 'none';
+            return;
+        }
+
+        console.log('🔍 DEBUG: 📊 Rendering complete analytics sections');
         
-        // Combine all sections with proper styling
-        analyticsSection.innerHTML = `
-            <div class="analytics-container">
-                ${contentAnalysisHTML}
-                ${advancedAnalysisHTML}
-                ${chartPanelHTML}
+        // Use filtered videos for analytics calculation
+        const analytics = this.analyticsService.generateContentAnalysis(currentVideos);
+        const advancedAnalytics = this.analyticsService.generateAdvancedAnalysis(currentVideos);
+
+        console.log(`Generating content analysis for ${currentVideos.length}`);
+
+        const contentAnalysisHtml = `
+            <div class="analysis-panel" data-title="Content Analysis">
+                <h3>📊 Content Analysis</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-stat">
+                        <h4>${analytics.totalVideos}</h4>
+                        <p>Total Videos Analyzed</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${analytics.avgViews.toLocaleString()}</h4>
+                        <p>Average Views</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${analytics.totalViews.toLocaleString()}</h4>
+                        <p>Total Views</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${analytics.engagementRate}%</h4>
+                        <p>Avg Engagement Rate</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${analytics.avgLikes.toLocaleString()}</h4>
+                        <p>Average Likes</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${analytics.mostPopularDay}</h4>
+                        <p>Best Upload Day</p>
+                    </div>
+                </div>
             </div>
         `;
+
+        const advancedAnalysisHtml = `
+            <div class="analysis-panel" data-title="Advanced Analytics">
+                <h3>🔬 Advanced Analytics</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-stat">
+                        <h4>${advancedAnalytics.viralVideos || 0}</h4>
+                        <p>Viral Videos (3x avg views)</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${advancedAnalytics.bestMonth}</h4>
+                        <p>Best Month</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${advancedAnalytics.uploadFrequency}</h4>
+                        <p>Upload Frequency</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${advancedAnalytics.avgDuration}</h4>
+                        <p>Average Duration</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${advancedAnalytics.topCategory}</h4>
+                        <p>Top Category</p>
+                    </div>
+                    <div class="analysis-stat">
+                        <h4>${(advancedAnalytics.consistencyScore * 100).toFixed(0)}%</h4>
+                        <p>Consistency Score</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const chartPanelHtml = `
+            <div class="chart-panel">
+                <h3>📈 Upload Timeline</h3>
+                <div class="chart-container">
+                    <canvas id="uploadChart"></canvas>
+                </div>
+            </div>
+        `;
+
+        const fullAnalyticsHtml = contentAnalysisHtml + advancedAnalysisHtml + chartPanelHtml;
+
+        console.log('🔍 DEBUG: 📊 Analytics HTML generated:', {
+            contentAnalysisLength: contentAnalysisHtml.length,
+            advancedAnalysisLength: advancedAnalysisHtml.length,
+            chartPanelLength: chartPanelHtml.length
+        });
+
+        analyticsSection.innerHTML = fullAnalyticsHtml;
+        analyticsSection.style.display = 'block';
+        analyticsSection.classList.add('has-data');
+
+        console.log('🔍 DEBUG: 📊 Analytics HTML set in DOM');
+        console.log('🔍 DEBUG: 📊 Complete analytics rendered with chart');
+
+        // Create the upload timeline chart
+        this.createUploadTimelineChart(currentVideos);
         
-        debugLog('📊 Analytics HTML set in DOM');
-        
-        // Create the upload timeline chart after DOM is updated
-        setTimeout(() => {
-            debugLog('📊 Creating upload timeline chart...');
-            this.services.analytics.createUploadTimelineChart('uploadChart');
-            debugLog('📊 Upload timeline chart creation attempted');
-        }, 100);
-        
-        debugLog('📊 Complete analytics rendered with chart');
+        console.log('🔍 DEBUG: 📊 renderAnalytics() called');
     }
     
     // UI State Management
@@ -2037,69 +2104,61 @@ export class App extends BaseComponent {
      * Update the UI after API key validation
      */
     updateUIAfterApiKeyValidation() {
-        const apiSectionMinimal = this.findElement('.api-key-section-minimal');
-        const formSection = this.findElement('#formSection');
-        const apiSection = this.findElement('#apiSection');
+        console.log('🔍 DEBUG: 🚀 Updating UI after API key validation...');
         
-        if (apiSectionMinimal) {
-            // Collapse the API section to a success bar
-            apiSectionMinimal.innerHTML = `
-                <h2 class="section-title">🔐 API Configuration</h2>
-                <div class="api-validated-bar">
-                    <div class="validated-content">
-                        <span class="validated-icon">✅</span>
-                        <span class="validated-text">API key validated and ready</span>
-                        <button class="change-key-btn" id="changeKeyBtn">
-                            🔄 Change Key
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Add event listener for change key button
-            const changeKeyBtn = this.findElement('#changeKeyBtn');
-            if (changeKeyBtn) {
-                this.addListener(changeKeyBtn, 'click', () => {
-                    // Reset API key and show full section again
-                    this.appState.apiKey = null;
-                    this.services.youtube = null;
-                    localStorage.removeItem('yt_hub_api_key');
-                    
-                    // Re-render the API section
-                    const apiContainer = this.findElement('.api-key-section-minimal').parentElement;
-                    if (apiContainer) {
-                        const newApiSection = document.createElement('div');
-                        newApiSection.innerHTML = this.renderApiSection();
-                        apiContainer.replaceChild(newApiSection.firstElementChild, this.findElement('.api-key-section-minimal'));
-                        this.setupEventListeners(); // Re-setup listeners
-                    }
-                    
-                    // Disable form inputs again
-                    this.updateFormInputsState(true);
-                    
-                    this.showInfo('API key cleared. Please enter a new key.');
-                });
-            }
-        }
-        
-        // CRITICAL FIX: Enable the form section after API key validation
+        // Enable form sections
+        const formSection = document.querySelector('.form-section');
         if (formSection) {
             formSection.classList.remove('disabled');
-            debugLog('✅ Form section enabled after API key validation');
+            console.log('🔍 DEBUG: ✅ Form section enabled after API key validation');
         }
-        
+
+        const apiSection = document.querySelector('.api-section');
         if (apiSection) {
             apiSection.classList.remove('disabled');
-            debugLog('✅ API section enabled after validation');
+            console.log('🔍 DEBUG: ✅ API section enabled after validation');
         }
-        
-        // Enable all form inputs
-        this.updateFormInputsState(false); // false = not disabled
-        
-        // Update button state
+
+        // Update button states
         this.updateAnalyzeButtonState();
+        this.updateFormInputsState(false);
+        this.updateAnalyzeButtonState();
+
+        // Collapse API key section after successful validation
+        const apiKeySection = document.querySelector('.api-key-section-minimal');
+        if (apiKeySection) {
+            // Add collapsed state
+            apiKeySection.style.maxHeight = '60px';
+            apiKeySection.style.overflow = 'hidden';
+            
+            // Add a small validation indicator
+            const existingIndicator = apiKeySection.querySelector('.api-validation-indicator');
+            if (!existingIndicator) {
+                const indicator = document.createElement('div');
+                indicator.className = 'api-validation-indicator';
+                indicator.innerHTML = '✅ API Key Validated';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    background: #e8f5e8;
+                    color: #2d5a2d;
+                    padding: 4px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: bold;
+                `;
+                apiKeySection.style.position = 'relative';
+                apiKeySection.appendChild(indicator);
+            }
+            
+            console.log('🔍 DEBUG: ✅ UI updated after API key validation - section collapsed');
+        }
+
+        // Show success message
+        this.showSuccess('✅ API key validated! You can now analyze channels.');
         
-        debugLog('✅ UI updated after API key validation - section collapsed');
+        console.log('🔍 DEBUG: 🔑 API key validated and saved');
     }
 
     /**
@@ -2375,14 +2434,54 @@ export class App extends BaseComponent {
     }
     
     clearAllCache() {
-        if (confirm('Clear all cached analyses? This cannot be undone.')) {
-            const cachedChannels = this.services.storage.getAllCachedChannels();
-            cachedChannels.forEach(channel => {
-                this.services.storage.deleteAnalysis(channel.channelId);
+        console.log('🔍 DEBUG: 🖱️ Clear all cache button clicked');
+        
+        // Get current mode for targeted clearing
+        const currentMode = this.storageService.getMode();
+        const cachedChannels = this.storageService.getCachedChannels();
+        
+        console.log('Found cached channels for mode', {
+            mode: currentMode,
+            count: cachedChannels.length
+        });
+
+        // Clear each cached analysis
+        cachedChannels.forEach(channelData => {
+            const cacheKey = `${currentMode}_analysis_${channelData.channelId}`;
+            console.log('Deleted cached analysis', {
+                channelId: channelData.channelId,
+                mode: currentMode,
+                cacheKey
             });
-            this.updateCachedChannelsList();
-            this.showSuccess('All cache cleared');
+            localStorage.removeItem(cacheKey);
+        });
+
+        // Clear the cached channels list for current mode
+        this.storageService.clearCachedChannels();
+        
+        // Clear currently displayed results and analytics
+        this.clearAnalysisResults();
+        
+        // Hide results section
+        if (this.resultsComponent) {
+            this.resultsComponent.hide();
         }
+        
+        // Hide analytics section
+        const analyticsSection = document.querySelector('.analytics-section');
+        if (analyticsSection) {
+            analyticsSection.style.display = 'none';
+            analyticsSection.innerHTML = '';
+        }
+
+        // Update the cached channels list display
+        this.updateCachedChannelsList();
+        
+        // Show success message
+        this.showSuccess('All cache cleared');
+        
+        // Update button state
+        this.updateAnalyzeButtonState();
     }
     
     updateCachedChannelsList() {
@@ -2491,5 +2590,100 @@ export class App extends BaseComponent {
         this.updateAnalyzeButtonState();
         
         debugLog('🗑️ Analysis results cleared for new analysis');
+    }
+
+    createUploadTimelineChart(videos) {
+        console.log('🔍 DEBUG: 📊 Creating upload timeline chart...');
+        
+        const canvas = document.getElementById('uploadChart');
+        if (!canvas) {
+            console.log('🔍 DEBUG: ❌ Upload chart canvas not found');
+            return;
+        }
+
+        // Simple chart creation without external libraries
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 300;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Group videos by month
+        const monthCounts = {};
+        videos.forEach(video => {
+            if (video.publishedAt) {
+                const date = new Date(video.publishedAt);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+            }
+        });
+        
+        // Get last 12 months
+        const months = Object.keys(monthCounts).sort().slice(-12);
+        const counts = months.map(month => monthCounts[month] || 0);
+        
+        if (months.length === 0) {
+            // Draw "No data" message
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('No upload data available', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+        
+        // Chart dimensions
+        const padding = 40;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        const maxCount = Math.max(...counts, 1);
+        
+        // Draw grid lines
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        
+        // Horizontal grid lines
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight * i / 5);
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + chartWidth, y);
+            ctx.stroke();
+        }
+        
+        // Draw bars
+        const barWidth = chartWidth / months.length * 0.8;
+        const barSpacing = chartWidth / months.length;
+        
+        ctx.fillStyle = '#4a90e2';
+        counts.forEach((count, index) => {
+            const barHeight = (count / maxCount) * chartHeight;
+            const x = padding + index * barSpacing + (barSpacing - barWidth) / 2;
+            const y = padding + chartHeight - barHeight;
+            
+            ctx.fillRect(x, y, barWidth, barHeight);
+        });
+        
+        // Draw labels
+        ctx.fillStyle = '#333';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        months.forEach((month, index) => {
+            const x = padding + index * barSpacing + barSpacing / 2;
+            const y = padding + chartHeight + 20;
+            const shortMonth = month.substring(5); // Just MM part
+            ctx.fillText(shortMonth, x, y);
+        });
+        
+        // Y-axis labels
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 5; i++) {
+            const value = Math.round((maxCount * i / 5));
+            const y = padding + chartHeight - (chartHeight * i / 5) + 4;
+            ctx.fillText(value.toString(), padding - 10, y);
+        }
+        
+        console.log('Upload timeline chart created successfully');
     }
 } 

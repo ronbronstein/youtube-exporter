@@ -215,26 +215,39 @@ export class Results extends BaseComponent {
     }
     
     filterResults(query = '') {
-        if (!query.trim()) {
+        if (!this.videos || this.videos.length === 0) {
+            this.filteredVideos = [];
+            this.videoListComponent.setVideos([]);
+            this.updateResultsCount();
+            return;
+        }
+
+        query = query.trim().toLowerCase();
+        
+        if (!query) {
+            // If no filter query, show all fetched videos
             this.filteredVideos = [...this.videos];
         } else {
-            const searchTerm = query.toLowerCase();
-            this.filteredVideos = this.videos.filter(video => 
-                video.title.toLowerCase().includes(searchTerm) ||
-                (video.description && video.description.toLowerCase().includes(searchTerm)) ||
-                (video.fullDescription && video.fullDescription.toLowerCase().includes(searchTerm))
-            );
+            // Filter the fetched videos based on the search query
+            this.filteredVideos = this.videos.filter(video => {
+                const title = video.title?.toLowerCase() || '';
+                const description = video.description?.toLowerCase() || '';
+                
+                // Split query into keywords and check if any match
+                const keywords = query.split(/\s+/).filter(k => k.length > 0);
+                return keywords.some(keyword => 
+                    title.includes(keyword) || description.includes(keyword)
+                );
+            });
         }
+
+        console.log(`🔍 Filter applied: "${query}" → ${this.filteredVideos.length} results`);
         
+        // Update video list with filtered results
+        this.videoListComponent.setVideos(this.filteredVideos);
+        
+        // Update count display
         this.updateResultsCount();
-        
-        // Emit filter event
-        this.emit('videosFiltered', {
-            videos: this.filteredVideos,
-            query: query
-        });
-        
-        debugLog(`🔍 Filter applied: "${query}" → ${this.filteredVideos.length} results`);
     }
     
     show() {
@@ -356,17 +369,31 @@ export class Results extends BaseComponent {
     
     // Helper Methods
     updateResultsCount() {
-        const countElement = this.findElement('#resultsCount');
-        if (countElement) {
-            const total = this.videos.length;
-            const filtered = this.filteredVideos.length;
-            
-            if (total === filtered) {
-                countElement.textContent = `${total.toLocaleString()} videos found (showing all fetched videos)`;
-            } else {
-                countElement.textContent = `${filtered.toLocaleString()} of ${total.toLocaleString()} videos (filtered from fetched results)`;
-            }
+        const countElement = this.container.querySelector('.results-count');
+        if (!countElement) return;
+
+        const totalVideos = this.videos ? this.videos.length : 0;
+        const filteredCount = this.filteredVideos ? this.filteredVideos.length : 0;
+        
+        if (totalVideos === 0) {
+            countElement.textContent = 'No videos found';
+            return;
         }
+
+        // Check if filtering is active
+        const isFiltered = filteredCount !== totalVideos;
+        
+        if (isFiltered) {
+            countElement.textContent = `${filteredCount} of ${totalVideos} videos (filtered from fetched results)`;
+        } else {
+            countElement.textContent = `${totalVideos} videos (showing all fetched videos)`;
+        }
+        
+        console.log('🔍 DEBUG: 📊 Results updated:', {
+            total: totalVideos,
+            filtered: filteredCount,
+            isFiltered
+        });
     }
     
     updateViewButtons() {
