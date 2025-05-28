@@ -2,7 +2,7 @@
  * StorageService - Handles all localStorage operations
  * 
  * Features:
- * - Analysis caching with timestamps
+ * - Analysis caching with timestamps and mode separation
  * - Saved searches management
  * - API key storage and encryption
  * - Safe error handling for localStorage operations
@@ -14,6 +14,7 @@ import { CONFIG } from '../config.js';
 export class StorageService {
     constructor() {
         this.isAvailable = this.checkLocalStorageAvailability();
+        this.currentMode = null; // Will be set by App component
     }
 
     // Initialize method (App.js expects this)
@@ -23,7 +24,38 @@ export class StorageService {
         return this.isAvailable;
     }
 
-    // Check if localStorage is available
+    /**
+     * Set the current mode for cache namespacing
+     * @param {string} mode - Current mode ('demo' or 'live')
+     */
+    setMode(mode) {
+        this.currentMode = mode;
+        debugLog('📦 Storage mode set:', { mode });
+    }
+
+    /**
+     * Get the current mode, with fallback
+     * @returns {string} Current mode ('demo' or 'live')
+     */
+    getMode() {
+        return this.currentMode || 'demo'; // Default to demo for safety
+    }
+
+    /**
+     * Generate cache key with mode prefix
+     * @param {string} channelId - Channel identifier
+     * @param {string} mode - Optional mode override
+     * @returns {string} Namespaced cache key
+     */
+    getCacheKey(channelId, mode = null) {
+        const currentMode = mode || this.getMode();
+        return `${currentMode}_analysis_${channelId}`;
+    }
+
+    /**
+     * Check if localStorage is available
+     * @returns {boolean} True if localStorage is available
+     */
     checkLocalStorageAvailability() {
         try {
             const test = '__localStorage_test__';
@@ -36,28 +68,35 @@ export class StorageService {
         }
     }
 
-    /* ===== ANALYSIS CACHING ===== */
+    /* ===== ANALYSIS CACHING WITH MODE SEPARATION ===== */
 
     /**
-     * Save channel analysis to localStorage with metadata
+     * Save channel analysis to localStorage with metadata and mode
      * @param {string} channelId - Channel identifier
      * @param {Array} data - Video data array
+     * @param {string} mode - Optional mode override
      */
-    saveAnalysis(channelId, data) {
+    saveAnalysis(channelId, data, mode = null) {
         if (!this.isAvailable) return false;
 
         try {
+            const currentMode = mode || this.getMode();
             const analysis = {
                 channelId,
                 data,
                 timestamp: Date.now(),
                 date: new Date().toLocaleDateString(),
-                videoCount: data.length
+                videoCount: data.length,
+                mode: currentMode // Store mode metadata
             };
             
-            localStorage.setItem(`analysis_${channelId}`, JSON.stringify(analysis));
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            localStorage.setItem(cacheKey, JSON.stringify(analysis));
+            
             debugLog('Analysis saved to localStorage', { 
                 channelId, 
+                mode: currentMode,
+                cacheKey,
                 videoCount: data.length,
                 size: Math.round(JSON.stringify(analysis).length / 1024) + 'KB'
             });
@@ -69,21 +108,27 @@ export class StorageService {
     }
 
     /**
-     * Load channel analysis from localStorage
+     * Load channel analysis from localStorage for current mode
      * @param {string} channelId - Channel identifier
+     * @param {string} mode - Optional mode override
      * @returns {Array|null} Video data or null if not found
      */
-    loadAnalysis(channelId) {
+    loadAnalysis(channelId, mode = null) {
         if (!this.isAvailable) return null;
 
         try {
-            const saved = localStorage.getItem(`analysis_${channelId}`);
+            const currentMode = mode || this.getMode();
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            const saved = localStorage.getItem(cacheKey);
+            
             if (saved) {
                 const analysis = JSON.parse(saved);
                 const ageHours = Math.round((Date.now() - analysis.timestamp) / (1000 * 60 * 60));
                 
                 debugLog('Loaded analysis from cache', { 
-                    channelId, 
+                    channelId,
+                    mode: currentMode,
+                    cacheKey,
                     ageHours,
                     videoCount: analysis.data?.length || 0
                 });
@@ -110,15 +155,18 @@ export class StorageService {
     }
 
     /**
-     * Clear cached analysis for a specific channel
+     * Clear cached analysis for a specific channel in current mode
      * @param {string} channelId - Channel identifier
+     * @param {string} mode - Optional mode override
      */
-    clearAnalysis(channelId) {
+    clearAnalysis(channelId, mode = null) {
         if (!this.isAvailable) return false;
 
         try {
-            localStorage.removeItem(`analysis_${channelId}`);
-            debugLog('Analysis cache cleared', { channelId });
+            const currentMode = mode || this.getMode();
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            localStorage.removeItem(cacheKey);
+            debugLog('Analysis cache cleared', { channelId, mode: currentMode, cacheKey });
             return true;
         } catch (error) {
             debugLog('Failed to clear analysis cache', error);
@@ -127,23 +175,28 @@ export class StorageService {
     }
 
     /**
-     * Check if cached analysis is still valid
+     * Check if cached analysis is still valid for current mode
      * @param {string} channelId - Channel identifier
      * @param {number} maxAgeHours - Maximum age in hours (default 24)
+     * @param {string} mode - Optional mode override
      * @returns {boolean} True if cache is valid
      */
-    isCacheValid(channelId, maxAgeHours = 24) {
+    isCacheValid(channelId, maxAgeHours = 24, mode = null) {
         if (!this.isAvailable) return false;
 
         try {
-            const saved = localStorage.getItem(`analysis_${channelId}`);
+            const currentMode = mode || this.getMode();
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            const saved = localStorage.getItem(cacheKey);
             if (!saved) return false;
 
             const analysis = JSON.parse(saved);
             const ageHours = (Date.now() - analysis.timestamp) / (1000 * 60 * 60);
             
             debugLog('Cache validity check', { 
-                channelId, 
+                channelId,
+                mode: currentMode,
+                cacheKey,
                 ageHours: Math.round(ageHours * 10) / 10,
                 maxAgeHours,
                 isValid: ageHours < maxAgeHours
@@ -157,20 +210,23 @@ export class StorageService {
     }
 
     /**
-     * Get all cached channel analyses with metadata
+     * Get all cached channel analyses with metadata for current mode
+     * @param {string} mode - Optional mode override
      * @returns {Array} Array of cached channel objects
      */
-    getAllCachedChannels() {
+    getAllCachedChannels(mode = null) {
         if (!this.isAvailable) return [];
 
         try {
+            const currentMode = mode || this.getMode();
             const cached = [];
+            const modePrefix = `${currentMode}_analysis_`;
             
             // Iterate through all localStorage keys
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && key.startsWith('analysis_')) {
-                    const channelId = key.replace('analysis_', '');
+                if (key && key.startsWith(modePrefix)) {
+                    const channelId = key.replace(modePrefix, '');
                     const saved = localStorage.getItem(key);
                     
                     if (saved) {
@@ -185,7 +241,8 @@ export class StorageService {
                             date: analysis.date,
                             ageHours: Math.round(ageHours * 10) / 10,
                             isValid: ageHours < 24,
-                            size: Math.round(JSON.stringify(analysis).length / 1024)
+                            size: Math.round(JSON.stringify(analysis).length / 1024),
+                            mode: analysis.mode || currentMode // Include mode metadata
                         });
                     }
                 }
@@ -194,7 +251,10 @@ export class StorageService {
             // Sort by most recent first
             cached.sort((a, b) => b.timestamp - a.timestamp);
             
-            debugLog('Found cached channels', { count: cached.length });
+            debugLog('Found cached channels for mode', { 
+                mode: currentMode, 
+                count: cached.length 
+            });
             return cached;
         } catch (error) {
             debugLog('Failed to get cached channels', error);
@@ -203,15 +263,18 @@ export class StorageService {
     }
 
     /**
-     * Get cache metadata for a specific channel
+     * Get cache metadata for a specific channel in current mode
      * @param {string} channelId - Channel identifier
+     * @param {string} mode - Optional mode override
      * @returns {Object|null} Cache metadata or null
      */
-    getCacheMetadata(channelId) {
+    getCacheMetadata(channelId, mode = null) {
         if (!this.isAvailable) return null;
 
         try {
-            const saved = localStorage.getItem(`analysis_${channelId}`);
+            const currentMode = mode || this.getMode();
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            const saved = localStorage.getItem(cacheKey);
             if (!saved) return null;
 
             const analysis = JSON.parse(saved);
@@ -225,11 +288,79 @@ export class StorageService {
                 date: analysis.date,
                 ageHours: Math.round(ageHours * 10) / 10,
                 isValid: ageHours < 24,
-                size: Math.round(JSON.stringify(analysis).length / 1024)
+                size: Math.round(JSON.stringify(analysis).length / 1024),
+                mode: analysis.mode || currentMode
             };
         } catch (error) {
             debugLog('Failed to get cache metadata', error);
             return null;
+        }
+    }
+
+    /**
+     * Migrate existing cache data to mode-based system
+     * This runs once to move old cache entries to demo mode
+     */
+    migrateCacheToModeSystem() {
+        if (!this.isAvailable) return false;
+
+        try {
+            const migrationKey = 'cache_migration_v1_completed';
+            if (localStorage.getItem(migrationKey)) {
+                debugLog('Cache migration already completed');
+                return true;
+            }
+
+            let migratedCount = 0;
+            const keysToMigrate = [];
+            
+            // Find old cache keys (without mode prefix)
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('analysis_') && !key.startsWith('demo_analysis_') && !key.startsWith('live_analysis_')) {
+                    keysToMigrate.push(key);
+                }
+            }
+
+            // Migrate each old cache entry to demo mode (safer default)
+            keysToMigrate.forEach(oldKey => {
+                try {
+                    const data = localStorage.getItem(oldKey);
+                    if (data) {
+                        const channelId = oldKey.replace('analysis_', '');
+                        const newKey = `demo_${oldKey}`;
+                        
+                        // Parse and add mode metadata
+                        const analysis = JSON.parse(data);
+                        analysis.mode = 'demo';
+                        
+                        localStorage.setItem(newKey, JSON.stringify(analysis));
+                        localStorage.removeItem(oldKey);
+                        migratedCount++;
+                        
+                        debugLog('Migrated cache entry', { 
+                            oldKey, 
+                            newKey, 
+                            channelId 
+                        });
+                    }
+                } catch (error) {
+                    debugLog('Failed to migrate cache entry', { oldKey, error });
+                }
+            });
+
+            // Mark migration as completed
+            localStorage.setItem(migrationKey, 'true');
+            
+            debugLog('Cache migration completed', { 
+                migratedCount,
+                totalFound: keysToMigrate.length 
+            });
+            
+            return true;
+        } catch (error) {
+            debugLog('Cache migration failed', error);
+            return false;
         }
     }
 
@@ -528,12 +659,15 @@ export class StorageService {
         try {
             const keysToRemove = [];
             
-            // Find all our keys
+            // Find all our keys (including new mode-based cache keys)
             for (let key in localStorage) {
                 if (localStorage.hasOwnProperty(key)) {
                     if (key.startsWith('analysis_') || 
+                        key.startsWith('demo_analysis_') ||
+                        key.startsWith('live_analysis_') ||
                         key === 'youtubeSearches' || 
                         key === 'youtubeApiKey' ||
+                        key === 'cache_migration_v1_completed' ||
                         key.startsWith('demo_usage_')) {
                         keysToRemove.push(key);
                     }
@@ -554,16 +688,23 @@ export class StorageService {
     }
 
     /**
-     * Delete a cached analysis
+     * Delete a cached analysis for current mode
      * @param {string} channelId - Channel identifier
+     * @param {string} mode - Optional mode override
      * @returns {boolean} True if deleted successfully
      */
-    deleteAnalysis(channelId) {
+    deleteAnalysis(channelId, mode = null) {
         if (!this.isAvailable) return false;
 
         try {
-            localStorage.removeItem(`analysis_${channelId}`);
-            debugLog('Deleted cached analysis', { channelId });
+            const currentMode = mode || this.getMode();
+            const cacheKey = this.getCacheKey(channelId, currentMode);
+            localStorage.removeItem(cacheKey);
+            debugLog('Deleted cached analysis', { 
+                channelId, 
+                mode: currentMode, 
+                cacheKey 
+            });
             return true;
         } catch (error) {
             debugLog('Failed to delete cached analysis', error);

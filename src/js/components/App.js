@@ -302,6 +302,15 @@ export class App extends BaseComponent {
         try {
             // Initialize storage service
             storageService.initialize();
+            
+            // Set storage mode based on current API mode
+            const currentMode = this.appState.apiMode || 'demo';
+            storageService.setMode(currentMode);
+            debugLog('📦 Storage mode set:', { mode: currentMode });
+            
+            // Run cache migration to separate Demo/Live cache data
+            storageService.migrateCacheToModeSystem();
+            
             this.servicesReady.storage = true;
             debugLog('📦 Storage service ready');
             
@@ -1572,6 +1581,10 @@ export class App extends BaseComponent {
         this.appState.apiMode = newMode;
         updateGlobalState('apiMode', newMode);
         
+        // Update storage service mode for cache separation
+        this.services.storage.setMode(newMode);
+        debugLog('📦 Storage mode updated:', { newMode });
+        
         // Save mode preference
         localStorage.setItem('yt_hub_mode', newMode);
         
@@ -2166,28 +2179,12 @@ export class App extends BaseComponent {
         const cachedChannels = this.services.storage.getAllCachedChannels();
         const currentMode = this.appState.apiMode || 'demo';
         
-        // Filter cached channels based on current mode
-        // Demo mode: show channels cached in demo mode (limited to 100 videos)
-        // Live mode: show channels cached in live mode (unlimited videos)
-        const filteredChannels = cachedChannels.filter(channel => {
-            if (currentMode === 'demo') {
-                // Demo mode: show only channels with exactly 100 videos (demo limit)
-                return channel.videoCount === 100;
-            } else {
-                // Live mode: show channels with more than 100 videos (or exactly 100 if from live mode)
-                // This is a bit tricky since we can't easily distinguish, so we'll show all for now
-                // TODO: Add mode metadata to cached data in future
-                return true;
-            }
-        });
-        
-        debugLog('📋 Cached channels filtered:', {
+        debugLog('📋 Cached channels loaded:', {
             total: cachedChannels.length,
-            filtered: filteredChannels.length,
             currentMode: currentMode
         });
         
-        if (filteredChannels.length === 0) {
+        if (cachedChannels.length === 0) {
             return `
                 <div class="cached-channels-empty">
                     <p>No cached channels for ${currentMode} mode yet. Analyze a channel to see it here!</p>
@@ -2199,7 +2196,7 @@ export class App extends BaseComponent {
             <div class="cached-channels-list">
                 <h3>📋 Recently Analyzed Channels (${currentMode} mode)</h3>
                 <div class="cached-channels-grid">
-                    ${filteredChannels.map(channel => `
+                    ${cachedChannels.map(channel => `
                         <div class="cached-channel-item ${channel.isValid ? 'valid' : 'expired'}" 
                              data-channel-id="${channel.channelId}">
                             <div class="channel-info">

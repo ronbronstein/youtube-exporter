@@ -5,39 +5,47 @@ alwaysApply: false
 ---
 # YouTube Research Hub - Project Overview
 
-## Project Description
-YouTube Research Hub is a comprehensive YouTube channel analysis tool that combines nostalgic Windows XP aesthetics with powerful modern analytics. Built with modern ES6 modules and professional deployment pipeline.
+## 🎯 Project Purpose
+YouTube Research Hub is an open-source web application for analyzing YouTube channels and videos. It provides content creators, marketers, and researchers with insights into channel performance, video analytics, and content strategy.
 
-## Tech Stack
-- **Frontend**: Vanilla JavaScript (ES6 modules), HTML5, CSS3
+## 🏗️ Architecture Overview
+
+### Tech Stack
+- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
 - **Build Tool**: Vite 6.3.5
-- **Styling**: Custom CSS with Windows XP theme
-- **Charts**: Chart.js 4.4.0
-- **Security**: crypto-js 4.2.0
-- **Deployment**: GitHub Pages via GitHub Actions
+- **Styling**: Custom CSS with Windows XP modern design system
+- **APIs**: YouTube Data API v3
+- **Storage**: LocalStorage for API keys and cache
+- **Deployment**: Static hosting ready
 
-## Key Architecture
-- **Modular ES6 Components**: 15 modular components for maintainable architecture
-- **Client-Side Only**: No backend, all processing in browser
-- **API Integration**: YouTube Data API v3 with smart quota management
-- **Local Storage**: Secure API key storage in browser
+### Key Entry Points
+- [src/index.html](mdc:src/index.html) - Main HTML entry point
+- [src/js/main.js](mdc:src/js/main.js) - Application initialization
+- [src/js/components/App.js](mdc:src/js/components/App.js) - Main application component
+- [vite.config.js](mdc:vite.config.js) - Build configuration
 
-## Entry Points
-- Main HTML: [src/index.html](mdc:src/index.html)
-- Main JavaScript: [src/js/main.js](mdc:src/js/main.js)
-- Configuration: [src/js/config.js](mdc:src/js/config.js)
-- Build Config: [vite.config.js](mdc:vite.config.js)
+### Core Services
+- [src/js/services/youtubeApi.js](mdc:src/js/services/youtubeApi.js) - YouTube API integration
+- [src/js/services/analytics.js](mdc:src/js/services/analytics.js) - Data analysis and processing
+- [src/js/services/storage.js](mdc:src/js/services/storage.js) - Local storage management
 
-## Core Features
-1. **Channel Analysis**: Complete video inventory with smart pagination
-2. **Content Insights**: Viral detection, title patterns, upload optimization
-3. **Windows XP UI**: Authentic retro styling with modern usability
-4. **Dual Views**: List and grid view modes with real-time filtering
-5. **Export Options**: CSV, text, and markdown exports
+### Configuration
+- [src/js/config.js](mdc:src/js/config.js) - Application configuration and constants
+- [.env.example](mdc:.env.example) - Environment variables template
 
-## Development Commands
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test:browser` - Browser-based testing
-- `npm run deploy` - Build and deploy instructions
+## 🎨 Design System
+The app uses a unique Windows XP modern design aesthetic with:
+- Retro-modern UI components
+- Consistent color scheme and typography
+- Responsive design principles
+- Accessibility considerations
+
+## 🔧 Development Workflow
+- Local development: `npm run dev` (runs on http://localhost:5177/)
+- Build: `npm run build`
+- Preview: `npm run preview`
+
+## 📋 Current Status
+- **Phase**: User Testing & Feedback Collection (EPIC-011)
+- **Active Features**: Channel analysis, video insights, demo mode
+- **Next Focus**: Enhanced security, advanced analytics, performance optimization
