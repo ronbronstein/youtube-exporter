@@ -224,45 +224,60 @@ export class App extends BaseComponent {
             } catch (error) {
                 debugLog('❌ VideoList component initialization failed:', error);
             }
-            
-            // Initialize TagInput component
+        }, 100);
+        
+        // Initialize TagInput component with longer delay and better error handling
+        setTimeout(() => {
             try {
-                const tagInputContainer = this.findElement('#keywordTagInput');
-                if (tagInputContainer) {
-                    const currentMode = this.appState.apiMode || 'demo';
-                    const hasApiKey = !!this.appState.apiKey;
-                    const shouldDisable = currentMode === 'live' && !hasApiKey;
-                    
-                    this.components.tagInput = new TagInput(tagInputContainer, {
-                        placeholder: shouldDisable ? 'Enter API key above to unlock' : 'Type keyword and press Enter to add...',
-                        maxTags: 10,
-                        disabled: shouldDisable
-                    }).init();
-                    
-                    // Listen for tag changes
-                    this.components.tagInput.on('tagsChanged', (data) => {
-                        debugLog(`🏷️ Tags changed: ${data.tags.join(', ')}`);
-                        // Update analyze button state when tags change
-                        this.updateAnalyzeButtonState();
-                    });
-                    
-                    debugLog('✅ TagInput component initialized');
-                } else {
-                    debugLog('❌ TagInput container not found');
+                const tagInputContainer = document.querySelector('#keywordTagInput');
+                if (!tagInputContainer) {
+                    debugLog('❌ TagInput container not found, trying fallback selectors...');
+                    // Try fallback selectors
+                    const fallbackContainer = document.querySelector('.tag-input-container') || 
+                                            document.querySelector('#keywords') ||
+                                            document.querySelector('.keywords-container');
+                    if (fallbackContainer) {
+                        debugLog('✅ Found TagInput fallback container');
+                        tagInputContainer = fallbackContainer;
+                    } else {
+                        debugLog('❌ No TagInput container found anywhere');
+                        return;
+                    }
                 }
+                
+                const currentMode = this.appState.apiMode || 'demo';
+                const hasApiKey = !!this.appState.apiKey;
+                const shouldDisable = currentMode === 'live' && !hasApiKey;
+                
+                this.components.tagInput = new TagInput(tagInputContainer, {
+                    placeholder: shouldDisable ? 'Enter API key above to unlock' : 'Type keyword and press Enter to add...',
+                    maxTags: 10,
+                    disabled: shouldDisable
+                }).init();
+                
+                // Listen for tag changes
+                this.components.tagInput.on('tagsChanged', (data) => {
+                    debugLog(`🏷️ Tags changed: ${data.tags.join(', ')}`);
+                    // Update analyze button state when tags change
+                    this.updateAnalyzeButtonState();
+                });
+                
+                debugLog('✅ TagInput component initialized');
             } catch (error) {
                 debugLog('❌ TagInput component initialization failed:', error);
             }
-        }, 100); // Increased timeout to ensure DOM is ready
+        }, 200); // Increased timeout to ensure DOM is ready
         
         // Set up event listeners
         this.setupEventListeners();
         
-        // Initialize cache toggle state
-        this.initializeCacheToggleState();
-        
         // Check for environment-specific initialization
         this.handleEnvironmentSpecificInit();
+        
+        // Wait for services to be ready before initializing cache toggle state
+        setTimeout(() => {
+            this.initializeCacheToggleState();
+        }, 250);
         
         // Set initial form state based on current mode and API key
         setTimeout(() => {
@@ -277,22 +292,25 @@ export class App extends BaseComponent {
                 this.updateFormInputsState(false);
                 debugLog('📝 Initial form state: enabled');
             }
-        }, 150);
+        }, 300);
         
         // Debug: Check if critical elements exist
-        debugLog('🔍 Checking critical elements after mount:');
-        debugLog('  - Channel input:', !!this.findElement('#channelInput'));
-        debugLog('  - Search button:', !!this.findElement('#searchBtn'));
-        debugLog('  - API key input:', !!this.findElement('#apiKeyInput'));
-        debugLog('  - Environment:', this.appState.currentEnvironment);
-        debugLog('  - Has API key:', !!this.appState.apiKey);
-        
-        // Debug: Check button state
-        const searchBtn = this.findElement('#searchBtn');
-        if (searchBtn) {
-            debugLog('  - Button disabled:', searchBtn.disabled);
-            debugLog('  - Button classes:', searchBtn.className);
-        }
+        setTimeout(() => {
+            debugLog('🔍 Checking critical elements after mount:');
+            debugLog('  - Channel input:', !!document.querySelector('#channelInput'));
+            debugLog('  - Search button:', !!document.querySelector('#searchBtn'));
+            debugLog('  - API key input:', !!document.querySelector('#apiKeyInput'));
+            debugLog('  - TagInput container:', !!document.querySelector('#keywordTagInput'));
+            debugLog('  - Environment:', this.appState.currentEnvironment);
+            debugLog('  - Has API key:', !!this.appState.apiKey);
+            
+            // Debug: Check button state
+            const searchBtn = document.querySelector('#searchBtn');
+            if (searchBtn) {
+                debugLog('  - Button disabled:', searchBtn.disabled);
+                debugLog('  - Button classes:', searchBtn.className);
+            }
+        }, 350);
         
         debugLog('🏗️ App onMount completed');
     }
@@ -337,9 +355,15 @@ export class App extends BaseComponent {
             return;
         }
 
-        // Get current mode and cached channels
-        const currentMode = this.storageService.getMode();
-        const cachedChannels = this.storageService.getCachedChannels();
+        // Check if storage service is available
+        if (!this.services?.storage) {
+            console.log('🔍 DEBUG: ⚠️ Storage service not ready, skipping cache toggle initialization');
+            return;
+        }
+
+        // Get current mode and cached channels using the correct service reference
+        const currentMode = this.services.storage.getMode();
+        const cachedChannels = this.services.storage.getCachedChannels();
         
         console.log('Found cached channels for mode', {
             mode: currentMode,
@@ -1458,11 +1482,17 @@ export class App extends BaseComponent {
     
     // UI State Management
     updateAnalyzeButtonState() {
-        const searchBtn = this.findElement('#searchBtn');
-        const channelInput = this.findElement('#channelInput');
+        // Try multiple possible selectors for the search/analyze button
+        const searchBtn = document.querySelector('#searchBtn') || 
+                         document.querySelector('.search-btn-large') || 
+                         document.querySelector('.analyze-button') ||
+                         document.querySelector('button[type="submit"]');
+        
+        const channelInput = document.querySelector('#channelInput') || 
+                            document.querySelector('.channel-input-large');
         
         if (!searchBtn) {
-            debugLog('❌ Search button not found in updateAnalyzeButtonState');
+            console.log('🔍 DEBUG: ❌ Search button not found in updateAnalyzeButtonState');
             return;
         }
         
@@ -2437,8 +2467,8 @@ export class App extends BaseComponent {
         console.log('🔍 DEBUG: 🖱️ Clear all cache button clicked');
         
         // Get current mode for targeted clearing
-        const currentMode = this.storageService.getMode();
-        const cachedChannels = this.storageService.getCachedChannels();
+        const currentMode = this.services.storage.getMode();
+        const cachedChannels = this.services.storage.getCachedChannels();
         
         console.log('Found cached channels for mode', {
             mode: currentMode,
@@ -2457,7 +2487,7 @@ export class App extends BaseComponent {
         });
 
         // Clear the cached channels list for current mode
-        this.storageService.clearCachedChannels();
+        this.services.storage.clearCachedChannels();
         
         // Clear currently displayed results and analytics
         this.clearAnalysisResults();
