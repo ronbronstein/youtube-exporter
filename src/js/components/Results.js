@@ -217,8 +217,12 @@ export class Results extends BaseComponent {
     filterResults(query = '') {
         if (!this.videos || this.videos.length === 0) {
             this.filteredVideos = [];
-            this.videoListComponent.setVideos([]);
             this.updateResultsCount();
+            // Emit event instead of calling videoListComponent directly
+            this.emit('videosChanged', {
+                videos: [],
+                view: this.currentView
+            });
             return;
         }
 
@@ -243,11 +247,14 @@ export class Results extends BaseComponent {
 
         console.log(`🔍 Filter applied: "${query}" → ${this.filteredVideos.length} results`);
         
-        // Update video list with filtered results
-        this.videoListComponent.setVideos(this.filteredVideos);
-        
         // Update count display
         this.updateResultsCount();
+        
+        // Emit event instead of calling videoListComponent directly
+        this.emit('videosChanged', {
+            videos: this.filteredVideos,
+            view: this.currentView
+        });
     }
     
     show() {
