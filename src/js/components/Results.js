@@ -380,13 +380,17 @@ export class Results extends BaseComponent {
             return;
         }
 
-        // Check if filtering is active
+        // Check if filtering is active (either by Results search filter OR initial keyword filter)
         const isFiltered = filteredCount !== totalVideos;
         
         if (isFiltered) {
-            countElement.textContent = `${filteredCount} of ${totalVideos} videos (filtered from fetched results)`;
+            countElement.textContent = `${filteredCount} videos match filters of the ${totalVideos} videos total`;
+            countElement.style.color = 'var(--xp-selection-bg)';
+            countElement.style.fontWeight = 'bold';
         } else {
             countElement.textContent = `${totalVideos} videos (showing all fetched videos)`;
+            countElement.style.color = 'var(--xp-text)';
+            countElement.style.fontWeight = 'normal';
         }
         
         console.log('🔍 DEBUG: 📊 Results updated:', {

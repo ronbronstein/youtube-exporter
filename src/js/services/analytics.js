@@ -417,6 +417,134 @@ export class AnalyticsService {
     }
 
     /**
+     * Generate analytics in the format expected by App.js
+     * @returns {Object} Analytics data with overview, topVideos, and insights
+     */
+    generateAnalytics() {
+        if (this.videosData.length === 0) {
+            return {
+                overview: { totalVideos: 0, totalViews: 0, averageViews: 0 },
+                topVideos: { byViews: [] },
+                insights: []
+            };
+        }
+
+        const contentAnalysis = this.generateContentAnalysis();
+        const viralVideos = this.identifyViralContent();
+        const titlePatterns = this.analyzeTitlePatterns();
+        const uploadSchedule = this.analyzeUploadSchedule();
+
+        // Prepare top videos by views
+        const topVideosByViews = [...this.videosData]
+            .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+            .slice(0, 10);
+
+        // Generate insights based on analysis
+        const insights = this.generateInsights(contentAnalysis, viralVideos, titlePatterns, uploadSchedule);
+
+        return {
+            overview: {
+                totalVideos: contentAnalysis.totalVideos,
+                totalViews: contentAnalysis.totalViews,
+                averageViews: contentAnalysis.avgViews
+            },
+            topVideos: {
+                byViews: topVideosByViews
+            },
+            insights: insights
+        };
+    }
+
+    /**
+     * Generate actionable insights from analytics data
+     * @param {Object} contentAnalysis - Basic content metrics
+     * @param {Array} viralVideos - Viral content list
+     * @param {Object} titlePatterns - Title analysis results
+     * @param {Object} uploadSchedule - Schedule analysis results
+     * @returns {Array} Array of insight objects
+     */
+    generateInsights(contentAnalysis, viralVideos, titlePatterns, uploadSchedule) {
+        const insights = [];
+
+        // Viral content insights
+        if (viralVideos.length > 0) {
+            insights.push({
+                type: 'success',
+                message: `Found ${viralVideos.length} viral video${viralVideos.length > 1 ? 's' : ''} with 3x+ average performance`
+            });
+        } else {
+            insights.push({
+                type: 'info',
+                message: 'No viral content detected. Videos performing consistently around average.'
+            });
+        }
+
+        // Upload frequency insights
+        if (contentAnalysis.videosPerMonth > 4) {
+            insights.push({
+                type: 'success',
+                message: `High upload frequency: ${contentAnalysis.videosPerMonth} videos/month`
+            });
+        } else if (contentAnalysis.videosPerMonth < 1) {
+            insights.push({
+                type: 'warning',
+                message: 'Low upload frequency. Consider more consistent content creation.'
+            });
+        }
+
+        // Engagement insights
+        const avgEngagement = parseFloat(contentAnalysis.avgEngagement);
+        if (avgEngagement > 5) {
+            insights.push({
+                type: 'success',
+                message: `Strong engagement rate: ${contentAnalysis.avgEngagement}%`
+            });
+        } else if (avgEngagement < 1) {
+            insights.push({
+                type: 'warning',
+                message: 'Low engagement rate. Consider improving content quality or targeting.'
+            });
+        }
+
+        // Title length insights
+        if (titlePatterns.avgLength > 60) {
+            insights.push({
+                type: 'warning',
+                message: 'Titles are quite long. Consider shorter, punchier titles for better CTR.'
+            });
+        } else if (titlePatterns.avgLength < 30) {
+            insights.push({
+                type: 'info',
+                message: 'Short titles detected. Consider adding more descriptive keywords.'
+            });
+        }
+
+        // Upload schedule insights
+        insights.push({
+            type: 'info',
+            message: `Best performing day: ${uploadSchedule.bestDay}. Upload consistency: ${uploadSchedule.consistency}`
+        });
+
+        // Question titles insight
+        if (titlePatterns.questionPercent > 20) {
+            insights.push({
+                type: 'info',
+                message: `${titlePatterns.questionPercent}% of titles are questions - good for engagement`
+            });
+        }
+
+        // Common words insight
+        if (titlePatterns.commonWords.length > 0) {
+            insights.push({
+                type: 'info',
+                message: `Common title keywords: ${titlePatterns.commonWords.slice(0, 3).join(', ')}`
+            });
+        }
+
+        return insights;
+    }
+
+    /**
      * Clear analytics data and destroy chart
      */
     clearAnalytics() {

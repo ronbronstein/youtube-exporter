@@ -111,7 +111,7 @@ export class App extends BaseComponent {
                 <div class="app-header">
                     <div class="header-top">
                         <div class="header-with-logo">
-                            <img src="./assets/logo.png" alt="YouTube Research Hub" class="app-logo">
+                            <div class="app-logo-icon">📺</div>
                             <div class="title-section">
                                 <h1 class="app-title">YouTube Research Hub</h1>
                                 <p class="app-subtitle">Comprehensive analysis • Content insights • Strategic planning</p>
@@ -483,87 +483,61 @@ export class App extends BaseComponent {
     }
 
     renderApiKeySection() {
-        const currentEnvironment = this.appState.currentEnvironment;
-        const currentMode = this.appState.apiMode || 'live'; // Default to live mode
+        const isDemo = this.appState.currentEnvironment === 'github-pages' && this.appState.apiMode === 'demo';
+        const hasValidApiKey = !!this.appState.apiKey;
         
-        // Local development - show clean API key status
-        if (currentEnvironment === 'local') {
-            const hasApiKey = !!this.appState.apiKey;
-            const apiKeySource = hasApiKey ? 'Found in .env file' : 'Not found in .env file';
-            
+        if (isDemo) {
             return `
-                <div class="api-key-status-local">
-                    <div class="status-content">
-                        <span class="status-icon">🔐</span>
-                        <span class="status-text">API Key: ${apiKeySource}</span>
-                        <span class="status-indicator ${hasApiKey ? 'ready' : 'missing'}">
-                            ${hasApiKey ? '✅ Ready' : '⚠️ Missing'}
-                        </span>
+                <div class="api-section demo-mode" id="apiSection">
+                    <div class="demo-notice">
+                        <h3>🎬 Demo Mode Active</h3>
+                        <p>Using built-in API key. Limited to @OutdoorBoys channel demonstration.</p>
+                        <button class="xp-button warning" id="demoBtn">🔄 Exit Demo Mode</button>
                     </div>
-                    ${!hasApiKey ? `
-                        <div class="env-help">
-                            <p>Add <code>VITE_DEMO_API_KEY=your_key_here</code> to your .env file</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="api-section ${hasValidApiKey ? 'validated' : ''}" id="apiSection">
+                <div class="api-key-section-minimal">
+                    <h3>🔑 YouTube Data API Configuration</h3>
+                    <div class="api-key-group">
+                        <div class="input-with-toggle">
+                            <input 
+                                type="password" 
+                                id="apiKeyInput" 
+                                class="xp-input api-key-input" 
+                                placeholder="Enter your YouTube Data API v3 key for unlimited analysis..."
+                                autocomplete="new-password"
+                                spellcheck="false"
+                            />
+                            <button type="button" class="xp-button toggle-visibility-btn" id="toggleApiKeyVisibility" title="Show/Hide API Key">
+                                👁️
+                            </button>
+                        </div>
+                        <button class="xp-button success" id="validateBtn" disabled>🔑 Validate Key</button>
+                    </div>
+                    <div class="api-help">
+                        <details>
+                            <summary>Need an API key? Click here for instructions</summary>
+                            <ol>
+                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                                <li>Create a new project or select existing one</li>
+                                <li>Enable the YouTube Data API v3</li>
+                                <li>Create credentials (API Key)</li>
+                                <li>Copy your API key and paste it above</li>
+                            </ol>
+                            <p><small>Your API key is stored locally and never shared.</small></p>
+                        </details>
+                    </div>
+                    ${this.appState.currentEnvironment === 'github-pages' ? `
+                        <div class="demo-option">
+                            <button class="xp-button demo" id="demoBtn">🎬 Try with sample channel first</button>
+                            <p class="demo-description">Skip API setup and try with @OutdoorBoys sample data</p>
                         </div>
                     ` : ''}
                 </div>
-            `;
-        }
-        
-        // GitHub Pages - demo mode (no API key input needed)
-        if (currentMode === 'demo') {
-            return `
-                <div class="demo-status-panel">
-                    <div class="demo-info">
-                        <span class="demo-icon">🎭</span>
-                        <span class="demo-text">Demo Mode: Ready to test</span>
-                        <span class="demo-indicator ready">✅ No setup required</span>
-                    </div>
-                    <div class="demo-description">
-                        Test the tool with real YouTube data. Limited to 100 most recent videos per channel.
-                    </div>
-                    <div class="demo-notice">
-                        <span class="demo-label">Demo: fetches up to 100 most recent videos, then filters by keywords</span>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // GitHub Pages - live mode (show API key input)
-        const hasValidApiKey = !!this.appState.apiKey;
-        return `
-            <div class="api-key-section-minimal">
-                <h2 class="section-title">🔐 API Configuration</h2>
-                <div class="api-key-header-minimal">
-                    <h3>Enter Your YouTube API Key</h3>
-                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="get-key-link">
-                        Get free API key →
-                    </a>
-                </div>
-                
-                <div class="api-input-group">
-                    <input 
-                        type="password" 
-                        id="apiKeyInput" 
-                        placeholder="AIza... (paste your YouTube Data API v3 key here)"
-                        class="api-key-input-large"
-                    >
-                    <button id="validateBtn" class="save-key-btn-minimal" disabled>
-                        🔑 Validate Key
-                    </button>
-                </div>
-                
-                <div class="api-help-minimal">
-                    <span>🔒 Stored locally only</span>
-                    <span>🆓 Free tier: 10,000 requests/day</span>
-                    <span>⚡ Takes 2 minutes to set up</span>
-                </div>
-                
-                ${hasValidApiKey ? `
-                    <div class="api-validated">
-                        <span class="validated-icon">✅</span>
-                        <span class="validated-text">API key validated and ready</span>
-                    </div>
-                ` : ''}
             </div>
         `;
     }
@@ -643,6 +617,19 @@ export class App extends BaseComponent {
                             <label for="searchTitleDesc">Title & Description</label>
                         </div>
                     </div>
+                    
+                    <!-- Far Right Column: Video Limit -->
+                    <div class="radio-group compact">
+                        <div class="radio-group-title">Video Limit:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="limit100" name="videoLimit" value="100" ${currentMode === 'demo' ? 'checked' : ''} ${disabledAttr}>
+                            <label for="limit100">100 videos</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="limitAll" name="videoLimit" value="all" ${currentMode !== 'demo' ? 'checked' : ''} ${disabledAttr}>
+                            <label for="limitAll">All videos</label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Analyze Button Row - With Cache Toggle -->
@@ -687,6 +674,15 @@ export class App extends BaseComponent {
             debugLog('✅ Validate API key button listener attached');
         } else {
             debugLog('⚠️ Validate API key button not found or disabled (auto-loaded)');
+        }
+        
+        // API key visibility toggle listener
+        const toggleVisibilityBtn = this.findElement('#toggleApiKeyVisibility');
+        if (toggleVisibilityBtn) {
+            this.addListener(toggleVisibilityBtn, 'click', this.handleToggleApiKeyVisibility.bind(this));
+            debugLog('✅ API key visibility toggle listener attached');
+        } else {
+            debugLog('⚠️ API key visibility toggle button not found');
         }
         
         if (demoBtn) {
@@ -835,6 +831,7 @@ export class App extends BaseComponent {
         const saved = this.services.storage.saveApiKey(apiKey);
         if (!saved) {
             this.showError('Failed to save API key. Please try again.');
+            // Reset button state on error
             validateBtn.textContent = '🔑 Validate Key';
             validateBtn.disabled = false;
             return;
@@ -844,12 +841,41 @@ export class App extends BaseComponent {
         this.setApiKey(apiKey);
         this.appState.apiMode = 'live';
         
+        // Reset validation button to success state
+        validateBtn.textContent = '✅ Validated';
+        validateBtn.disabled = true; // Keep disabled since it's validated
+        validateBtn.classList.add('validated');
+        
         // Update UI to show validated state
         this.updateUIAfterApiKeyValidation();
         
-        this.showSuccess('✅ API key validated! You can now analyze channels.');
-        
         debugLog('🔑 API key validated and saved');
+    }
+    
+    handleToggleApiKeyVisibility() {
+        const apiKeyInput = this.findElement('#apiKeyInput');
+        const toggleBtn = this.findElement('#toggleApiKeyVisibility');
+        
+        if (!apiKeyInput || !toggleBtn) {
+            debugLog('❌ API key input or toggle button not found');
+            return;
+        }
+        
+        const isPassword = apiKeyInput.type === 'password';
+        
+        if (isPassword) {
+            // Show the API key
+            apiKeyInput.type = 'text';
+            toggleBtn.textContent = '🙈';
+            toggleBtn.title = 'Hide API Key';
+        } else {
+            // Hide the API key
+            apiKeyInput.type = 'password';
+            toggleBtn.textContent = '👁️';
+            toggleBtn.title = 'Show API Key';
+        }
+        
+        debugLog(`👁️ API key visibility toggled: ${isPassword ? 'showing' : 'hiding'}`);
     }
     
     handleDemoMode() {
@@ -1915,9 +1941,9 @@ export class App extends BaseComponent {
     applyKeywordFilter(query) {
         if (!query || !this.appState.videos) return;
         
-        // Get filter settings
-        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'both';
-        const searchLogic = this.findElement('input[name="searchLogic"]:checked')?.value || 'OR';
+        // Get filter settings - FIX: Use correct radio button names
+        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'title';
+        const searchLogic = this.findElement('input[name="keywordLogic"]:checked')?.value || 'any';
         
         // Parse keywords - make case insensitive
         let keywords = [];
@@ -1936,30 +1962,30 @@ export class App extends BaseComponent {
         this.appState.filteredVideos = this.appState.videos.filter(video => {
             let searchText = '';
             
-            // Build search text based on scope - make case insensitive
+            // Build search text based on scope - make case insensitive and FIX scope values
             switch (searchScope) {
                 case 'title':
                     searchText = (video.title || '').toLowerCase();
                     break;
-                case 'description':
-                    searchText = (video.fullDescription || video.description || '').toLowerCase();
-                    break;
-                case 'both':
-                default:
+                case 'titleDesc':
                     searchText = `${video.title || ''} ${video.fullDescription || video.description || ''}`.toLowerCase();
+                    break;
+                default:
+                    searchText = (video.title || '').toLowerCase();
                     break;
             }
             
-            if (searchLogic === 'AND') {
+            // FIX: Use correct logic values ('any' vs 'all' instead of 'OR' vs 'AND')
+            if (searchLogic === 'all') {
                 const matches = keywords.every(keyword => searchText.includes(keyword));
                 if (matches) {
-                    debugLog(`✅ AND match: "${video.title}" - all keywords found in ${searchScope}`);
+                    debugLog(`✅ ALL match: "${video.title}" - all keywords found in ${searchScope}`);
                 }
                 return matches;
-            } else {
+            } else { // 'any' logic
                 const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
                 if (matchedKeywords.length > 0) {
-                    debugLog(`✅ OR match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
+                    debugLog(`✅ ANY match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
                 }
                 return matchedKeywords.length > 0;
             }

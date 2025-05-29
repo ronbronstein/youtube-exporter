@@ -543,7 +543,6 @@ tr:hover {
     display: flex;
     align-items: center;
     gap: var(--xp-spacing-lg);
-    flex: 1;
 }
 
 .app-logo {
@@ -5447,18 +5446,14 @@ button:disabled:hover {
 /* Keywords and Options Row - All elements on same line with consistent heights */
 .keywords-options-row {
     display: grid;
-    grid-template-columns: 2fr auto auto;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: var(--xp-spacing-lg);
-    align-items: end; /* Align to bottom for consistent baseline */
-    overflow: hidden;
-    box-sizing: border-box;
+    align-items: end;
+    margin-bottom: var(--xp-spacing-md);
 }
 
 .keywords-column {
-    display: flex;
-    flex-direction: column;
-    min-width: 0; /* Prevent flex item from overflowing */
-    overflow: visible;
+    min-width: 250px;
 }
 
 /* Remove the old options-column since we now have direct radio-group elements */
@@ -5834,3 +5829,118 @@ button:disabled:hover {
 }
 
 /* ===== END POST-ANALYSIS OVERLAY ===== */
+
+/* Disabled States for Live Mode */
+.form-section.disabled {
+    opacity: 0.6;
+    background: var(--xp-window-bg-dark);
+    border: 2px inset var(--xp-window-bg-dark);
+    position: relative;
+    pointer-events: none;
+}
+
+.form-section.disabled::before {
+    content: '🔒 Enter API key above to unlock';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: var(--xp-spacing-md) var(--xp-spacing-lg);
+    border: 2px inset var(--xp-window-bg);
+    border-radius: var(--xp-border-radius);
+    font-weight: bold;
+    color: var(--xp-text-secondary);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-size: var(--xp-font-size-large);
+}
+
+.form-section.disabled input,
+.form-section.disabled button,
+.form-section.disabled select {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: var(--xp-window-bg-dark) !important;
+    color: var(--xp-text-disabled) !important;
+    border-color: var(--xp-button-shadow) !important;
+}
+
+.form-section.disabled .form-label {
+    color: var(--xp-text-disabled);
+}
+
+.form-section.disabled .tag-input-container {
+    background-color: var(--xp-window-bg-dark) !important;
+    border-color: var(--xp-button-shadow) !important;
+    cursor: not-allowed;
+}
+
+.form-section.disabled .tag-input-container::before {
+    content: '🔒';
+    position: absolute;
+    right: var(--xp-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--xp-text-disabled);
+    font-size: var(--xp-font-size-large);
+    z-index: 5;
+}
+
+/* API section disabled state improvements */
+.api-section.disabled {
+    opacity: 0.8;
+    background: var(--xp-window-bg-dark);
+    border: 2px inset var(--xp-window-bg-dark);
+    position: relative;
+    pointer-events: none;
+}
+
+.api-section.disabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(216, 209, 191, 0.5);
+    border-radius: var(--xp-border-radius);
+    z-index: 1;
+}
+
+.api-section.disabled input,
+.api-section.disabled button {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--xp-window-bg-dark) !important;
+    color: var(--xp-text-disabled) !important;
+    border-color: var(--xp-button-shadow) !important;
+}
+
+.api-section.disabled .api-label {
+    color: var(--xp-text-disabled);
+}
+
+.header-with-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--xp-spacing-lg);
+}
+
+.app-logo-icon {
+    font-size: 3rem;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--xp-selection-bg) 0%, #1d4ed8 100%);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.title-section {
+    flex: 1;
+}
