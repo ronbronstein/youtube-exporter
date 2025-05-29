@@ -6,7 +6,7 @@ A comprehensive YouTube channel analysis tool that combines nostalgic Windows XP
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
-![Vite](https://img.shields.io/badge/vite-latest-646CFF.svg)
+![Vite](https://img.shields.io/badge/vite-6.3.5-646CFF.svg)
 
 ## 🌐 **Live Demo**
 
@@ -22,9 +22,10 @@ Visit **[https://ronbronstein.github.io/youtube-exporter/](https://ronbronstein.
 ### Option 2: Run Locally
 
 #### Prerequisites
+- **Node.js 18.0.0+** (required for Vite development)
+- **npm 9.0.0+** (comes with Node.js)
 - **Git** (to clone the repository)
-- **Web browser** (Chrome, Firefox, Safari, Edge)
-- **Local web server** (Python, Node.js, or VS Code Live Server)
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 
 #### Installation
 
@@ -34,7 +35,18 @@ git clone https://github.com/ronbronstein/youtube-exporter.git
 cd youtube-exporter
 ```
 
-2. **Start a Local Web Server**
+2. **Install Dependencies**
+```bash
+npm install
+```
+
+3. **Start Development Server**
+```bash
+npm run dev
+```
+*Opens at `http://localhost:5177` with hot reload*
+
+4. **Alternative: Simple HTTP Server** (No Node.js required)
 
 **Option A: Python (if you have Python installed)**
 ```bash
@@ -45,9 +57,9 @@ python -m http.server 8000
 python -m SimpleHTTPServer 8000
 ```
 
-**Option B: Node.js (if you have Node.js installed)**
+**Option B: Node.js HTTP Server**
 ```bash
-npx http-server -p 8000
+npx http-server src -p 8000
 ```
 
 **Option C: VS Code Live Server**
@@ -55,8 +67,7 @@ npx http-server -p 8000
 2. Install "Live Server" extension
 3. Right-click on `src/index.html` → "Open with Live Server"
 
-3. **Open in Browser**
-Navigate to: `http://localhost:8000/src/`
+Then navigate to: `http://localhost:8000/`
 
 ## 🔑 YouTube API Key Setup
 
@@ -68,7 +79,7 @@ Navigate to: `http://localhost:8000/src/`
 
 2. **Create a Project** (if you don't have one)
    - Click "Create Project"
-   - Name it "YouTube Exporter" 
+   - Name it "YouTube Research Hub" 
    - Click "Create"
 
 3. **Enable YouTube Data API v3**
@@ -84,7 +95,7 @@ Navigate to: `http://localhost:8000/src/`
 5. **Secure Your API Key** (Optional but Recommended)
    - Click on your API key to edit it
    - Under "Application restrictions" → select "HTTP referrers"
-   - Add your domain: `localhost:8000` and your production domain
+   - Add your domain: `localhost:5177` and your production domain
    - Under "API restrictions" → select "YouTube Data API v3"
    - Save
 
@@ -102,16 +113,18 @@ cp .env.example .env
 ```
 - Edit `.env` and add your API key:
 ```bash
-YOUTUBE_API_KEY=your_api_key_here
+VITE_YOUTUBE_API_KEY=your_api_key_here
+# OR
+VITE_DEMO_API_KEY=your_demo_api_key_here
 ```
 
 ## 🧑‍💻 Local Development Setup
 
-*For developers who want to test locally before pushing to GitHub Pages*
+*For developers who want to contribute or test locally*
 
 ### Prerequisites
 - **Node.js 18.0.0+** (for Vite development server)
-- **npm** (comes with Node.js)
+- **npm 9.0.0+** (comes with Node.js)
 - **Git** (for version control)
 
 ### Development Workflow
@@ -138,23 +151,40 @@ cp .env.example .env
 ```bash
 npm run dev
 ```
-*Opens at `http://localhost:5173` with hot reload*
+*Opens at `http://localhost:5177` with hot reload*
 
 4. **Test Your Changes**
 - Make your changes
 - Test locally with demo API key
 - Verify all functionality works
 
-5. **Deploy to GitHub Pages**
+5. **Build and Preview**
 ```bash
-# Build and test
+# Build for production
 npm run build
-npm run preview
 
+# Preview production build
+npm run preview  # Available at http://localhost:4173
+```
+
+6. **Deploy to GitHub Pages**
+```bash
 # Commit and push (triggers auto-deployment)
 git add .
 git commit -m "your changes"
 git push origin main
+```
+
+### Development Commands
+
+```bash
+npm run dev          # Development server with hot reload (port 5177)
+npm run build        # Production build (outputs to dist/)
+npm run preview      # Preview production build locally (port 4173)
+npm run test:browser # Run browser-based integration tests
+npm run validate     # Build + preview for quality assurance
+npm run clean        # Clean build artifacts and cache
+npm run security-audit # Security audit of dependencies
 ```
 
 ### Environment Variables
@@ -166,18 +196,11 @@ The app checks for API keys in this order:
 
 ### Development vs Production
 
-| Environment | API Key Source | Behavior |
-|-------------|---------------|----------|
-| **Local Development** | `.env` file | Full functionality for testing |
-| **GitHub Pages** | GitHub Actions secrets | Production deployment |
-
-### Build Commands
-
-```bash
-npm run dev          # Development server with hot reload
-npm run build        # Production build
-npm run preview      # Preview production build locally
-```
+| Environment | API Key Source | Port | Behavior |
+|-------------|---------------|------|----------|
+| **Development** | `.env` file | 5177 | Hot reload, full functionality |
+| **Preview** | `.env` file | 4173 | Production build testing |
+| **GitHub Pages** | GitHub Actions secrets | N/A | Production deployment |
 
 ### Troubleshooting Local Development
 
@@ -185,6 +208,10 @@ npm run preview      # Preview production build locally
 1. Ensure `.env` file exists in project root
 2. Check that your API key is correctly formatted
 3. Restart the development server after adding `.env`
+
+**Port already in use:**
+- Vite will automatically find the next available port
+- Or manually specify: `npm run dev -- --port 3000`
 
 **Local and GitHub Pages behave differently:**
 - Both should now behave identically
@@ -280,10 +307,11 @@ npm run preview      # Preview production build locally
   - `https://youtube.com/channel/UC...`
   - Channel ID directly
 
-**Local server not working**
-- Ensure you're accessing `http://localhost:8000/src/` (note the `/src/`)
-- Try a different port: `python -m http.server 3000`
-- Check if another service is using port 8000
+**Development server not starting**
+- Ensure Node.js 18.0.0+ is installed
+- Run `npm install` to install dependencies
+- Check if port 5177 is available
+- Try `npm run clean` then `npm install`
 
 ### Browser Compatibility
 - ✅ Chrome 80+
@@ -293,18 +321,24 @@ npm run preview      # Preview production build locally
 
 ## 📁 Project Structure
 ```
-youtube-exporter/
+youtube-research-hub/
 ├── src/
-│   ├── index.html          # Main application
+│   ├── index.html          # Main application entry point
 │   ├── js/
+│   │   ├── main.js         # Application initialization
+│   │   ├── config.js       # Configuration constants
 │   │   ├── components/     # UI components
 │   │   ├── services/       # API services
 │   │   └── utils/          # Utilities
-│   └── styles/
-│       └── main.css        # Retro Windows XP styling
-├── legacy/                 # Original single-file version
+│   ├── styles/             # CSS stylesheets
+│   └── assets/             # Static resources
 ├── docs/                   # Documentation
+├── dist/                   # Build output (generated)
+├── .github/                # GitHub Actions workflows
+├── legacy/                 # Original single-file version
 ├── .env.example            # Environment template
+├── package.json            # Project configuration
+├── vite.config.js          # Build configuration
 └── README.md
 ```
 
@@ -314,19 +348,21 @@ youtube-exporter/
 ```
 src/
 ├── js/
-│   ├── components/     # UI components (App, VideoTable, etc.)
-│   ├── services/       # API services (YouTube, analytics)
-│   ├── utils/          # Utilities (formatting, storage, etc.)
-│   └── main.js         # Application entry point
-├── css/
-│   └── styles.css      # Windows XP styling system
-└── index.html          # Application shell
+│   ├── main.js             # Application entry point
+│   ├── config.js           # Configuration and constants
+│   ├── components/         # UI components (App, VideoTable, etc.)
+│   ├── services/           # API services (YouTube, analytics)
+│   ├── utils/              # Utilities (formatting, storage, etc.)
+│   └── integration-test.js # Testing suite
+├── styles/
+│   └── *.css               # Windows XP styling system
+└── index.html              # Application shell
 ```
 
 ### **Build System**
-- **⚡ Vite**: Modern build tool with hot reload
+- **⚡ Vite 6.3.5**: Modern build tool with hot reload
 - **📦 ES6 Modules**: Clean, maintainable code organization
-- **🔧 Production Build**: 104KB optimized bundle
+- **🔧 Production Build**: Optimized bundle
 - **🚀 GitHub Pages**: Automated CI/CD deployment
 
 ### **API Optimization**
@@ -355,35 +391,17 @@ border: 2px inset var(--xp-button-face);   /* Pressed */
 --xp-button-face: #ece9d8;   /* Button face color */
 ```
 
-## 📊 Development Commands
-
-```bash
-# Development server (hot reload)
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run tests
-npm run test
-
-# Performance analysis
-npm run performance
-
-# Deploy to GitHub Pages
-git push origin main  # Automatic deployment
-```
-
 ## 🤝 Contributing
 
 Found a bug or want to contribute?
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes following our [coding standards](.cursor/rules/coding-standards.mdc)
+4. Test locally: `npm run dev` and `npm run test:browser`
+5. Build and validate: `npm run validate`
+6. Submit a pull request
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 
@@ -393,6 +411,7 @@ MIT License - feel free to use and modify!
 
 - **Issues**: [GitHub Issues](https://github.com/ronbronstein/youtube-exporter/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/ronbronstein/youtube-exporter/discussions)
+- **Documentation**: [docs/](docs/) folder for comprehensive guides
 
 ---
 
