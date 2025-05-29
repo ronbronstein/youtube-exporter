@@ -1388,17 +1388,20 @@ export class App extends BaseComponent {
             return;
         }
 
-        // Get the current videos from multiple possible sources
+        // Get the current videos - prioritize Results component's filtered videos
         let currentVideos = [];
         
-        if (this.components.results && this.components.results.filteredVideos) {
+        // First try to get filtered videos from Results component (this is what user sees)
+        if (this.components.results && this.components.results.filteredVideos && this.components.results.filteredVideos.length > 0) {
             currentVideos = this.components.results.filteredVideos;
-        } else if (this.components.results && this.components.results.videos) {
+        } 
+        // Fallback to all videos from Results component
+        else if (this.components.results && this.components.results.videos && this.components.results.videos.length > 0) {
             currentVideos = this.components.results.videos;
-        } else if (this.appState.videos) {
+        } 
+        // Last resort: use app state videos
+        else if (this.appState.videos && this.appState.videos.length > 0) {
             currentVideos = this.appState.videos;
-        } else if (this.appState.filteredVideos) {
-            currentVideos = this.appState.filteredVideos;
         }
         
         const hasAnalyticsService = this.services?.analytics !== null;
@@ -1408,7 +1411,9 @@ export class App extends BaseComponent {
             videosLength: currentVideos.length,
             hasAnalyticsService,
             hasResultsComponent: !!this.components.results,
-            appStateVideosLength: this.appState.videos?.length || 0
+            appStateVideosLength: this.appState.videos?.length || 0,
+            resultsFilteredLength: this.components.results?.filteredVideos?.length || 0,
+            resultsVideosLength: this.components.results?.videos?.length || 0
         });
 
         if (currentVideos.length === 0 || !hasAnalyticsService) {
@@ -1417,12 +1422,17 @@ export class App extends BaseComponent {
             return;
         }
 
-        // Ensure analytics service has the data
+        // Ensure analytics service has the current video data
         this.services.analytics.setVideosData(currentVideos);
         
+        // Generate analytics for the current video set
         const analytics = this.services.analytics.generateAnalytics();
         const channelTitle = this.appState.channelData?.channelTitle || 'Unknown Channel';
 
+        // Clear any existing content first
+        analyticsSection.innerHTML = '';
+
+        // Create the analytics HTML
         analyticsSection.innerHTML = `
             <h3>📊 Analytics for ${channelTitle}</h3>
             
@@ -1450,8 +1460,8 @@ export class App extends BaseComponent {
                     <div class="top-videos">
                         ${analytics.topVideos.byViews.slice(0, 3).map(video => `
                             <div class="top-video-item">
-                                <div class="video-title">${video.title}</div>
-                                <div class="video-stats">${video.viewCount?.toLocaleString() || 'N/A'} views</div>
+                                <div class="video-title">${video.title || 'Untitled'}</div>
+                                <div class="video-stats">${(video.viewCount || 0).toLocaleString()} views</div>
                             </div>
                         `).join('')}
                     </div>
@@ -1477,10 +1487,14 @@ export class App extends BaseComponent {
             </div>
         `;
 
-        // Create the upload timeline chart
-        setTimeout(() => this.createUploadTimelineChart(currentVideos), 100);
-
+        // Show the analytics section
         analyticsSection.style.display = 'block';
+
+        // Create the upload timeline chart after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.createUploadTimelineChart(currentVideos);
+        }, 100);
+
         console.log('🔍 DEBUG: ✅ Analytics rendered with', currentVideos.length, 'videos');
     }
     
