@@ -146,6 +146,7 @@ element.className = 'customButton';   // Should be 'xp-button'
 ## CSS Variable Usage
 
 ### Windows XP Design System Variables:
+See [main.css](mdc:src/styles/main.css) for the complete variable definitions:
 ```css
 var(--xp-window-bg)        /* Background colors */
 var(--xp-button-face)      /* Button colors */
@@ -164,6 +165,15 @@ src/styles/main.css              /* Main stylesheet */
 src/css/components/*.css         /* Component-specific styles */
 ```
 
+### Main Stylesheet:
+The primary styles are defined in [main.css](mdc:src/styles/main.css) which includes:
+- CSS Variables for Windows XP theme
+- Component styles following these naming conventions
+- Responsive design patterns
+
+### Component CSS Files:
+- [cached-channels.css](mdc:src/css/components/cached-channels.css) - Cache component styles
+
 ### Import Order in main.css:
 ```css
 /* 1. Component imports first */
@@ -173,6 +183,25 @@ src/css/components/*.css         /* Component-specific styles */
 /* 3. Component styles */
 /* 4. Layout styles */
 /* 5. Responsive styles */
+```
+
+## JavaScript Component Integration
+
+### Key Component Files:
+- [App.js](mdc:src/js/components/App.js) - Main application component
+- [Results.js](mdc:src/js/components/Results.js) - Results display component
+- [VideoList.js](mdc:src/js/components/VideoList.js) - Video list component
+- [TagInput.js](mdc:src/js/components/TagInput.js) - Tag input component
+
+### Class Usage Examples:
+In [App.js](mdc:src/js/components/App.js), ensure all dynamically created elements use correct classes:
+```javascript
+// ✅ Correct
+analyticsSection.innerHTML = `<div class="analysis-panel">...</div>`;
+button.className = 'xp-button success';
+
+// ❌ Wrong
+analyticsSection.innerHTML = `<div class="analytics-panel">...</div>`;
 ```
 
 ## Validation Checklist
@@ -185,6 +214,7 @@ Before committing CSS changes:
 - [ ] State classes are consistent across components
 - [ ] No duplicate or conflicting class definitions
 - [ ] All new classes follow established patterns
+- [ ] Check [main.css](mdc:src/styles/main.css) for existing class definitions
 
 ## Common Violations to Avoid
 
@@ -197,8 +227,15 @@ Before committing CSS changes:
 ## Migration Guidelines
 
 When updating existing code:
-1. Audit all JavaScript class references
-2. Ensure CSS class definitions exist
+1. Audit all JavaScript class references in [components](mdc:src/js/components)
+2. Ensure CSS class definitions exist in [main.css](mdc:src/styles/main.css)
 3. Update class names to follow conventions
 4. Test in browser to verify styling
-5. Commit changes with descriptive messages 
+5. Commit changes with descriptive messages
+
+## Reference Documentation
+
+For complete implementation details, see:
+- [CSS Audit Summary](mdc:docs/project-management/CSS_AUDIT_SUMMARY.md) - Detailed audit findings
+- [UI Components](mdc:.cursor/rules/ui-components.mdc) - Windows XP component guidelines
+- [Coding Standards](mdc:.cursor/rules/coding-standards.mdc) - General coding conventions 
