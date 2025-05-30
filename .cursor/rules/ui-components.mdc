@@ -3,151 +3,229 @@ description: When making UI and design changes, we must refer to this doc
 globs: 
 alwaysApply: false
 ---
-# UI Components & Windows XP Styling
+# YouTube Research Hub - UI Components
 
-## Windows XP Design System
+## 🚨 CRITICAL CSS NAMING RULES
 
-### Color Palette
-Primary colors used throughout the application:
-- **Background**: `#ece9d8` (classic XP beige)
-- **Primary Blue**: `#0054e3` (title bars, links)
-- **Secondary Blue**: `#316ac5` (hover states)
-- **Border Gray**: `#aca899` (panel borders)
-- **Text**: `#000000` (primary text)
+### ❌ NEVER Use These Patterns:
+- `analytics-*` classes (use `analysis-*` instead)
+- CamelCase in CSS (use kebab-case)
+- Generic names like `.content`, `.wrapper`, `.box`
 
-### Typography
-- **Primary Font**: Tahoma, sans-serif (authentic XP font)
-- **Fallback**: Arial, sans-serif
-- **Sizes**: 11px (default), 12px (headers), 10px (small text)
+### ✅ ALWAYS Use These Patterns:
+- `analysis-*` for all analytics/analysis components
+- `xp-*` for all Windows XP UI elements
+- Component prefixes: `.app-*`, `.results-*`, `.form-*`, `.tag-*`
 
-### 3D Border Effects
-Authentic Windows XP borders using CSS:
+## 📊 Current CSS Class Architecture
+
+### Component-Based Classes (Primary Pattern)
 ```css
-.xp-panel {
-  border: 2px outset #ece9d8;
-  background: #ece9d8;
+.app-*           /* Application-level components */
+.results-*       /* Results display components */
+.video-*         /* Video-related components */
+.tag-*           /* Tag input components */
+.analysis-*      /* Analytics components (NOT analytics-*) */
+.cached-*        /* Cache-related components */
+.loading-*       /* Loading/spinner components */
+.message-*       /* Message/notification components */
+```
+
+### Analytics Components (CRITICAL)
+```css
+/* ✅ CORRECT - These exist in CSS */
+.analysis-section       /* Main analytics container */
+.analysis-panel        /* Individual analytics panels */
+.analysis-grid         /* Grid layout for stats */
+.analysis-stat         /* Individual statistic displays */
+.chart-panel          /* Chart containers */
+.chart-container      /* Chart canvas wrappers */
+
+/* ❌ WRONG - These don't exist */
+.analytics-grid       /* Use analysis-grid */
+.analytics-card       /* Use analysis-panel */
+.analytics-stat       /* Use analysis-stat */
+```
+
+### JavaScript Integration Rules
+```javascript
+// ✅ Correct Usage
+element.className = 'analysis-panel';
+document.querySelector('.xp-button');
+element.classList.add('active', 'has-data');
+
+// ❌ Incorrect Usage
+element.className = 'analytics-grid'; // Should be 'analysis-grid'
+element.className = 'customButton';   // Should be 'xp-button'
+```
+
+## 🎨 Windows XP Modern Design System
+
+### CSS Variables (Current Implementation)
+```css
+:root {
+  /* Core XP Colors */
+  --xp-window-bg: #ece9d8;
+  --xp-button-face: #ece9d8;
+  --xp-text: #1a1a1a;
+  --xp-selection-bg: #2c5aa0;
+  --xp-border-dark: #707070;
+  
+  /* Typography */
+  --xp-font-family: 'Tahoma', 'Segoe UI', 'MS Sans Serif', sans-serif;
+  --xp-font-size: 14px;
+  
+  /* Spacing & Effects */
+  --xp-spacing-sm: 8px;
+  --xp-border-radius: 3px;
+  --xp-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+### Typography (Updated)
+- **Primary Font**: Tahoma (with modern fallbacks)
+- **Base Size**: 14px (increased for better readability)
+- **Small**: 12px, **Large**: 16px, **Heading**: 20px
+- **Line Height**: 1.4 for improved readability
+
+## 🔘 Button Components
+
+### XP Button System (Current)
+```css
+.xp-button {
+  background: linear-gradient(135deg, var(--xp-button-face) 0%, var(--xp-window-bg-dark) 100%);
+  border: 1px outset var(--xp-button-face);
+  border-radius: var(--xp-border-radius);
+  transition: all var(--xp-transition-normal);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.xp-button {
-  border: 1px outset #ece9d8;
-  background: linear-gradient(to bottom, #ffffff, #ece9d8);
+.xp-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .xp-button:active {
-  border: 1px inset #ece9d8;
+  border: 1px inset var(--xp-button-face);
+  transform: translateY(0) scale(1.01);
 }
 ```
 
-## Core UI Components
-
-### Navigation & Layout
-- **Main Container**: Central application wrapper with XP window styling
-- **Tab System**: Windows XP-style tabs for different views
-- **Status Bar**: Bottom status information with progress indicators
-- **Toolbar**: Top action buttons with XP button styling
-
-### Data Display Components
-- **Video List**: Sortable table with XP-style headers and rows
-- **Video Grid**: Card-based layout with thumbnail previews
-- **Statistics Panel**: Metrics display with XP panel styling
-- **Progress Bar**: Windows XP-style progress indication
-
-### Form Components
-- **Input Fields**: XP-style text inputs with inset borders
-- **Buttons**: Authentic XP button styling with hover/active states
-- **Dropdowns**: XP-style select elements
-- **Checkboxes**: Classic XP checkbox styling
-
-### Modal & Dialog Components
-- **Error Dialogs**: XP-style error message boxes
-- **Confirmation Dialogs**: Standard XP confirmation patterns
-- **Settings Panel**: Configuration options with XP styling
-- **Help Tooltips**: Context-sensitive help with XP balloon styling
-
-## Component Architecture
-
-### Modular CSS Classes
-Use BEM methodology with XP prefixes:
+### Button Variants
 ```css
-.xp-component {}
-.xp-component__element {}
-.xp-component--modifier {}
+.xp-button.success    /* Green buttons */
+.xp-button.warning    /* Orange buttons */
+.xp-button.demo       /* Demo mode buttons */
+.xp-button.large      /* Large input buttons */
 ```
 
-### JavaScript Component Pattern
-```javascript
-class XPComponent {
-  constructor(container) {
-    this.container = container;
-    this.init();
-  }
-  
-  init() {
-    this.render();
-    this.bindEvents();
-  }
-  
-  render() {
-    // Component rendering logic
-  }
-  
-  bindEvents() {
-    // Event handling
-  }
+## 📝 Form Components (Current Implementation)
+
+### Input System
+```css
+.xp-input {
+  border: 1px inset var(--xp-window-bg);
+  background: var(--xp-input-bg);
+  border-radius: var(--xp-border-radius);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  transition: all var(--xp-transition-normal);
 }
+
+.xp-input.large       /* Large form inputs */
+.xp-input.full-width  /* Full-width inputs */
 ```
 
-## Responsive Design
+### Form Layout Classes
+```css
+.form-section         /* Form containers */
+.form-row            /* Form row layouts */
+.form-group          /* Form field groups */
+.api-section         /* API key sections */
+.demo-button-container /* Demo mode buttons */
+```
 
-### Breakpoints
-- **Desktop**: 1024px+ (primary target)
-- **Tablet**: 768px-1023px (adapted XP styling)
-- **Mobile**: <768px (simplified XP elements)
+## 📊 Results & Analytics Components
 
-### Mobile Adaptations
-- Larger touch targets for buttons
-- Simplified 3D effects for performance
-- Collapsible panels for space efficiency
-- Maintained XP color scheme and typography
+### Results Structure
+```css
+.results-section       /* Main results area */
+.results-component     /* Results display */
+.results-header        /* Results header area */
+.results-controls      /* Control panels */
+.results-count         /* Results counter */
+.video-display-container /* Video list area */
+```
 
-## Accessibility
+### State Classes
+```css
+.active          /* Active state (tabs, buttons) */
+.disabled        /* Disabled state */
+.focused         /* Focus state */
+.hidden          /* Hidden elements */
+.has-data        /* Sections with data */
+.collapsed       /* Collapsed sections */
+.validated       /* Validated inputs */
+```
 
-### XP-Compatible Accessibility
-- High contrast mode support
-- Keyboard navigation patterns
-- Screen reader compatibility
-- Focus indicators with XP styling
+## 🏷️ Tag Input Components
 
-### ARIA Implementation
-- Proper ARIA labels for complex components
-- Role definitions for custom elements
-- State management for dynamic content
-- Landmark navigation
+### Tag System Classes
+```css
+.tag-input-container     /* Main tag container */
+.tag-input-container.focused /* Focused state */
+.tag-input-container.disabled /* Disabled state */
+.tag                    /* Individual tags */
+.tag-text              /* Tag text content */
+.tag-remove            /* Tag remove buttons */
+.tag-input             /* Tag input field */
+```
 
-## Animation & Interactions
+## 📋 Cache Components
 
-### XP-Style Animations
-- Button press effects (inset/outset transitions)
-- Hover state changes
-- Loading animations with XP progress bars
-- Smooth transitions while maintaining authenticity
+### Cache Management
+```css
+.cached-channels-section  /* Cache section container */
+.cached-channels-list    /* Cache list display */
+.cached-channels-grid    /* Cache grid layout */
+.cached-channel-item     /* Individual cache items */
+.cache-toggle-btn       /* Cache toggle button */
+```
 
-### Performance Considerations
-- CSS transforms over position changes
-- Debounced user interactions
-- Efficient DOM updates
-- Minimal animation overhead
+## 🔄 Loading Components
 
-## Component Testing
+### Loading System
+```css
+.loading-component      /* Loading wrapper */
+.loading-overlay       /* Overlay loading */
+.loading-content       /* Loading content area */
+.loading-animation     /* Animation container */
+.loading-text          /* Loading message text */
+.circle-spinner        /* Spinner animation */
+```
 
-### Visual Testing
-- Cross-browser XP styling consistency
-- Responsive behavior validation
-- Accessibility compliance
-- Performance impact assessment
+## 🎯 CSS-JS Consistency Rules
 
-### Interaction Testing
-- Button states and feedback
-- Form validation and submission
-- Modal dialog behavior
-- Keyboard navigation flows
+### Pre-Commit Checklist
+- [ ] All class names follow kebab-case convention
+- [ ] Analytics components use `analysis-*` not `analytics-*`
+- [ ] UI elements use appropriate `xp-*` classes
+- [ ] JavaScript and CSS class names match exactly
+- [ ] State classes are consistent across components
+- [ ] No duplicate or conflicting class definitions
+
+### Testing Classes Exist
+```javascript
+// Verify critical classes exist
+const criticalClasses = [
+    'analysis-panel', 'analysis-grid', 'analysis-stat',
+    'xp-button', 'xp-input', 'form-section',
+    'results-component', 'tag-input-container'
+];
+
+criticalClasses.forEach(className => {
+    const exists = document.styleSheets[0].cssRules ? 
+        Array.from(document.styleSheets[0].cssRules)
+            .some(rule => rule.selectorText?.includes(className)) : false;
+    console.log(`${className}: ${exists ? '✅' : '❌'}`);
+});
+```
