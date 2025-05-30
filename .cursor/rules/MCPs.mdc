@@ -1,5 +1,5 @@
 ---
-description: 
+description: use sequential thinking, use puppeteer, use mcp..
 globs: 
 alwaysApply: false
 ---
@@ -15,11 +15,11 @@ alwaysApply: true
 # MCP Tool Usage Guide
 
 ## TOC
-- [Quick Reference](#quick-reference)
-- [Problem Solving](#problem-solving)
-- [Project Management](#project-management)
-- [Development & Testing](#development--testing)
-- [Research & Documentation](#research--documentation)
+- [Quick Reference](mdc:#quick-reference)
+- [Problem Solving](mdc:#problem-solving)
+- [Project Management](mdc:#project-management)
+- [Development & Testing](mdc:#development--testing)
+- [Research & Documentation](mdc:#research--documentation)
 
 ## Quick Reference
 | Task Type | Primary MCP | When to Use |

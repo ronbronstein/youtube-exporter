@@ -91,6 +91,15 @@ export class Results extends BaseComponent {
         
         return `
             <div class="search-filter">
+                <div class="filter-header">
+                    <label class="filter-label">🔍 Enhanced Keyword Filter</label>
+                    <div class="filter-status" id="filterStatus">
+                        <span class="filter-count" id="filterCount">No active filters</span>
+                        <button class="clear-filters-btn" id="clearFiltersBtn" style="display: none;">
+                            ✕ Clear All
+                        </button>
+                    </div>
+                </div>
                 <div id="tagInputContainer" class="tag-input-wrapper">
                     <!-- TagInput component will be mounted here -->
                 </div>
@@ -202,6 +211,7 @@ export class Results extends BaseComponent {
         this.tagInputComponent.on('tagsChanged', (data) => {
             this.filterTags = data.tags;
             this.applyTagFilter();
+            this.updateFilterStatus();
             debugLog(`🏷️ Filter tags updated: ${this.filterTags.join(', ')}`);
         });
         
@@ -214,6 +224,7 @@ export class Results extends BaseComponent {
                 if (e.target.checked) {
                     this.filterLogic = 'OR';
                     this.applyTagFilter();
+                    this.updateFilterStatus();
                     debugLog('🔀 Filter logic set to OR');
                 }
             });
@@ -222,6 +233,7 @@ export class Results extends BaseComponent {
                 if (e.target.checked) {
                     this.filterLogic = 'AND';
                     this.applyTagFilter();
+                    this.updateFilterStatus();
                     debugLog('🔀 Filter logic set to AND');
                 }
             });
@@ -236,6 +248,7 @@ export class Results extends BaseComponent {
                 if (e.target.checked) {
                     this.searchScope = 'both';
                     this.applyTagFilter();
+                    this.updateFilterStatus();
                     debugLog('🔀 Search scope set to both');
                 }
             });
@@ -244,12 +257,25 @@ export class Results extends BaseComponent {
                 if (e.target.checked) {
                     this.searchScope = 'title';
                     this.applyTagFilter();
+                    this.updateFilterStatus();
                     debugLog('🔀 Search scope set to title');
                 }
             });
         }
         
-        debugLog('✅ TagInput component and logic toggle initialized in Results');
+        // Handle clear filters button
+        const clearBtn = this.findElement('#clearFiltersBtn');
+        if (clearBtn) {
+            this.addListener(clearBtn, 'click', () => {
+                this.clearAllFilters();
+                debugLog('🧹 All filters cleared via button');
+            });
+        }
+        
+        // Initialize filter status
+        this.updateFilterStatus();
+        
+        debugLog('✅ TagInput component and enhanced controls initialized in Results');
     }
     
     // Public API
@@ -400,6 +426,7 @@ export class Results extends BaseComponent {
         // Update UI
         this.updateResultsCount();
         this.updateExportButtons();
+        this.updateFilterStatus();
         
         // Hide the component
         this.hide();
@@ -588,5 +615,51 @@ export class Results extends BaseComponent {
         
         // Call parent cleanup
         super.onDestroy();
+    }
+    
+    clearAllFilters() {
+        // Clear TagInput tags
+        if (this.tagInputComponent) {
+            this.tagInputComponent.clearTags();
+        }
+        
+        // Reset to default states
+        this.filterTags = [];
+        this.filterLogic = 'OR';
+        this.searchScope = 'both';
+        
+        // Reset radio buttons
+        const orRadio = this.findElement('#logicOR');
+        const bothRadio = this.findElement('#scopeBoth');
+        if (orRadio) orRadio.checked = true;
+        if (bothRadio) bothRadio.checked = true;
+        
+        // Reapply filters (will show all videos)
+        this.applyTagFilter();
+        this.updateFilterStatus();
+        
+        debugLog('🧹 All filters cleared and reset to defaults');
+    }
+    
+    updateFilterStatus() {
+        const filterCountEl = this.findElement('#filterCount');
+        const clearBtnEl = this.findElement('#clearFiltersBtn');
+        
+        if (!filterCountEl || !clearBtnEl) return;
+        
+        const activeFilters = this.filterTags.length;
+        const hasFilters = activeFilters > 0;
+        
+        if (hasFilters) {
+            filterCountEl.textContent = `${activeFilters} keyword${activeFilters === 1 ? '' : 's'} • ${this.filterLogic} logic • ${this.searchScope === 'both' ? 'Title+Desc' : 'Title only'}`;
+            filterCountEl.style.color = 'var(--xp-selection-bg)';
+            filterCountEl.style.fontWeight = 'bold';
+            clearBtnEl.style.display = 'inline-block';
+        } else {
+            filterCountEl.textContent = 'No active filters';
+            filterCountEl.style.color = 'var(--xp-text)';
+            filterCountEl.style.fontWeight = 'normal';
+            clearBtnEl.style.display = 'none';
+        }
     }
 } 
