@@ -444,9 +444,14 @@ export class App extends BaseComponent {
                 <div class="api-label">YouTube Data API Key</div>
                 
                 <div class="api-input-row">
-                    <input type="text" class="xp-input large" id="apiKeyInput" 
+                    <input type="password" class="xp-input large" id="apiKeyInput" 
                            placeholder="${currentMode === 'demo' ? 'Not needed in demo mode' : 'Enter your YouTube Data API v3 key for unlimited analysis...'}"
-                           ${hasValidApiKey ? `value="${'•'.repeat(20)}" disabled` : currentMode === 'demo' ? 'disabled' : ''}>
+                           ${hasValidApiKey ? `value="${this.appState.apiKey}"` : ''}
+                           ${currentMode === 'demo' ? 'disabled' : ''}
+                           autocomplete="new-password" spellcheck="false">
+                    <button class="xp-button toggle-visibility-btn" id="toggleApiKeyVisibility" title="Show/Hide API Key" ${currentMode === 'demo' ? 'style="display: none;"' : ''}>
+                        👁️
+                    </button>
                     <button class="xp-button success" id="validateBtn" ${hasValidApiKey || currentMode === 'demo' ? 'disabled' : ''}>
                         ${hasValidApiKey ? '✅ Validated' : currentMode === 'demo' ? '🎬 Demo Mode' : '🔑 Validate Key'}
                     </button>
