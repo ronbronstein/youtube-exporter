@@ -1429,9 +1429,6 @@ export class App extends BaseComponent {
         const analytics = this.services.analytics.generateAnalytics();
         const channelTitle = this.appState.channelData?.channelTitle || 'Unknown Channel';
 
-        // Clear any existing content first
-        analyticsSection.innerHTML = '';
-
         // Create the analytics HTML
         analyticsSection.innerHTML = `
             <h3>📊 Analytics for ${channelTitle}</h3>
