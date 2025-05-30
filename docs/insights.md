@@ -108,4 +108,47 @@ CONFIG.API.QUOTA_COSTS = {
 
 ---
 
-*Essential insights for understanding YouTube Research Hub's architecture and design decisions.* 
+*Essential insights for understanding YouTube Research Hub's architecture and design decisions.*
+
+## Critical Development Lessons
+
+### YRH-15 Implementation Failure & Recovery (May 2025)
+
+**What Happened**: Attempted comprehensive Results component enhancement broke entire application
+- Enhanced Results.js with complex filtering UI
+- Added extensive CSS styling system
+- Multiple JavaScript runtime errors
+- Complete design breakdown despite Windows XP styling
+
+**Root Cause**: Template structure incompatibility
+- Enhanced Results component used different HTML structure
+- App.js initialization expected specific CSS selectors
+- Component communication patterns broken
+- CSS class conflicts with existing system
+
+**Failed Recovery Attempts**:
+- Fixed JavaScript const assignment errors
+- Added CSS compatibility properties
+- Removed empty CSS rulesets
+- Partial component reverts
+
+**Successful Resolution**: Complete revert to last working commit (`d1e1d2d`)
+- Hard reset to YRH-14 completion state
+- Preserved working Windows XP interface
+- Maintained simplified form architecture
+
+**Key Learnings**:
+1. **Incremental Development**: Never make comprehensive changes to working systems
+2. **Template Compatibility**: Existing component initialization depends on specific HTML structure
+3. **CSS Integration**: New styles must integrate with 5900+ line XP system
+4. **Component Communication**: Results ↔ VideoList ↔ App.js has established patterns
+5. **Backup Strategy**: Always create backup branches before major changes
+
+**Future YRH-15 Approach**:
+- Small, tested incremental changes only
+- Preserve existing HTML structure and CSS classes
+- Test each component modification independently
+- Never break the working Windows XP interface
+- Maintain component communication patterns
+
+**Impact**: 4+ hours of development time lost, but valuable architecture understanding gained 
