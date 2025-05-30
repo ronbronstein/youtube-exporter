@@ -3,35 +3,89 @@ description: understand the code, the repo and the project
 globs: 
 alwaysApply: false
 ---
+---
+description: Project structure and key file locations
+globs: 
+alwaysApply: false
+---
+
 # File Structure
 
-## Key Files
-- [src/js/components/App.js](mdc:src/js/components/App.js) - Main application logic and state management
-- [src/js/services/youtubeApi.js](mdc:src/js/services/youtubeApi.js) - YouTube API integration  
-- [src/js/services/analytics.js](mdc:src/js/services/analytics.js) - Data analysis processing
-- [src/js/services/storage.js](mdc:src/js/services/storage.js) - Cache and localStorage management
-- [src/styles/main.css](mdc:src/styles/main.css) - Windows XP theme and styling
-- [src/index.html](mdc:src/index.html) - HTML entry point
+## TOC
+- [Entry Points](mdc:#entry-points)
+- [Core Architecture](mdc:#core-architecture)
+- [Build & Config](mdc:#build--config)
+- [Documentation](mdc:#documentation)
 
-## Directory Structure
+## Entry Points
+| File | Purpose |
+|------|---------|
+| [index.html](mdc:src/index.html) | HTML entry point |
+| [main.js](mdc:src/js/main.js) | Application initialization |
+| [App.js](mdc:src/js/components/App.js) | Main application controller |
+
+## Core Architecture
 ```
 src/
 ├── js/
-│   ├── components/         # UI components (App.js is main)
-│   ├── services/          # API, analytics, storage services
-│   └── utils/             # Helper functions
-├── styles/                # Main CSS (Windows XP theme)
-├── css/components/        # Component-specific styles
-└── assets/               # Images, icons, fonts
+│   ├── components/           # UI Components (7 files)
+│   │   ├── App.js           # Main controller
+│   │   ├── BaseComponent.js # Component foundation
+│   │   ├── VideoList.js     # Video display
+│   │   ├── Results.js       # Results management
+│   │   ├── TagInput.js      # Keyword input
+│   │   ├── LoadingSpinner.js # Loading states
+│   │   └── MessagePanel.js  # User notifications
+│   ├── services/            # Business Logic (3 files)
+│   │   ├── youtubeApi.js    # YouTube API integration
+│   │   ├── analytics.js     # Data analysis
+│   │   └── storage.js       # Cache & localStorage
+│   ├── utils/               # Utilities (6 files)
+│   │   ├── formatter.js     # Data formatting
+│   │   ├── security.js      # API key validation
+│   │   ├── environment.js   # Environment detection
+│   │   ├── performance.js   # Performance monitoring
+│   │   ├── rateLimiter.js   # Demo mode limits
+│   │   └── debug.js         # Logging utilities
+│   ├── config.js            # Global configuration
+│   └── integration-test.js  # Testing suite
+├── styles/
+│   └── main.css             # Windows XP theme + all styles
+├── css/components/
+│   └── cached-channels.css  # Component-specific styles
+└── assets/
+    └── logo.png             # Static assets
 ```
 
-## Configuration
-- [package.json](mdc:package.json) - Dependencies and scripts
-- [vite.config.js](mdc:vite.config.js) - Build configuration
-- [.env.example](mdc:.env.example) - Environment variables template
+## Build & Config
+| File | Purpose |
+|------|---------|
+| [package.json](mdc:package.json) | Dependencies & scripts |
+| [vite.config.js](mdc:vite.config.js) | Build configuration |
+| @.env.example | Environment variables template |
 
-## Current Focus Files
-For Phase 1 bugs, focus on:
-- **YRH-1 (Filtering)**: App.js lines 1980-2030, form field validation
-- **YRH-2 (Cache)**: storage.js mode separation and persistence  
-- **YRH-3 (State)**: App.js state management and mode switching
+## Documentation
+```
+docs/
+├── [ARCHITECTURE.md](mdc:docs/ARCHITECTURE.md)          # Technical architecture
+├── [API_REFERENCE.md](mdc:docs/API_REFERENCE.md)         # API documentation
+├── [USER_GUIDE.md](mdc:docs/USER_GUIDE.md)          # User instructions
+├── [CONTRIBUTING.md](mdc:docs/CONTRIBUTING.md)         # Development guide
+└── [TROUBLESHOOTING.md](mdc:docs/TROUBLESHOOTING.md)      # Common issues
+```
+
+## Quick File Reference
+**Most Modified Files:**
+- [App.js](mdc:src/js/components/App.js) - Main app logic (1,800+ lines)
+- [youtubeApi.js](mdc:src/js/services/youtubeApi.js)s - YouTube API service
+- [storage.js](mdc:src/js/services/storage.js) - Cache management
+- [main.css](mdc:src/styles/main.css) - Windows XP styling
+
+**Build Outputs:**
+- `dist/` - Production build (auto-generated)
+- `dist/index.html` - Built application entry
+- `dist/assets/` - Optimized JS/CSS bundles
+
+**Development:**
+- `legacy/` - Original single-file version
+- `node_modules/` - Dependencies (auto-generated)

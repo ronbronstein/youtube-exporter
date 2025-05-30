@@ -1,319 +1,465 @@
-# 📚 Internal API Reference
+# 📚 ES6 Module API Reference
 
 ## Overview
-This document describes the internal JavaScript API within `youtube_video_exporter.html`. All functions are globally accessible and organized by functional area.
+This document describes the ES6 modular architecture of YouTube Research Hub. The application is built with modern ES6 classes, modules, and services for maintainability and scalability.
 
-## Configuration System
+## 🏗️ Architecture Overview
 
-### `CONFIG` Object
-Central configuration for the entire application.
+```
+src/js/
+├── main.js                    # Application entry point
+├── config.js                  # Global configuration
+├── components/                # UI Components (ES6 Classes)
+│   ├── BaseComponent.js      # Foundation class for all components
+│   ├── App.js                # Main application controller  
+│   ├── VideoList.js          # Video display and management
+│   ├── Results.js            # Results panel and filtering
+│   ├── TagInput.js           # Tag-based keyword input
+│   ├── MessagePanel.js       # User feedback and notifications
+│   └── LoadingSpinner.js     # Loading states
+├── services/                  # Business Logic Services
+│   ├── youtubeApi.js         # YouTube Data API v3 integration
+│   ├── analytics.js          # Content analysis engine
+│   └── storage.js            # Data persistence and caching
+└── utils/                     # Utility Modules
+    ├── environment.js         # Environment detection
+    ├── formatter.js           # Data formatting helpers
+    ├── security.js            # API key validation
+    ├── debug.js               # Development logging
+    ├── performance.js         # Performance monitoring
+    └── rateLimiter.js         # Demo mode rate limiting
+```
+
+---
+
+## 📋 Configuration System
+
+### `CONFIG` Object (config.js)
+Central configuration exported as ES6 module.
 
 ```javascript
-const CONFIG = {
-    API: {
-        BASE_URL: 'https://www.googleapis.com/youtube/v3',
-        BATCH_SIZE: 50,
-        QUOTA_COSTS: { channel: 1, playlistItems: 1, videos: 1 }
-    },
-    UI: {
-        CHART_COLORS: { primary: 'rgb(0, 120, 212)', ... },
-        ANIMATION_DURATION: 400
-    },
-    STORAGE: {
-        MAX_SAVED_SEARCHES: 10,
-        CACHE_EXPIRY_HOURS: 24
+import { CONFIG } from './config.js';
+
+CONFIG.API.BASE_URL            // YouTube API base URL
+CONFIG.API.BATCH_SIZE          // Video processing batch size (50)
+CONFIG.API.QUOTA_COSTS         // API quota cost estimates
+CONFIG.DEMO.MAX_VIDEOS_PER_ANALYSIS  // Demo mode limits
+CONFIG.UI.CHART_COLORS         // Chart.js color scheme
+CONFIG.STORAGE.MAX_SAVED_SEARCHES    // localStorage limits
+```
+
+### Global State Management
+```javascript
+import { globalState, updateGlobalState, getGlobalState } from './config.js';
+
+// Access current state
+const currentVideos = getGlobalState('videosData');
+const apiKey = getGlobalState('youtubeApiKey');
+
+// Update state
+updateGlobalState('currentView', 'grid');
+updateGlobalState('isDemoMode', true);
+```
+
+---
+
+## 🎯 Component System
+
+### BaseComponent Class
+Foundation for all UI components with lifecycle management.
+
+```javascript
+import { BaseComponent } from './components/BaseComponent.js';
+
+class MyComponent extends BaseComponent {
+    constructor(container, options = {}) {
+        super(container, options);
     }
-};
-```
-
-## Utility Functions
-
-### `debugLog(message, data?)`
-**Purpose**: Centralized logging with consistent format  
-**Parameters**: 
-- `message` (string) - Log message
-- `data` (any, optional) - Additional data object
-**Returns**: void  
-**Example**: `debugLog('Channel analysis complete', { videoCount: 150 })`
-
-### `formatViewCount(count)`
-**Purpose**: Format large numbers to readable format (1.2M, 1.2K)  
-**Parameters**: `count` (number) - Raw view count  
-**Returns**: string - Formatted count  
-**Example**: `formatViewCount(1234567)` → `"1.2M"`
-
-## API Layer Functions
-
-### `initializeApiKey()`
-**Purpose**: Auto-detect environment and initialize API key (local vs web mode)  
-**Parameters**: None  
-**Returns**: Promise\<string\> - 'local' or 'web'  
-**Side Effects**: Sets global `apiMode` and `youtubeApiKey` variables
-
-### `getChannelId(channelInput, apiKey)`
-**Purpose**: Extract channel ID from various input formats  
-**Parameters**:
-- `channelInput` (string) - URL, handle, or channel ID
-- `apiKey` (string) - YouTube API key
-**Returns**: Promise\<string\> - YouTube channel ID  
-**Handles**: @username, youtube.com/@channel, youtube.com/channel/ID, direct ID
-
-### `getChannelData(channelInput, apiKey)`
-**Purpose**: Get channel metadata including uploads playlist ID  
-**Parameters**:
-- `channelInput` (string) - Channel identifier
-- `apiKey` (string) - YouTube API key  
-**Returns**: Promise\<object\> - `{ channelId, uploadsPlaylistId }`
-
-### `getAllChannelVideos(uploadsPlaylistId, apiKey)`
-**Purpose**: Fetch ALL videos from channel using uploads playlist  
-**Parameters**:
-- `uploadsPlaylistId` (string) - Channel's uploads playlist ID
-- `apiKey` (string) - YouTube API key
-**Returns**: Promise\<array\> - Array of video objects from playlist  
-**Performance**: Handles pagination automatically, respects API limits
-
-### `processVideoDataBatched(items, apiKey)`
-**Purpose**: Batch process video details in chunks of 50  
-**Parameters**:
-- `items` (array) - Video items from playlist
-- `apiKey` (string) - YouTube API key
-**Returns**: Promise\<void\>  
-**Side Effects**: Populates global `videosData` array  
-**Performance**: Uses CONFIG.API.BATCH_SIZE for optimal API usage
-
-### `formatDuration(duration)`
-**Purpose**: Convert YouTube duration format (PT1H2M3S) to readable format  
-**Parameters**: `duration` (string) - ISO 8601 duration  
-**Returns**: string - Formatted duration (e.g., "1:23:45" or "5:30")  
-**Handles**: Edge cases like "P0D", "PT0S", null values
-
-## Storage & Caching Functions
-
-### `saveAnalysis(channelId, data)`
-**Purpose**: Cache analysis results in localStorage  
-**Parameters**:
-- `channelId` (string) - Sanitized channel identifier
-- `data` (array) - Video analysis data
-**Returns**: void  
-**Storage Key**: `analysis_{channelId}`
-
-### `loadAnalysis(channelId)`
-**Purpose**: Retrieve cached analysis from localStorage  
-**Parameters**: `channelId` (string) - Channel identifier  
-**Returns**: array|null - Cached video data or null if not found
-
-### `getSavedSearches()`
-**Purpose**: Get all saved search configurations  
-**Returns**: array - Array of saved search objects  
-**Storage Key**: `youtubeSearches`
-
-### `saveCurrentSearch()`
-**Purpose**: Save current search parameters if checkbox is checked  
-**Returns**: void  
-**Side Effects**: Updates localStorage and UI, enforces max limit
-
-## UI Component Functions
-
-### `showApiKeyPanel()` / `hideApiKeyPanel()`
-**Purpose**: Control visibility of API key input panel  
-**Returns**: void  
-**Used By**: API key initialization system
-
-### `loadSavedClientKey()` / `saveApiKey()`
-**Purpose**: Manage client-side API key persistence  
-**Returns**: boolean (saveApiKey) - Success status  
-**Storage**: localStorage with key validation
-
-### `initializeSavedSearches()`
-**Purpose**: Set up saved searches panel and event listeners  
-**Returns**: void  
-**Side Effects**: Attaches event handlers for checkbox behavior
-
-### `loadSavedSearches()` / `loadSavedSearch(id)` / `deleteSavedSearch(id)`
-**Purpose**: Manage saved search functionality  
-**Parameters**: `id` (number) - Search ID timestamp  
-**Returns**: void  
-**Features**: Load/delete individual searches, populate form fields
-
-### `sortTable(column)`
-**Purpose**: Sort video table by specified column  
-**Parameters**: `column` (string) - Column name to sort by  
-**Returns**: void  
-**Side Effects**: Updates global `currentSort` state, re-renders table
-
-## Main Analysis Workflow
-
-### `analyzeChannelComplete()`
-**Purpose**: Main entry point for complete channel analysis  
-**Parameters**: None (reads from DOM inputs)  
-**Returns**: Promise\<void\>  
-**Workflow**:
-1. Validate API key and inputs
-2. Get channel data and uploads playlist
-3. Fetch all videos from playlist
-4. Process video details in batches
-5. Apply keyword filtering if specified
-6. Generate analysis panels and charts
-7. Cache results and save search
-
-### `applyKeywordFilter(query, logic)`
-**Purpose**: Filter video results by keywords with AND/OR logic  
-**Parameters**:
-- `query` (string) - Search terms (comma or space separated)
-- `logic` (string) - 'AND' or 'OR'
-**Returns**: void  
-**Side Effects**: Updates global `videosData` array  
-**Features**: Searches titles and descriptions, logs match locations
-
-## Analytics Engine Functions
-
-### `generateContentAnalysis()`
-**Purpose**: Generate basic content statistics panel  
-**Returns**: void  
-**Calculates**: Total videos, avg views, upload frequency, title length, engagement  
-**Side Effects**: Inserts analysis panel into DOM
-
-### `analyzeTitlePatterns()`
-**Purpose**: Analyze title patterns from top 20% performing videos  
-**Returns**: object - `{ patterns, topWords, totalAnalyzed }`  
-**Analysis**: Word frequency, length, numbers, questions, caps usage
-
-### `identifyViralContent()`
-**Purpose**: Find videos with 3x+ average view performance  
-**Returns**: array - Top 5 viral videos sorted by views  
-**Threshold**: 3x channel average view count
-
-### `analyzeUploadSchedule()`
-**Purpose**: Determine optimal upload timing  
-**Returns**: object - `{ bestDay, bestHour, dayStats, hourStats }`  
-**Analysis**: Upload frequency by day of week and hour
-
-### `generateAdvancedAnalysis()`
-**Purpose**: Create advanced insights panel combining multiple analyses  
-**Returns**: void  
-**Features**: Title patterns, viral content, upload timing  
-**Side Effects**: Inserts advanced analysis panel into DOM
-
-### `createUploadTimeline()`
-**Purpose**: Generate Chart.js timeline of upload frequency  
-**Returns**: void  
-**Chart Type**: Line chart showing videos per month  
-**Styling**: Windows XP themed colors and fonts  
-**Side Effects**: Inserts chart canvas and initializes Chart.js
-
-## Display & Export Functions
-
-### `switchView(viewType)`
-**Purpose**: Toggle between list and grid view modes  
-**Parameters**: `viewType` (string) - 'list' or 'grid'  
-**Returns**: void  
-**Side Effects**: Updates button states, re-renders video display
-
-### `displayVideos(videos)`
-**Purpose**: Render videos in current view mode  
-**Parameters**: `videos` (array) - Video objects to display  
-**Returns**: void  
-**Delegates**: `displayListView()` or `displayGridView()`
-
-### `displayListView(videos, container)` / `displayGridView(videos, container)`
-**Purpose**: Render videos in specific view format  
-**Parameters**:
-- `videos` (array) - Video data
-- `container` (HTMLElement) - Target container
-**Returns**: void  
-**Features**: Sortable table (list), thumbnail cards (grid)
-
-### `filterResults()`
-**Purpose**: Real-time filtering of displayed videos  
-**Returns**: void  
-**Triggers**: Title filter input changes  
-**Searches**: Title, description, channel name  
-**Debounced**: 300ms delay via setTimeout
-
-### Export Functions
-- `exportToCSV()` - Complete dataset export
-- `exportTitles()` - Title-only text export  
-- `exportMarkdown()` - LLM-ready structured export
-
-## Message & Loading Functions
-
-### `showLoading(message)` / `hideLoading()`
-**Purpose**: Control loading spinner and message  
-**Parameters**: `message` (string) - Loading text  
-**Returns**: void
-
-### `showError(message)` / `showSuccess(message)`
-**Purpose**: Display user feedback messages  
-**Parameters**: `message` (string) - Message text  
-**Returns**: void  
-**Styling**: Windows XP themed message panels
-
-### `clearMessages()`
-**Purpose**: Remove all current message panels  
-**Returns**: void
-
-## Event Handlers
-
-### DOM Ready Handler
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApiKey();
-    initializeSavedSearches();
-});
-```
-
-### Keyboard Support
-```javascript
-document.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && target.matches('#channelInput, #channelQuery')) {
-        analyzeChannelComplete();
+    
+    // Lifecycle Methods (override as needed)
+    onCreate() { /* Setup logic */ }
+    onMount() { /* Post-render logic */ }
+    onUpdate(changes) { /* Update logic */ }
+    onDestroy() { /* Cleanup logic */ }
+    
+    template() {
+        return '<div>Component content</div>';
     }
+}
+```
+
+**Key Methods:**
+- `init()` - Initialize component (calls onCreate → render → onMount)
+- `render()` - Re-render component template
+- `addListener(element, event, handler)` - Safe event binding
+- `emit(eventName, data)` - Emit custom events
+- `destroy()` - Clean up component and remove listeners
+
+### App Component
+Main application controller that manages all other components.
+
+```javascript
+import { App } from './components/App.js';
+
+const app = new App(container, {
+    autoInit: true,
+    enableDemoMode: true,
+    enableAnalytics: true
+});
+
+app.init();
+```
+
+**Key Methods:**
+- `initializeComponents()` - Set up all child components
+- `handleChannelAnalysis(channelInput)` - Main analysis workflow
+- `switchToDemo()` / `exitDemo()` - Demo mode management
+- `validateApiKey(key)` - API key validation
+
+### VideoList Component
+Manages video display in list/grid views with sorting and filtering.
+
+```javascript
+import { VideoList } from './components/VideoList.js';
+
+const videoList = new VideoList(container, {
+    viewMode: 'list', // 'list' or 'grid'
+    sortable: true,
+    exportable: true
+});
+
+// Methods
+videoList.displayVideos(videosArray);
+videoList.switchView('grid');
+videoList.sortVideos('viewCount', 'desc');
+videoList.exportToCSV();
+```
+
+### Results Component
+Results panel with filtering and export functionality.
+
+```javascript
+import { Results } from './components/Results.js';
+
+const results = new Results(container);
+
+// Methods
+results.updateStats(videoData);
+results.showFilters();
+results.exportResults('csv');
+```
+
+### TagInput Component
+Professional tag-based keyword input system.
+
+```javascript
+import { TagInput } from './components/TagInput.js';
+
+const tagInput = new TagInput(container, {
+    placeholder: 'Enter keywords...',
+    maxTags: 10
+});
+
+// Events
+tagInput.on('tagsChanged', (tags) => {
+    console.log('Current tags:', tags);
+});
+
+// Methods
+tagInput.addTag('keyword');
+tagInput.removeTag('keyword');
+tagInput.getTags(); // Returns array of current tags
+```
+
+### MessagePanel Component
+User feedback and notification system.
+
+```javascript
+import { MessagePanel } from './components/MessagePanel.js';
+
+const messagePanel = new MessagePanel(container);
+
+// Methods
+messagePanel.showSuccess('Operation completed!');
+messagePanel.showError('Something went wrong');
+messagePanel.showInfo('Processing...');
+messagePanel.clear();
+```
+
+### LoadingSpinner Component
+Loading state management with progress tracking.
+
+```javascript
+import { LoadingSpinner } from './components/LoadingSpinner.js';
+
+const spinner = new LoadingSpinner(container);
+
+// Methods
+spinner.show('Loading videos...');
+spinner.updateProgress(45); // 45% complete
+spinner.hide();
+```
+
+---
+
+## 🔧 Service Layer
+
+### YouTubeApiService
+Handles all YouTube Data API v3 interactions.
+
+```javascript
+import { YouTubeApiService } from './services/youtubeApi.js';
+
+const api = new YouTubeApiService(apiKey);
+
+// Configuration
+api.setDemoMode(true);        // Enable demo mode limits
+api.setApiKey(newKey);        // Update API key
+
+// Core Methods
+const channelId = await api.getChannelId('@channelname');
+const channelData = await api.getChannelData(channelInput);
+const videos = await api.getAllChannelVideos(uploadsPlaylistId, progressCallback);
+const videoDetails = await api.getVideoDetails(videoIds);
+```
+
+**Features:**
+- Handles @username, full URLs, and direct channel IDs
+- Automatic pagination for large channels
+- Demo mode with rate limiting (100 videos max)
+- Progress callbacks for long operations
+- Comprehensive error handling
+
+### AnalyticsService
+Content analysis and insights generation.
+
+```javascript
+import { AnalyticsService } from './services/analytics.js';
+
+const analytics = new AnalyticsService();
+
+// Analysis Methods
+const stats = analytics.generateBasicStats(videos);
+const insights = analytics.generateAdvancedAnalysis(videos);
+const viralVideos = analytics.identifyViralContent(videos);
+const titlePatterns = analytics.analyzeTitlePatterns(videos);
+const uploadSchedule = analytics.analyzeUploadSchedule(videos);
+
+// Chart Generation
+analytics.createViewsChart(videos, chartContainer);
+analytics.createUploadTimeline(videos, chartContainer);
+analytics.createEngagementChart(videos, chartContainer);
+```
+
+### StorageService
+Data persistence and caching management.
+
+```javascript
+import { StorageService } from './services/storage.js';
+
+const storage = new StorageService();
+
+// Cache Management
+storage.saveAnalysis(channelId, videoData);
+const cachedData = storage.loadAnalysis(channelId);
+storage.clearExpiredCache();
+
+// Search History
+storage.saveSearch(searchParams);
+const searches = storage.getSavedSearches();
+storage.deleteSearch(searchId);
+
+// API Key Management
+storage.saveApiKey(encryptedKey);
+const apiKey = storage.loadApiKey();
+```
+
+---
+
+## 🛠️ Utility Modules
+
+### Environment Detection
+```javascript
+import { initializeEnvironment, detectEnvironment, getEnvironmentMode } from './utils/environment.js';
+
+const env = detectEnvironment(); // 'local', 'github-pages', etc.
+const mode = getEnvironmentMode(); // 'demo', 'live'
+```
+
+### Data Formatting
+```javascript
+import { formatViewCount, formatDuration, formatDate } from './utils/formatter.js';
+
+formatViewCount(1234567);     // "1.2M"
+formatDuration('PT4M33S');    // "4:33"
+formatDate('2024-01-15');     // "Jan 15, 2024"
+```
+
+### Security Utilities
+```javascript
+import { validateApiKey, encryptApiKey, decryptApiKey } from './utils/security.js';
+
+const isValid = validateApiKey(key);    // Boolean validation
+const encrypted = encryptApiKey(key);   // Encrypt for storage
+const decrypted = decryptApiKey(hash);  // Decrypt from storage
+```
+
+### Debug Logging
+```javascript
+import { debugLog } from './utils/debug.js';
+
+debugLog('Operation started', { channelId: 'UC123' });
+// Output: [DEBUG] Operation started { channelId: 'UC123' }
+```
+
+### Performance Monitoring
+```javascript
+import { globalPerformanceMonitor } from './utils/performance.js';
+
+// Track component renders
+globalPerformanceMonitor.trackRender('VideoList', renderFunction);
+
+// Track API calls
+globalPerformanceMonitor.trackApiCall('channels', apiCall);
+
+// Get performance data
+const metrics = globalPerformanceMonitor.getMetrics();
+```
+
+### Rate Limiting (Demo Mode)
+```javascript
+import { DemoRateLimiter } from './utils/rateLimiter.js';
+
+const limiter = new DemoRateLimiter(CONFIG);
+limiter.setDemoMode(true);
+
+const canProceed = await limiter.checkRateLimit('analysis');
+limiter.recordUsage('analysis');
+```
+
+---
+
+## 🚀 Application Lifecycle
+
+### 1. Initialization (main.js)
+```javascript
+// Environment detection
+initializeEnvironment();
+
+// App creation and initialization
+const app = new App(container, options);
+app.init();
+```
+
+### 2. Component Lifecycle
+```javascript
+// All components follow this pattern:
+component.onCreate();    // Setup
+component.render();      // DOM creation
+component.onMount();     // Post-render setup
+component.onUpdate();    // Handle updates  
+component.onDestroy();   // Cleanup
+```
+
+### 3. Analysis Workflow
+```javascript
+// Typical analysis flow:
+app.validateApiKey(key)
+  → app.handleChannelAnalysis(channelInput)
+  → youtubeApi.getChannelData(input)
+  → youtubeApi.getAllChannelVideos(playlistId)
+  → analytics.generateAnalysis(videos)
+  → videoList.displayVideos(videos)
+  → storage.saveAnalysis(channelId, data)
+```
+
+---
+
+## 🎭 Demo Mode Integration
+
+### Features
+- **Video Limits**: Maximum 100 videos per analysis
+- **Rate Limiting**: 5 analyses per IP per day
+- **Progress Tracking**: Real-time progress updates
+- **Sample Data**: Built-in demo channels
+
+### Implementation
+```javascript
+// Enable demo mode
+api.setDemoMode(true);
+rateLimiter.setDemoMode(true);
+
+// Check limits before analysis
+const canProceed = await rateLimiter.checkRateLimit('analysis');
+if (!canProceed) {
+    messagePanel.showError('Demo limit reached');
+    return;
+}
+
+// Perform limited analysis
+const videos = await api.getAllChannelVideos(playlistId, progressCallback);
+// Auto-limited to 100 videos in demo mode
+```
+
+---
+
+## 🧪 Testing & Debugging
+
+### Integration Tests
+```javascript
+// Access via URL parameter: ?test=true
+// Or programmatically:
+import('./integration-test.js').then(({ default: IntegrationTest }) => {
+    const tester = new IntegrationTest();
+    const results = await tester.runAllTests();
 });
 ```
 
-### Real-time Filtering
+### Debug Access
 ```javascript
-document.getElementById('titleFilter').addEventListener('input', function() {
-    clearTimeout(this.filterTimeout);
-    this.filterTimeout = setTimeout(filterResults, 300);
-});
+// Available in browser console:
+window.debugApp;                    // Main app instance
+window.integrationTestResults;      // Test results
+globalPerformanceMonitor.getMetrics(); // Performance data
 ```
 
-## Global State Variables
+### Error Handling
+- **Component Errors**: Caught by BaseComponent and logged
+- **API Errors**: Handled by services with user-friendly messages
+- **Global Errors**: Window error handlers with fallback UI
 
-- `videosData` (array) - Complete video dataset
-- `filteredData` (array) - Currently filtered/displayed videos
-- `youtubeApiKey` (string) - Current API key
-- `currentView` (string) - 'list' or 'grid'
-- `currentSort` (object) - `{ column, direction }`
-- `apiMode` (string) - 'local' or 'web'
+---
 
-## Error Handling
+## 📈 Performance Considerations
 
-### Global Error Listeners
-```javascript
-window.addEventListener('error', handleError);
-window.addEventListener('unhandledrejection', handlePromiseError);
-```
+### Optimization Features
+- **Component Lifecycle**: Proper cleanup prevents memory leaks
+- **Event Management**: Automatic listener removal
+- **API Batching**: Process videos in chunks of 50
+- **Render Tracking**: Monitor component performance
+- **Lazy Loading**: Components load only when needed
 
-### API Error Patterns
-- Quota exceeded (403) - Clear messaging about daily limits
-- Invalid API key (403) - Guidance on key setup
-- Channel not found (404) - Input validation suggestions
-- Network errors - Retry recommendations
+### Memory Management
+- **Component Destruction**: `onDestroy()` cleanup
+- **Event Cleanup**: Automatic listener removal
+- **Cache Limits**: Configurable storage limits
+- **Global State**: Minimal global variables
 
-## Performance Notes
+---
 
-- **Batch Size**: 50 videos per API call (YouTube limit)
-- **Debouncing**: 300ms for search input
-- **Memory**: Large channels cache analysis results
-- **DOM Updates**: Efficient innerHTML replacement for large datasets
-- **Chart Rendering**: setTimeout ensures DOM readiness
+## 🔐 Security Features
 
-## Security Considerations
+### API Key Protection
+- **Client-side Encryption**: API keys encrypted before localStorage
+- **Validation**: Key format and access validation
+- **Environment Variables**: Support for build-time API keys
+- **Demo Mode**: Secure demo without exposing keys
 
-- **API Key Visibility**: Client-side keys are visible in browser
-- **Input Sanitization**: Channel IDs sanitized for cache keys
-- **XSS Prevention**: User input properly escaped in innerHTML
-- **CORS**: All API calls to googleapis.com (same-origin policy compliant) 
+### Input Sanitization
+- **Channel Input**: URL parsing and validation
+- **Search Terms**: XSS prevention in keyword filtering
+- **Storage Keys**: Sanitized cache identifiers
+
+---
+
+*This API reference documents the current ES6 modular architecture. For legacy functionality, see the `legacy/` folder.* 

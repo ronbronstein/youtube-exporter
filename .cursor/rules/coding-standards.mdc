@@ -3,53 +3,82 @@ description: When making code changes, creating new files, editing current ones.
 globs: 
 alwaysApply: false
 ---
+---
+description: Code style and quality standards
+globs: ["**/*.js", "**/*.css"]
+alwaysApply: true
+---
+
 # Coding Standards
 
-## JavaScript
-- **ES6+** syntax (const/let, arrow functions, async/await)
-- **Single quotes** for strings
-- **Semicolons** required
-- **2-space indentation**
-- **camelCase** for variables and functions
-- **PascalCase** for classes/constructors
+## TOC
+- [JavaScript Style](#javascript-style)
+- [Error Handling](#error-handling)
+- [CSS Naming](#css-naming)
+- [Component Patterns](#component-patterns)
+- [Performance](#performance)
 
-## Functions
+## JavaScript Style
+| Rule | Standard | Example |
+|------|----------|---------|
+| **Syntax** | ES6+ only | `const`, `let`, `=>`, `async/await` |
+| **Quotes** | Single quotes | `'use this'` not `"this"` |
+| **Semicolons** | Required | `const x = 1;` |
+| **Indent** | 2 spaces | No tabs |
+| **Variables** | camelCase | `videoData`, `apiKey` |
+| **Classes** | PascalCase | `VideoList`, `YouTubeApiService` |
+
+## Error Handling
 ```javascript
-// ✅ Good
-const processVideo = async (videoData) => {
+// ✅ Required pattern
+const apiCall = async () => {
   try {
-    const result = await analyzeVideo(videoData);
+    const result = await service.call();
     return result;
   } catch (error) {
-    console.error('Process video failed:', error);
-    throw error;
+    debugLog('Operation failed:', error);
+    this.showError('User-friendly message');
+    throw error; // Re-throw for caller
   }
 };
+```
 
-// ❌ Bad
-function process_video(video_data) {
-  // no error handling
-  return analyze_video(video_data)
+**Rules:**
+- All async operations in try/catch
+- Use `debugLog()` for technical details
+- Use `showError()` for user messages
+- Never break UI on errors
+
+## CSS Naming
+| Type | Pattern | Examples |
+|------|---------|----------|
+| **Components** | `component-name` | `.video-list`, `.tag-input` |
+| **XP Elements** | `xp-*` | `.xp-button`, `.xp-input` |
+| **Analysis** | `analysis-*` | `.analysis-panel` (NOT `analytics-*`) |
+| **State** | descriptive | `.active`, `.disabled`, `.loading` |
+
+## Component Patterns
+```javascript
+// ✅ Component structure
+export class MyComponent extends BaseComponent {
+  constructor(container, options = {}) {
+    super(container, options);
+    this.state = {};
+  }
+  
+  template() { return `<div>...</div>`; }
+  onMount() { this.setupEventListeners(); }
+  onDestroy() { /* cleanup */ }
 }
 ```
 
-## Error Handling
-- **Always** wrap API calls in try/catch
-- **Log errors** with context
-- **Show user-friendly** error messages
-- **Fail gracefully** - don't break the UI
+## Performance
+- **Batch API calls** (50 items max)
+- **Use `debugLog()`** not `console.log`
+- **Cleanup event listeners** in `onDestroy()`
+- **Cache DOM queries** in component state
 
-## CSS Classes
-- Use **kebab-case**: `.video-list`, `.api-key-input`
-- **analysis-*** not `analytics-*`
-- **xp-*** prefix for Windows XP UI elements
-
-## Comments
-```javascript
-// Single line for brief explanations
-/* Multi-line for complex logic explanations */
-```
-
-## Files to Follow
-- [src/js/components/App.js](mdc:src/js/components/App.js) - Main patterns
-- [src/js/services/](mdc:src/js/services) - Service layer patterns
+## Reference Files
+- [BaseComponent.js](mdc:src/js/components/BaseComponent.js) - Component lifecycle
+- [App.js](mdc:src/js/components/App.js) - Error handling patterns
+- [main.css](mdc:src/styles/main.css) - CSS conventions

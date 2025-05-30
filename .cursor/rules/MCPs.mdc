@@ -1,0 +1,119 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Here's the new **mcp-usage.mdc** file:
+
+```markdown
+---
+description: MCP tool selection guide for development tasks
+globs: 
+alwaysApply: true
+---
+
+# MCP Tool Usage Guide
+
+## TOC
+- [Quick Reference](#quick-reference)
+- [Problem Solving](#problem-solving)
+- [Project Management](#project-management)
+- [Development & Testing](#development--testing)
+- [Research & Documentation](#research--documentation)
+
+## Quick Reference
+| Task Type | Primary MCP | When to Use |
+|-----------|-------------|-------------|
+| **Complex Analysis** | `sequentialthinking` | Multi-step problems, architectural decisions |
+| **Task Management** | `atlassian` | Jira issues, sprint planning, task tracking |
+| **Code Management** | `github` | PRs, issues, code review, repository ops |
+| **UI Testing** | `puppeteer` | Browser automation, screenshot testing |
+| **Current Info** | `brave-search` | Latest docs, recent changes, external APIs |
+| **Deep Research** | `deep-research` | Comprehensive analysis with file output |
+
+## Problem Solving
+**Use `sequentialthinking` for:**
+- Breaking down complex bugs across multiple files
+- Architectural planning and refactoring decisions
+- Analyzing relationships between components
+- Multi-step debugging workflows
+- Performance optimization strategies
+
+```javascript
+// Example: Complex state management issue
+// Use sequentialthinking to analyze App.js, storage.js, and component interactions
+```
+
+## Project Management
+**Use `atlassian` for:**
+- Creating and updating Jira issues
+- Sprint planning and velocity tracking
+- Linking code changes to tickets
+- Status updates and progress reporting
+
+**Use `github` for:**
+- Creating issues and PRs
+- Code review management
+- Repository administration
+- Branch and release management
+
+## Development & Testing
+**Use `github` for:**
+- Repository operations (create, fork, clone)
+- Pull request workflows
+- Issue tracking and management
+- Code scanning and security alerts
+
+**Use `puppeteer` for:**
+- UI component testing
+- Screenshot comparisons
+- Form automation testing
+- Performance testing in browser
+- E2E workflow validation
+
+## Research & Documentation
+**Use `brave-search` for:**
+- Current API documentation
+- Latest framework updates
+- Error message lookups
+- Recent best practices
+- Quick fact checking
+
+**Use `deep-research` for:**
+- Comprehensive technology research
+- Market analysis reports
+- Multi-source documentation compilation
+- Academic research with citations
+
+
+## Decision Tree
+```
+Is it a complex multi-step problem? → sequentialthinking
+├─ Need current/recent information? → brave-search
+├─ Comprehensive research needed? → deep-research
+├─ Project management task? → atlassian
+├─ Code/repository task? → github
+├─ Browser/UI testing? → puppeteer
+```
+
+## Common Combinations - EXAMPLES
+| Scenario | MCP Sequence |
+|----------|--------------|
+| **Bug Investigation** | `sequentialthinking` → `github` (for PR) → `atlassian` (update issue) |
+| **Feature Research** | `brave-search` → `deep-research` → `github` (implementation) |
+| **UI Issue Debug** | `puppeteer` (reproduce) → `sequentialthinking` (analyze) → `github` (fix) |
+| **Sprint Planning** | `atlassian` (issues) → `github` (branch) → `sequentialthinking` (planning) |
+```
+
+## Implementation Instructions:
+
+1. **Create new file**: `mcp-usage.mdc` - This is a new addition to help with MCP tool selection
+2. **Place in `.cursor/rules/`** directory alongside other rule files
+3. **Key benefits**:
+   - Quick reference table for immediate tool selection
+   - Clear use cases for each MCP
+   - Decision tree for complex scenarios
+   - Common workflow combinations
+   - Prevents tool confusion and improves efficiency
+
+This file will help developers (and AI) quickly identify the right MCP tool for their current task, improving development workflow efficiency.

@@ -3,38 +3,77 @@ description: Development Workflow & Best Practices
 globs: 
 alwaysApply: false
 ---
+---
+description: Development process and workflow standards
+globs: 
+alwaysApply: false
+---
+
 # Development Workflow
 
-## Current Sprint: Phase 1 Critical Bugs
-- **YRH-1**: Video Filtering System (13 pts) 
-- **YRH-2**: Cache System Debugging (8 pts)
-- **YRH-3**: State Management Issues (8 pts)
+## TOC
+- [Git Standards](#git-standards)
+- [Development Process](#development-process)
+- [Testing Requirements](#testing-requirements)
+- [Build & Deploy](#build--deploy)
 
-## Git Workflow
+## Git Standards
+**Branch naming:**
 ```bash
-# Branch naming: feature/YRH-{number}-{description}
-git checkout -b feature/YRH-1-video-filtering-system
-
-# Commit format: YRH-{number}: type(scope): description
-git commit -m "YRH-1: fix(filtering): implement AND/OR logic for keywords"
-
-# Always reference Jira issue in commits
+feature/YRH-{number}-{short-description}
+bugfix/YRH-{number}-{short-description}
+hotfix/critical-issue-name
 ```
 
+**Commit format:**
+```bash
+YRH-{number}: type(scope): description
+
+# Examples:
+YRH-1: feat(filtering): add AND/OR keyword logic
+YRH-2: fix(cache): resolve mode separation issue
+YRH-3: refactor(state): simplify app state management
+```
+
+**Types:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+
 ## Development Process
-1. **Start**: Move Jira issue to "In Progress"
-2. **Code**: Create feature branch, implement, test locally
-3. **Review**: Create PR, move issue to "Code Review"
-4. **Deploy**: Merge PR, move to "Testing", verify, mark "Done"
+| Step | Action | Jira Status |
+|------|--------|-------------|
+| 1 | Create feature branch | "In Progress" |
+| 2 | Implement + local test | "In Progress" |
+| 3 |ew | "Code Review" |
+| 4 | Ming" |
+| 5 | Verify deployment |g Requirements
+**Pre-commit checklist:**
+- [ ] Demo mode: 100 video limit works
+- [ ] Live mode: Full functionality with user API key
+- [ ] XP theme: Buttons, inputs, panels styled correctly
+- [ ] Mobile: Responsive on 768px+ screens
+- [ ] Console: No errors in browser dev tools
+- [ ] Performance: No memory leaks, smooth interactions
 
-## Testing Checklist
-- [ ] Core functionality works in both Demo and Live modes
-- [ ] Windows XP theme consistency maintained
-- [ ] Mobile responsive design verified
-- [ ] No console errors
-- [ ] API integration functional
+**Test commands:**
+```bash
+npm run dev          # Local development
+npm run build        # Production build test
+npm run preview      # Test production build
+```
 
-## Key Files
-- [src/js/components/App.js](mdc:src/js/components/App.js) - Main application logic
-- [src/js/services/storage.js](mdc:src/js/services/storage.js) - Cache and state management
-- [src/styles/main.css](mdc:src/styles/main.css) - Windows XP styling
+## Build & Deploy
+**Local development:**
+```bash
+npm install
+npm run dev          # http://localhost:5177
+```
+
+**Deployment:**
+- **Auto-deploy**: Push to `main` → GitHub Actions → GitHub Pages
+- **Manual build**: `npm run build` → `dist/` folder
+- **Environment**: Demo API key injected via GitHub secrets
+
+## Key Development Files
+- [App.js](mdc:src/js/components/App.js) - Main app logic
+- [main.js](mdc:src/js/main.js) - Entry point
+- [vite.config.js](mdc:vite.config.js) - Build config
+- [package.json](mdc:package.json) - Scripts & dependencies

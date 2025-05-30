@@ -1,194 +1,78 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
-# Jira Workflow - Remote Async Teams
+Here's the updated **jira-workflow.mdc** with git commit tracking:
 
-## Core Principles
+```markdown
+---
+description: Essential Jira rules for remote async development
+globs: 
+alwaysApply: true
+---
 
-### 1. Always Log Tasks in Jira
-- Every development task, bug fix, or feature gets a Jira issue
-- No work happens outside of tracked issues
-- Move issues through: `To Do → In Progress → Code Review → Testing → Done`
+# Jira Rules (Remote Async)
 
-### 2. Check Related Tasks First
-- Search existing issues before creating new ones
-- Link related issues and dependencies
-- Check for similar work in progress or completed
+## Non-Negotiables
+- ✅ **Every task in Jira** - No work outside tracked issues
+- ✅ **Update status immediately** - Team needs real-time visibility
+- ✅ **Log all commits** - Add commit IDs to issue comments
+- ✅ **Document blockers instantly** - Don't suffer in silence
+- ✅ **Link related issues** - Show dependencies clearly
 
-### 3. Keep Detailed Notes Throughout Development
-- Document technical findings in Jira comments
-- Log blockers, decisions, and solutions as you work
-- Include code snippets, error messages, and debugging steps
-- Future team members need full context
-
-### 4. Async-First Communication
-- All important decisions and context go in Jira
-- Don't rely on verbal communication
-- Assume team members work in different timezones
-- Write clear, complete descriptions and acceptance criteria
-
-## Project Info
-- **Project**: YouTube Research Hub (YRH)
-- **Board**: [YRH Scrum Board](mdc:https:/ronbronstein.atlassian.net/jira/software/projects/YRH/boards/2)
-- **Current Focus**: Phase 1 Critical Bugs (YRH-1, YRH-2, YRH-3)
-
-## **🏃‍♂️ Current Sprint Status**
-
-### **Phase 1: Critical Bug Fixes (In Progress)**
-| Issue | Type | Priority | Points | Status |
-|-------|------|----------|--------|--------|
-| YRH-1 | Story | Highest | 13 | 🔴 To Do |
-| YRH-2 | Story | Highest | 8 | 🔴 To Do |
-| YRH-3 | Story | Highest | 8 | 🔴 To Do |
-
-**Phase 1 Goal**: Fix core functionality blocking users
-**Total Points**: 29
-
-### **Phase 2: Enhancement EPICs (Planned)**
-| Issue | Type | Priority | Points | Status |
-|-------|------|----------|--------|--------|
-| YRH-4 | Epic | High | 13 | 🔵 Backlog |
-| YRH-5 | Epic | High | 21 | 🔵 Backlog |
-| YRH-6 | Epic | High | 8 | 🔵 Backlog |
-| YRH-7 | Epic | Medium | 13 | 🔵 Backlog |
-| YRH-8 | Epic | Medium | 5 | 🔵 Backlog |
-| YRH-9 | Epic | Medium | 3 | 🔵 Backlog |
-
-**Phase 2 Goal**: Enhance UX and add advanced features
-**Total Points**: 63
-
-## **📋 Issue Types & Workflow**
-
-### **Story Workflow**
+## Workflow
 ```
 To Do → In Progress → Code Review → Testing → Done
 ```
 
-### **Epic Breakdown Process**
-1. **Epic Created** with high-level scope
-2. **Stories Created** for each Epic component  
-3. **Tasks Added** for technical implementation
-4. **Subtasks** for granular work items
+## Required Actions
+| When | Action | Example |
+|------|--------|---------|
+| **Start work** | Move to "In Progress" + comment | "Starting API integration" |
+| **Each commit** | Log commit ID in comments | "Commit: abc123f - Added rate limiting" |
+| **Hit blocker** | Comment immediately | "Blocked: API returns 403, investigating" |
+| **Create PR** | Move to "Code Review" + link PR + commits | "PR: #123, Commits: abc123f, def456a" |
+| **Deploy** | Move to "Testing" + verification steps | "Deployed to staging, testing XYZ" |
+| **Complete** | Move to "Done" + final commit summary | "Done. All commits: abc123f, def456a, ghi789b" |
 
-### **Priority Levels**
-- **Highest**: Critical bugs blocking core functionality
-- **High**: Important features for user experience
-- **Medium**: Enhancements and polish
-- **Low**: Nice-to-have improvements
+## Code Integration
+**Branch:** `feature/PROJ-123-short-desc`  
+**Commits:** `PROJ-123: fix(scope): description`  
+**PR:** Must link Jira issue + list commit IDs
 
-## **🔧 Development Workflow**
+## Documentation (Critical for Async)
+**Technical notes with git tracking:**
+```
+## Commits This Issue
+- abc123f: Added rate limiting logic
+- def456a: Fixed API error handling  
+- ghi789b: Updated tests
 
-### **Starting Work**
-1. Move issue to "In Progress" in Jira
-2. Create feature branch: `feature/YRH-{number}-{short-description}`
-3. Reference issue in all commits: `YRH-{number}: commit message`
+## Problem
+- Error: API quota exceeded
+- Impact: Demo mode broken
 
-### **Code Review Process**
-1. Create PR with link to Jira issue
-2. Move Jira issue to "Code Review"
-3. Review focuses on acceptance criteria
-4. All tests must pass
+## Solution  
+- Added: Rate limiting (commit: abc123f)
+- Modified: youtubeApi.js line 45 (commit: def456a)
 
-### **Testing & Completion**
-1. Move to "Testing" when PR merged
-2. Verify all acceptance criteria met
-3. Update issue with completion notes
-4. Move to "Done"
-
-## **📊 Epic Breakdown Guidelines**
-
-### **When to Break Down EPICs**
-- Epic has > 13 story points
-- Epic spans multiple sprints
-- Epic has complex dependencies
-- Epic needs different skill sets
-
-### **Story Creation from EPICs**
-Each Epic should have:
-- **3-5 Stories** maximum
-- **Clear acceptance criteria** per story
-- **Testable deliverables**
-- **Dependencies identified**
-
-## **🎯 Current Focus Areas**
-
-### **Immediate Priorities (Phase 1)**
-1. **YRH-1**: Video filtering completely broken - highest impact
-2. **YRH-2**: Cache system debugging - technical foundation  
-3. **YRH-3**: State management issues - workflow blocking
-
-### **Next Phase Planning**
-- **YRH-4**: UI improvements (highest Phase 2 priority)
-- **YRH-5**: Workflow enhancements (largest scope - 21 pts)
-- **YRH-6**: Cache system improvements (builds on YRH-2)
-
-## **📈 Progress Tracking**
-
-### **Velocity Tracking**
-- **Target Velocity**: 15-20 points per week
-- **Phase 1 Duration**: ~2 weeks (29 points)
-- **Phase 2 Duration**: ~4 weeks (63 points)
-
-### **Definition of Done**
-- [ ] All acceptance criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing (manual + automated)
-- [ ] Documentation updated
-- [ ] Deployed and verified
-
-## **🚀 MCP Jira Integration Commands**
-
-### **Common Actions**
-```javascript
-// Get issue details
-mcp_atlassian_getJiraIssue(cloudId, issueKey)
-
-// Update issue
-mcp_atlassian_editJiraIssue(cloudId, issueKey, fields)
-
-// Transition issue (To Do → In Progress → Done)
-mcp_atlassian_transitionJiraIssue(cloudId, issueKey, transition)
-
-// Add comments
-mcp_atlassian_addCommentToJiraIssue(cloudId, issueKey, comment)
-
-// Search issues
-mcp_atlassian_searchJiraIssuesUsingJql(cloudId, jql)
+## Testing
+- Verified: Demo mode works
+- Tested: 100 requests/hour limit
 ```
 
-### **Useful JQL Queries**
-- Current sprint: `project = YRH AND sprint in openSprints()`
-- My issues: `project = YRH AND assignee = currentUser()`
-- Blocked issues: `project = YRH AND status = "To Do" AND priority = Highest`
+## Git Commands for Jira
+```bash
+# Get recent commits for issue
+git log --oneline -n 5
 
-## **🎯 Success Metrics**
+# Copy commit ID for Jira comment
+git log -1 --format="%h: %s"
+# Output: abc123f: PROJ-123: fix(api): add rate limiting
+```
 
-### **Phase 1 Success Criteria**
-- [ ] Video filtering works perfectly in both modes
-- [ ] Cache system reliable and separated
-- [ ] State management predictable and logged
-- [ ] Zero critical bugs blocking users
-
-### **Phase 2 Success Criteria**
-- [ ] Professional UI layout and alignment
-- [ ] Smooth post-analysis workflow
-- [ ] Advanced video browsing features
-- [ ] Secure API key management
-- [ ] Clear user communication throughout
-
-## **🔄 Sprint Planning Process**
-
-### **Sprint Planning**
-1. Review Phase 1 progress
-2. Select next highest priority items
-3. Break down EPICs if needed
-4. Estimate and commit to sprint scope
-5. Update Jira board and assignments
-
-### **Retrospective Focus**
-- What's blocking progress on critical bugs?
-- Are EPICs properly scoped?
-- Is the development workflow efficient?
-- What can we improve for next sprint?
+## Quick Status Check
+- 🔴 **Blocked?** → Comment immediately with details
+- 🟡 **In Progress?** → Daily progress updates + commit IDs
+- 🟢 **Done?** → Final commit summary + verification

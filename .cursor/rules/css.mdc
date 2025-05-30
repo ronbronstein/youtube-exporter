@@ -3,239 +3,95 @@ description:
 globs: 
 alwaysApply: false
 ---
-# CSS Naming Conventions & Component Standards
+---
+description: CSS naming conventions and styling patterns
+globs: ["**/*.css", "**/*.js"]
+alwaysApply: true
+---
 
-## CSS Class Naming Rules
+# CSS Standards
 
-### 1. Component Naming (Primary Pattern)
-Use kebab-case with component prefix for all major UI components:
+## TOC
+- [Critical Rules](#critical-rules)
+- [Naming Patterns](#naming-patterns)
+- [XP Design System](#xp-design-system)
+- [Component Integration](#component-integration)
+- [Component Examples](#Component-Examples)
+
+## Critical Rules
+| ❌ NEVER | ✅ ALWAYS | Reason |
+|----------|-----------|---------|
+| `analytics-*` | `analysis-*` | Consistent with codebase |
+| `camelCase` | `kebab-case` | CSS standard |
+| Generic `.button` | `.xp-button` | XP theme consistency |
+
+## Naming Patterns
 ```css
-.app-*           /* Application-level components */
-.results-*       /* Results display components */
-.video-*         /* Video-related components */
-.tag-*           /* Tag input components */
-.analysis-*      /* Analytics/analysis components (NOT analytics-*) */
-.cached-*        /* Cache-related components */
-.loading-*       /* Loading/spinner components */
-.message-*       /* Message/notification components */
+/* Component blocks */
+.analysis-panel         /* Analysis components */
+.video-list            /* Video components */
+.tag-input             /* Form components */
+.cached-channels       /* Cache components */
+
+/* XP system elements */
+.xp-button             /* All buttons */
+.xp-input              /* All inputs */
+.xp-panel              /* Panel containers */
+
+/* State classes */
+.active, .disabled, .loading, .has-data
 ```
 
-### 2. Windows XP System Classes
-All core UI elements use the `xp-` prefix to maintain design consistency:
+## Component Examples
+```html
+<!-- Buttons -->
+<button class="xp-button">Standard</button>
+<button class="xp-button success">Success</button>
+
+<!-- Inputs -->
+<input type="text" class="xp-input large" placeholder="Enter text">
+
+<!-- Panels -->
+<div class="analysis-panel">Content</div>
+
+## XP Design System
+**Core Variables:**
 ```css
-.xp-button       /* All buttons (success, warning, demo, etc.) */
-.xp-input        /* All input fields */
-.xp-panel        /* Panel containers */
-.window-*        /* Window frame elements */
+var(--xp-window-bg)      /* #ece9d8 */
+var(--xp-button-face)    /* Button color */
+va   /* #0078d4 */
+var(--xp-brders */
+var(--xp-spacing-md)     /* 12px */
 ```
 
-### 3. BEM-Like Structure for Complex Components
-Use double underscore for elements, double dash for modifiers:
+**Component Pattern:**
 ```css
-.component-name              /* Block */
-.component-name__element     /* Element */
-.component-name--modifier    /* Modifier */
-
-/* Examples: */
-.tag-input-container         /* Block */
-.tag-input-container__input  /* Element */
-.tag-input-container--disabled /* Modifier */
+.xp-button {
+  border: 2px outset var(--xp-button-face);
+  background: var(--xp-button-face);
+  font-family: Tahoma, sans-serif;
+}
 ```
 
-### 4. State Classes
-Use descriptive state names without prefixes:
-```css
-.active          /* Active state */
-.disabled        /* Disabled state */
-.focused         /* Focused state */
-.hidden          /* Hidden state */
-.loading         /* Loading state */
-.expanded        /* Expanded state */
-.collapsed       /* Collapsed state */
-.validated       /* Validated state */
-.has-data        /* Contains data */
-```
-
-### 5. Layout & Structure Classes
-Use semantic names for layout:
-```css
-.header-*        /* Header components */
-.section-*       /* Main sections */
-.container-*     /* Container elements */
-.row-*           /* Row layouts */
-.grid-*          /* Grid layouts */
-.flex-*          /* Flexbox layouts */
-```
-
-## Critical Naming Rules
-
-### ❌ NEVER Use These Patterns:
-- `analytics-*` classes (use `analysis-*` instead)
-- CamelCase in CSS (use kebab-case)
-- Underscores except in BEM elements
-- Generic names like `.content`, `.wrapper`, `.box`
-
-### ✅ ALWAYS Use These Patterns:
-- `analysis-*` for all analytics/analysis components
-- `xp-*` for all Windows XP UI elements
-- Descriptive component names
-- Consistent state class names
-
-## Component-Specific Conventions
-
-### Analysis/Analytics Components
-```css
-.analysis-section        /* Main analytics container */
-.analysis-panel         /* Analytics panel */
-.analysis-grid          /* Analytics grid layout */
-.analysis-stat          /* Individual stat display */
-.chart-panel           /* Chart container */
-.chart-container       /* Chart canvas wrapper */
-```
-
-### Form Components
-```css
-.form-section          /* Form containers */
-.form-row             /* Form row layouts */
-.form-group           /* Form field groups */
-.api-section          /* API key sections */
-.api-input-row        /* API input layouts */
-.demo-button-container /* Demo button containers */
-```
-
-### Results Components
-```css
-.results-section       /* Main results area */
-.results-component     /* Results component */
-.results-header        /* Results header */
-.results-controls      /* Results control panel */
-.results-count         /* Results counter */
-.video-display-container /* Video display area */
-```
-
-### Navigation & Controls
-```css
-.view-controls         /* View switching controls */
-.view-btn             /* View toggle buttons */
-.toggle-btn           /* Generic toggle buttons */
-.export-btn           /* Export action buttons */
-.cache-toggle-btn     /* Cache toggle button */
-```
-
-## JavaScript Integration Rules
-
-### ✅ Correct JavaScript Usage:
+## Component Integration
 ```javascript
-// Use existing CSS classes
-element.className = 'analysis-panel';
-document.querySelector('.xp-button');
-findElement('.results-section');
+// ✅ JS class usage
+element.classList.add('analysis-panel', 'active');
+this.findElement('.xp-button');
 
-// State management
-element.classList.add('active', 'has-data');
-element.classList.toggle('disabled');
-```
-
-### ❌ Incorrect JavaScript Usage:
-```javascript
-// Don't create non-existent classes
+// ❌ Wrong patterns
 element.className = 'analytics-grid'; // Should be 'analysis-grid'
-element.className = 'customButton';   // Should be 'xp-button'
 ```
 
-## CSS Variable Usage
+## File Structure
+- [main.css](mdc:src/styles/main.css) - XP variables + core styles
+- [components/](mdc:src/css/components/) - Component-specific CSS
+- Component CSS imported in main.css
 
-### Windows XP Design System Variables:
-See [main.css](mdc:src/styles/main.css) for the complete variable definitions:
-```css
-var(--xp-window-bg)        /* Background colors */
-var(--xp-button-face)      /* Button colors */
-var(--xp-text)             /* Text colors */
-var(--xp-border-*)         /* Border colors */
-var(--xp-spacing-*)        /* Spacing values */
-var(--xp-font-*)           /* Typography */
-var(--xp-transition-*)     /* Animation timing */
-```
-
-## File Organization
-
-### CSS Structure:
-```
-src/styles/main.css              /* Main stylesheet */
-src/css/components/*.css         /* Component-specific styles */
-```
-
-### Main Stylesheet:
-The primary styles are defined in [main.css](mdc:src/styles/main.css) which includes:
-- CSS Variables for Windows XP theme
-- Component styles following these naming conventions
-- Responsive design patterns
-
-### Component CSS Files:
-- [cached-channels.css](mdc:src/css/components/cached-channels.css) - Cache component styles
-
-### Import Order in main.css:
-```css
-/* 1. Component imports first */
-@import '../css/components/cached-channels.css';
-
-/* 2. Windows XP base styles */
-/* 3. Component styles */
-/* 4. Layout styles */
-/* 5. Responsive styles */
-```
-
-## JavaScript Component Integration
-
-### Key Component Files:
-- [App.js](mdc:src/js/components/App.js) - Main application component
-- [Results.js](mdc:src/js/components/Results.js) - Results display component
-- [VideoList.js](mdc:src/js/components/VideoList.js) - Video list component
-- [TagInput.js](mdc:src/js/components/TagInput.js) - Tag input component
-
-### Class Usage Examples:
-In [App.js](mdc:src/js/components/App.js), ensure all dynamically created elements use correct classes:
-```javascript
-// ✅ Correct
-analyticsSection.innerHTML = `<div class="analysis-panel">...</div>`;
-button.className = 'xp-button success';
-
-// ❌ Wrong
-analyticsSection.innerHTML = `<div class="analytics-panel">...</div>`;
-```
-
-## Validation Checklist
-
-Before committing CSS changes:
-- [ ] All class names follow kebab-case convention
-- [ ] Analytics components use `analysis-*` not `analytics-*`
-- [ ] UI elements use appropriate `xp-*` classes
-- [ ] JavaScript and CSS class names match exactly
-- [ ] State classes are consistent across components
-- [ ] No duplicate or conflicting class definitions
-- [ ] All new classes follow established patterns
-- [ ] Check [main.css](mdc:src/styles/main.css) for existing class definitions
-
-## Common Violations to Avoid
-
-1. **Class Name Mismatches**: JS uses `analytics-*` but CSS has `analysis-*`
-2. **Inconsistent State Classes**: mixing `.is-active` and `.active`
-3. **Generic Class Names**: using `.button` instead of `.xp-button`
-4. **Camel Case**: using `.myComponent` instead of `.my-component`
-5. **Missing XP Prefix**: using `.input` instead of `.xp-input`
-
-## Migration Guidelines
-
-When updating existing code:
-1. Audit all JavaScript class references in [components](mdc:src/js/components)
-2. Ensure CSS class definitions exist in [main.css](mdc:src/styles/main.css)
-3. Update class names to follow conventions
-4. Test in browser to verify styling
-5. Commit changes with descriptive messages
-
-## Reference Documentation
-
-For complete implementation details, see:
-- [CSS Audit Summary](mdc:docs/project-management/CSS_AUDIT_SUMMARY.md) - Detailed audit findings
-- [UI Components](mdc:.cursor/rules/ui-components.mdc) - Windows XP component guidelines
-- [Coding Standards](mdc:.cursor/rules/coding-standards.mdc) - General coding conventions 
+## Quick Reference
+| Component Type | Class Pattern | File Location |
+|---------------|---------------|---------------|
+| Analysis | `.analysis-*` | main.css |
+| Forms | `.form-*`, `.tag-*` | main.css |
+| UI Elements | `.xp-*` | main.css |
+| Components | `.component-*` | components/ |
