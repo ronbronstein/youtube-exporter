@@ -260,6 +260,34 @@ export class App extends BaseComponent {
                     debugLog(`🏷️ Tags changed: ${data.tags.join(', ')}`);
                     // Update analyze button state when tags change
                     this.updateAnalyzeButtonState();
+                    
+                    // Real-time filtering when tags change (if we have videos loaded)
+                    if (this.appState.videos && this.appState.videos.length > 0) {
+                        const keywords = data.tags.join(' ');
+                        if (keywords) {
+                            this.applyKeywordFilter(keywords);
+                            
+                            // Update Results component
+                            if (this.components.results) {
+                                const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
+                                this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                                debugLog(`📊 Results updated: ${this.appState.filteredVideos.length} videos after tag change`);
+                            }
+                            
+                            // Update analytics
+                            this.services.analytics.setVideosData(this.appState.filteredVideos);
+                            this.renderAnalytics();
+                        } else {
+                            // No keywords - show all videos
+                            this.appState.filteredVideos = [...this.appState.videos];
+                            if (this.components.results) {
+                                const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
+                                this.components.results.setVideos(this.appState.filteredVideos, channelName);
+                            }
+                            this.services.analytics.setVideosData(this.appState.filteredVideos);
+                            this.renderAnalytics();
+                        }
+                    }
                 });
                 
                 debugLog('✅ TagInput component initialized');
@@ -757,6 +785,24 @@ export class App extends BaseComponent {
             debugLog('✅ Cache toggle button listener attached');
         } else {
             debugLog('⚠️ Cache toggle button not found');
+        }
+        
+        // Radio button change listeners for real-time filtering
+        const searchScopeRadios = this.findElements('input[name="searchScope"]');
+        const keywordLogicRadios = this.findElements('input[name="keywordLogic"]');
+        
+        searchScopeRadios.forEach(radio => {
+            this.addListener(radio, 'change', this.handleFilterSettingsChange.bind(this));
+        });
+        
+        keywordLogicRadios.forEach(radio => {
+            this.addListener(radio, 'change', this.handleFilterSettingsChange.bind(this));
+        });
+        
+        if (searchScopeRadios.length > 0 || keywordLogicRadios.length > 0) {
+            debugLog(`✅ Radio button listeners attached: ${searchScopeRadios.length} searchScope, ${keywordLogicRadios.length} keywordLogic`);
+        } else {
+            debugLog('⚠️ No radio buttons found for real-time filtering');
         }
         
         // Set up cached channels listeners
@@ -2029,6 +2075,51 @@ export class App extends BaseComponent {
         });
         
         debugLog(`Keyword filter applied: ${originalCount} → ${this.appState.filteredVideos.length} videos`);
+    }
+    
+    /**
+     * Handle radio button changes for real-time filtering
+     */
+    handleFilterSettingsChange(event) {
+        debugLog(`🔄 Filter settings changed: ${event.target.name} = ${event.target.value}`);
+        
+        // Only re-filter if we have videos and keywords
+        if (!this.appState.videos || this.appState.videos.length === 0) {
+            debugLog('⚠️ No videos to filter');
+            return;
+        }
+        
+        // Get current keywords from TagInput
+        const keywords = this.components.tagInput ? this.components.tagInput.getTags().join(' ') : '';
+        
+        if (!keywords) {
+            debugLog('⚠️ No keywords to filter with');
+            // Reset to show all videos if no keywords
+            this.appState.filteredVideos = [...this.appState.videos];
+            
+            // Update Results component
+            if (this.components.results) {
+                const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
+                this.components.results.setVideos(this.appState.filteredVideos, channelName);
+            }
+            return;
+        }
+        
+        // Re-apply keyword filter with new settings
+        this.applyKeywordFilter(keywords);
+        
+        // Update the Results component with newly filtered videos
+        if (this.components.results) {
+            const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
+            this.components.results.setVideos(this.appState.filteredVideos, channelName);
+            debugLog(`📊 Results updated: ${this.appState.filteredVideos.length} videos after filter change`);
+        }
+        
+        // Update analytics with filtered results
+        this.services.analytics.setVideosData(this.appState.filteredVideos);
+        this.renderAnalytics();
+        
+        debugLog(`🔄 Real-time filtering complete: ${this.appState.filteredVideos.length} videos match new settings`);
     }
     
     // Cleanup
