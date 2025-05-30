@@ -5,11 +5,12 @@
  * - Results count display
  * - View toggle (list/grid)  
  * - Export options (CSV, Markdown, Titles)
- * - Real-time search filter
+ * - Enhanced tag-based search filter with logic options
  * - Integration with VideoList component
  */
 
 import { BaseComponent } from './BaseComponent.js';
+import { TagInput } from './TagInput.js';
 import { formatViewCount } from '../utils/formatter.js';
 import { debugLog } from '../utils/debug.js';
 
@@ -20,6 +21,10 @@ export class Results extends BaseComponent {
         this.filteredVideos = [];
         this.currentView = 'list';
         this.channelName = '';
+        
+        // Enhanced filtering properties
+        this.tagInputComponent = null;
+        this.filterTags = [];
     }
     
     get defaultOptions() {
@@ -84,12 +89,9 @@ export class Results extends BaseComponent {
         
         return `
             <div class="search-filter">
-                <input 
-                    type="text" 
-                    id="titleFilter" 
-                    class="filter-input"
-                    placeholder="Filter by title or description..."
-                >
+                <div id="tagInputContainer" class="tag-input-wrapper">
+                    <!-- TagInput component will be mounted here -->
+                </div>
             </div>
         `;
     }
@@ -131,18 +133,9 @@ export class Results extends BaseComponent {
             }
         }
         
-        // Search filter listener
+        // Enhanced search filter with TagInput
         if (this.options.enableFilter) {
-            const titleFilter = this.findElement('#titleFilter');
-            if (titleFilter) {
-                let filterTimeout;
-                this.addListener(titleFilter, 'input', (e) => {
-                    clearTimeout(filterTimeout);
-                    filterTimeout = setTimeout(() => {
-                        this.filterResults(e.target.value);
-                    }, 300); // Debounce
-                });
-            }
+            this.initializeTagInput();
         }
         
         // Export button listeners
@@ -161,6 +154,32 @@ export class Results extends BaseComponent {
                 this.addListener(titlesBtn, 'click', () => this.exportTitles());
             }
         }
+    }
+    
+    initializeTagInput() {
+        const tagContainer = this.findElement('#tagInputContainer');
+        if (!tagContainer) {
+            debugLog('❌ Results: TagInput container not found');
+            return;
+        }
+        
+        // Initialize TagInput component
+        this.tagInputComponent = new TagInput(tagContainer, {
+            placeholder: 'Add keywords and press Enter...',
+            maxTags: 8,
+            minTagLength: 2,
+            maxTagLength: 25,
+            allowDuplicates: false
+        });
+        
+        // Handle tag changes
+        this.tagInputComponent.on('tagsChanged', (data) => {
+            this.filterTags = data.tags;
+            this.applyTagFilter();
+            debugLog(`🏷️ Filter tags updated: ${this.filterTags.join(', ')}`);
+        });
+        
+        debugLog('✅ TagInput component initialized in Results');
     }
     
     // Public API
@@ -188,15 +207,53 @@ export class Results extends BaseComponent {
     }
     
     setSearchFilter(query = '') {
-        const titleFilter = this.findElement('#titleFilter');
-        if (titleFilter) {
-            titleFilter.value = query;
-            // Apply the filter immediately if there's a query
-            if (query.trim()) {
-                this.filterResults(query);
-            }
-            debugLog(`🔍 Search filter set to: "${query}"`);
+        // Convert query to tags for TagInput component
+        if (this.tagInputComponent && query.trim()) {
+            const tags = query.trim().split(/\s+/).filter(tag => tag.length >= 2);
+            this.tagInputComponent.setTags(tags);
+            debugLog(`🔍 Search filter set to tags: ${tags.join(', ')}`);
+        } else if (this.tagInputComponent) {
+            this.tagInputComponent.clearTags();
+            debugLog('🔍 Search filter cleared');
         }
+    }
+    
+    applyTagFilter() {
+        if (!this.videos || this.videos.length === 0) {
+            this.filteredVideos = [];
+            this.updateResultsCount();
+            this.emit('videosChanged', {
+                videos: [],
+                view: this.currentView
+            });
+            return;
+        }
+
+        if (!this.filterTags || this.filterTags.length === 0) {
+            // If no filter tags, show all fetched videos
+            this.filteredVideos = [...this.videos];
+        } else {
+            // Filter the fetched videos based on the tag keywords
+            this.filteredVideos = this.videos.filter(video => {
+                const title = video.title?.toLowerCase() || '';
+                const description = video.description?.toLowerCase() || '';
+                
+                // Check if any tag matches (OR logic for now)
+                return this.filterTags.some(tag => {
+                    const keyword = tag.toLowerCase();
+                    return title.includes(keyword) || description.includes(keyword);
+                });
+            });
+        }
+
+        console.log(`🔍 Tag filter applied: [${this.filterTags.join(', ')}] → ${this.filteredVideos.length} results`);
+        
+        // Update count display and emit event
+        this.updateResultsCount();
+        this.emit('videosChanged', {
+            videos: this.filteredVideos,
+            view: this.currentView
+        });
     }
     
     switchView(view) {
@@ -214,49 +271,6 @@ export class Results extends BaseComponent {
         debugLog(`📺 View switched to ${view}`);
     }
     
-    filterResults(query = '') {
-        if (!this.videos || this.videos.length === 0) {
-            this.filteredVideos = [];
-            this.updateResultsCount();
-            // Emit event instead of calling videoListComponent directly
-            this.emit('videosChanged', {
-                videos: [],
-                view: this.currentView
-            });
-            return;
-        }
-
-        query = query.trim().toLowerCase();
-        
-        if (!query) {
-            // If no filter query, show all fetched videos
-            this.filteredVideos = [...this.videos];
-        } else {
-            // Filter the fetched videos based on the search query
-            this.filteredVideos = this.videos.filter(video => {
-                const title = video.title?.toLowerCase() || '';
-                const description = video.description?.toLowerCase() || '';
-                
-                // Split query into keywords and check if any match
-                const keywords = query.split(/\s+/).filter(k => k.length > 0);
-                return keywords.some(keyword => 
-                    title.includes(keyword) || description.includes(keyword)
-                );
-            });
-        }
-
-        console.log(`🔍 Filter applied: "${query}" → ${this.filteredVideos.length} results`);
-        
-        // Update count display
-        this.updateResultsCount();
-        
-        // Emit event instead of calling videoListComponent directly
-        this.emit('videosChanged', {
-            videos: this.filteredVideos,
-            view: this.currentView
-        });
-    }
-    
     show() {
         this.container.style.display = 'block';
         this.container.style.visibility = 'visible';
@@ -271,12 +285,12 @@ export class Results extends BaseComponent {
     clearResults() {
         this.videos = [];
         this.filteredVideos = [];
+        this.filterTags = [];
         this.channelName = '';
         
-        // Clear search filter
-        const titleFilter = this.findElement('#titleFilter');
-        if (titleFilter) {
-            titleFilter.value = '';
+        // Clear tag input
+        if (this.tagInputComponent) {
+            this.tagInputComponent.clearTags();
         }
         
         // Update UI
@@ -450,5 +464,23 @@ export class Results extends BaseComponent {
     showError(message) {
         // Emit error event for parent to handle
         this.emit('error', { message });
+    }
+    
+    onDestroy() {
+        // Clean up TagInput component
+        if (this.tagInputComponent) {
+            this.tagInputComponent.destroy();
+            this.tagInputComponent = null;
+        }
+        
+        // Clear component state
+        this.videos = [];
+        this.filteredVideos = [];
+        this.filterTags = [];
+        
+        debugLog('📊 Results component destroyed');
+        
+        // Call parent cleanup
+        super.onDestroy();
     }
 } 
