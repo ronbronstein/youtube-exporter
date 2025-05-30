@@ -5,655 +5,206 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Windows XP Modern Style Guide - YouTube Research Hub</title>
     <style>
-        /* Windows XP Modern Color Palette */
         :root {
-            /* Core Windows XP Colors - Enhanced */
-            --xp-window-bg: #ece9d8;           /* Main window background */
-            --xp-window-bg-light: #f8f6f3;     /* Lighter variant - warmer */
-            --xp-window-bg-dark: #d8d1bf;      /* Darker variant - more contrast */
-            
-            /* Button Colors - Refined */
-            --xp-button-face: #ece9d8;         /* Button face */
-            --xp-button-face-hover: #f2efeb;   /* Button hover state */
-            --xp-button-shadow: #8a867a;       /* Button shadow */
-            --xp-button-highlight: #ffffff;     /* Button highlight */
-            --xp-button-dark-shadow: #716f64;   /* Button dark shadow */
-            
-            /* Text Colors - Improved Contrast */
-            --xp-text: #1a1a1a;                /* Primary text - darker for better contrast */
-            --xp-text-secondary: #4a4a4a;      /* Secondary text */
-            --xp-text-disabled: #999999;       /* Disabled text - better contrast */
-            --xp-text-selected: #ffffff;       /* Selected text */
-            
-            /* Title Bar Colors - Enhanced */
-            --xp-title-active-start: #0a246a;  /* Active title bar start */
-            --xp-title-active-mid: #4a7bc8;    /* Active title bar middle */
-            --xp-title-active-end: #a6caf0;    /* Active title bar end */
-            --xp-title-inactive: #7a96df;      /* Inactive title bar */
-            
-            /* Border Colors - Refined */
-            --xp-border-dark: #707070;         /* Dark border - better contrast */
-            --xp-border-light: #ffffff;        /* Light border */
-            --xp-border-3d-dark: #404040;      /* 3D dark border */
-            --xp-border-focus: #2c5aa0;        /* Focus border */
-            
-            /* Selection Colors - Enhanced */
-            --xp-selection-bg: #2c5aa0;        /* Selection background - deeper blue */
-            --xp-selection-bg-hover: #3d6bb1;  /* Selection hover */
-            --xp-selection-text: #ffffff;      /* Selection text */
-            
-            /* Input Colors - Improved */
-            --xp-input-bg: #ffffff;            /* Input background */
-            --xp-input-bg-hover: #fafafa;      /* Input hover background */
-            --xp-input-border: #7f9db9;        /* Input border */
-            --xp-input-border-focus: #2c5aa0;  /* Input focus border */
-            
-            /* Modern Enhancements - Vibrant Colors */
-            --xp-success: #22c55e;             /* Success green - more vibrant */
-            --xp-success-hover: #16a34a;       /* Success hover */
-            --xp-warning: #f59e0b;             /* Warning orange - warmer */
-            --xp-warning-hover: #d97706;       /* Warning hover */
-            --xp-error: #ef4444;               /* Error red - more vibrant */
-            --xp-error-hover: #dc2626;         /* Error hover */
-            --xp-info: #3b82f6;                /* Info blue - brighter */
-            --xp-info-hover: #2563eb;          /* Info hover */
-            
-            /* Typography - Modernized Sizes */
-            --xp-font-family: 'Tahoma', 'Segoe UI', 'MS Sans Serif', sans-serif;
-            --xp-font-size: 14px;              /* Increased from 11px */
-            --xp-font-size-small: 12px;        /* Increased from 10px */
-            --xp-font-size-large: 16px;        /* Increased from 12px */
-            --xp-font-size-xl: 18px;           /* New larger size */
-            --xp-font-size-heading: 20px;      /* New heading size */
-            
-            /* Modern Spacing */
-            --xp-spacing-xs: 4px;
-            --xp-spacing-sm: 8px;
-            --xp-spacing-md: 12px;
-            --xp-spacing-lg: 16px;
-            --xp-spacing-xl: 24px;
-            
-            /* Modern Border Radius */
-            --xp-border-radius: 3px;           /* Subtle rounding */
-            --xp-border-radius-lg: 6px;        /* Larger rounding */
-            
-            /* Enhanced Animation Timing */
-            --xp-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            --xp-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            --xp-transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            --xp-transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --xp-bg: #ece9d8; --xp-bg-light: #f8f6f3; --xp-bg-dark: #d8d1bf;
+            --xp-btn: #ece9d8; --xp-btn-hover: #f2efeb; --xp-btn-shadow: #8a867a;
+            --xp-text: #1a1a1a; --xp-text-secondary: #4a4a4a; --xp-text-disabled: #999; --xp-text-selected: #fff;
+            --xp-title-start: #0a246a; --xp-title-mid: #4a7bc8; --xp-title-end: #a6caf0;
+            --xp-border: #707070; --xp-border-light: #fff; --xp-border-focus: #2c5aa0;
+            --xp-selection: #2c5aa0; --xp-selection-hover: #3d6bb1;
+            --xp-input: #fff; --xp-input-hover: #fafafa; --xp-input-border: #7f9db9;
+            --xp-success: #22c55e; --xp-warning: #f59e0b; --xp-error: #ef4444; --xp-info: #3b82f6;
+            --xp-font: 'Tahoma', 'Segoe UI', sans-serif; --xp-radius: 3px; --xp-radius-lg: 6px;
+            --xp-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); --xp-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        /* Base Styles */
-        * {
-            box-sizing: border-box;
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px; font: 14px var(--xp-font); background: var(--xp-bg); color: var(--xp-text); line-height: 1.4; }
+        .style-guide { max-width: 1200px; margin: 0 auto; }
+        
+        .section { 
+            margin-bottom: 24px; padding: 16px; background: var(--xp-bg-light); 
+            border: 2px inset var(--xp-bg); border-radius: var(--xp-radius); 
+            transition: transform var(--xp-transition);
         }
+        .section:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .section h2 { 
+            margin: 0 0 16px 0; font: bold 20px var(--xp-font); color: var(--xp-title-start); 
+            border-bottom: 2px solid var(--xp-border); padding-bottom: 8px; 
+        }
+        .section h3, .section h4 { margin: 16px 0 12px 0; font-weight: bold; }
+        .section h3 { font-size: 16px; } .section h4 { font-size: 16px; color: var(--xp-title-start); }
 
-        body {
-            margin: 0;
-            padding: var(--xp-spacing-xl);
-            font-family: var(--xp-font-family);
-            font-size: var(--xp-font-size);
-            background: var(--xp-window-bg);
-            color: var(--xp-text);
-            line-height: 1.4;
-        }
-
-        .style-guide {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section {
-            margin-bottom: var(--xp-spacing-xl);
-            padding: var(--xp-spacing-lg);
-            background: var(--xp-window-bg-light);
-            border: 2px inset var(--xp-window-bg);
-            border-radius: var(--xp-border-radius);
-            transition: transform var(--xp-transition-normal);
-        }
-
-        .section:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        }
-
-        .section h2 {
-            margin: 0 0 var(--xp-spacing-lg) 0;
-            font-size: var(--xp-font-size-heading);
-            font-weight: bold;
-            color: var(--xp-title-active-start);
-            border-bottom: 2px solid var(--xp-border-dark);
-            padding-bottom: var(--xp-spacing-sm);
-        }
-
-        .section h3 {
-            margin: var(--xp-spacing-lg) 0 var(--xp-spacing-md) 0;
-            font-size: var(--xp-font-size-large);
-            font-weight: bold;
-        }
-
-        /* Color Palette Display */
-        .color-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: var(--xp-spacing-md);
-            margin-bottom: var(--xp-spacing-xl);
-        }
+        .grid { display: grid; gap: 12px; }
+        .color-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px; }
+        .component-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 
         .color-swatch {
-            display: flex;
-            align-items: center;
-            gap: var(--xp-spacing-md);
-            padding: var(--xp-spacing-md);
-            border: 1px inset var(--xp-window-bg);
-            background: var(--xp-input-bg);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
+            display: flex; align-items: center; gap: 12px; padding: 12px;
+            border: 1px inset var(--xp-bg); background: var(--xp-input); border-radius: var(--xp-radius);
+            transition: all var(--xp-transition);
         }
+        .color-swatch:hover { transform: scale(1.03) translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .color-box { width: 50px; height: 40px; border: 1px solid var(--xp-border); border-radius: var(--xp-radius); flex-shrink: 0; }
+        .color-info { font-size: 12px; } .color-name { font-weight: bold; display: block; font-size: 14px; }
+        .color-value { color: var(--xp-text-disabled); }
 
-        .color-swatch:hover {
-            transform: scale(1.03) translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .color-box {
-            width: 50px;
-            height: 40px;
-            border: 1px solid var(--xp-border-dark);
-            border-radius: var(--xp-border-radius);
-            flex-shrink: 0;
-        }
-
-        .color-info {
-            font-size: var(--xp-font-size-small);
-        }
-
-        .color-name {
-            font-weight: bold;
-            display: block;
-            font-size: var(--xp-font-size);
-        }
-
-        .color-value {
-            color: var(--xp-text-disabled);
-        }
-
-        /* Windows XP Modern Button Styles */
         .xp-button {
-            background: linear-gradient(135deg, var(--xp-button-face) 0%, var(--xp-window-bg-dark) 100%);
-            border: 1px outset var(--xp-button-face);
-            padding: var(--xp-spacing-sm) var(--xp-spacing-lg);
-            font-family: var(--xp-font-family);
-            font-size: var(--xp-font-size);
-            cursor: pointer;
-            color: var(--xp-text);
-            margin: var(--xp-spacing-xs);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(135deg, var(--xp-btn) 0%, var(--xp-bg-dark) 100%);
+            border: 1px outset var(--xp-btn); padding: 8px 16px; font: 14px var(--xp-font);
+            cursor: pointer; color: var(--xp-text); margin: 4px; border-radius: var(--xp-radius);
+            transition: all var(--xp-transition); position: relative; overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .xp-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left var(--xp-transition-normal);
+            transition: left var(--xp-transition);
         }
-
-        .xp-button::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at center, transparent 0%, rgba(255,255,255,0.1) 100%);
-            opacity: 0;
-            transition: opacity var(--xp-transition-normal);
-        }
-
         .xp-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--xp-button-face-hover) 0%, var(--xp-window-bg-dark) 100%);
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, var(--xp-btn-hover) 0%, var(--xp-bg-dark) 100%);
+            transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,0.15);
             border-color: var(--xp-border-focus);
         }
-
-        .xp-button:hover:not(:disabled)::before {
-            left: 100%;
-        }
-
-        .xp-button:hover:not(:disabled)::after {
-            opacity: 1;
-        }
-
-        .xp-button:active:not(:disabled) {
-            border: 1px inset var(--xp-button-face);
-            transform: translateY(-1px) scale(1.01);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        .xp-button:disabled {
-            color: var(--xp-text-disabled);
-            background: var(--xp-button-face);
-            border: 1px outset var(--xp-button-face);
-            cursor: default;
-            opacity: 0.6;
-            transform: none;
-            box-shadow: none;
-        }
+        .xp-button:hover:not(:disabled)::before { left: 100%; }
+        .xp-button:active:not(:disabled) { border: 1px inset var(--xp-btn); transform: translateY(-1px) scale(1.01); }
+        .xp-button:disabled { color: var(--xp-text-disabled); opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
 
         .xp-button.primary {
-            font-weight: bold;
-            border: 2px outset var(--xp-button-face);
-            padding: var(--xp-spacing-md) var(--xp-spacing-xl);
-            background: linear-gradient(135deg, var(--xp-selection-bg) 0%, var(--xp-title-active-mid) 50%, var(--xp-title-active-end) 100%);
-            color: var(--xp-text-selected);
-            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+            font-weight: bold; border: 2px outset var(--xp-btn); padding: 12px 24px;
+            background: linear-gradient(135deg, var(--xp-selection) 0%, var(--xp-title-mid) 50%, var(--xp-title-end) 100%);
+            color: var(--xp-text-selected); box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
         }
-
         .xp-button.primary:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--xp-selection-bg-hover) 0%, var(--xp-title-active-start) 50%, var(--xp-title-active-mid) 100%);
-            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.4);
-            transform: translateY(-3px) scale(1.03);
+            background: linear-gradient(135deg, var(--xp-selection-hover) 0%, var(--xp-title-start) 50%, var(--xp-title-mid) 100%);
+            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.4); transform: translateY(-3px) scale(1.03);
         }
 
-        .xp-button.large {
-            padding: var(--xp-spacing-lg) var(--xp-spacing-xl);
-            font-size: var(--xp-font-size-large);
+        .xp-button.large { padding: 16px 24px; font-size: 16px; }
+        .xp-button.success, .xp-button.warning, .xp-button.error {
+            color: white; border-width: 1px;
         }
+        .xp-button.success { background: linear-gradient(135deg, var(--xp-success) 0%, #16a34a 100%); box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+        .xp-button.warning { background: linear-gradient(135deg, var(--xp-warning) 0%, #d97706 100%); color: var(--xp-text); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .xp-button.error { background: linear-gradient(135deg, var(--xp-error) 0%, #dc2626 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
-        .xp-button.success {
-            background: linear-gradient(135deg, var(--xp-success) 0%, #16a34a 100%);
-            color: white;
-            border-color: var(--xp-success);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-        }
-
-        .xp-button.success:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--xp-success-hover) 0%, #15803d 100%);
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
-            transform: translateY(-3px) scale(1.03);
-        }
-
-        .xp-button.warning {
-            background: linear-gradient(135deg, var(--xp-warning) 0%, #d97706 100%);
-            color: var(--xp-text);
-            border-color: var(--xp-warning);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-
-        .xp-button.warning:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--xp-warning-hover) 0%, #b45309 100%);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-            transform: translateY(-3px) scale(1.03);
-        }
-
-        .xp-button.error {
-            background: linear-gradient(135deg, var(--xp-error) 0%, #dc2626 100%);
-            color: white;
-            border-color: var(--xp-error);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .xp-button.error:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--xp-error-hover) 0%, #b91c1c 100%);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-            transform: translateY(-3px) scale(1.03);
-        }
-
-        /* Windows XP Modern Input Styles */
         .xp-input {
-            border: 1px inset var(--xp-window-bg);
-            padding: var(--xp-spacing-md) var(--xp-spacing-sm);
-            font-family: var(--xp-font-family);
-            font-size: var(--xp-font-size);
-            background: var(--xp-input-bg);
-            color: var(--xp-text);
-            margin: var(--xp-spacing-xs);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px inset var(--xp-bg); padding: 12px 8px; font: 14px var(--xp-font);
+            background: var(--xp-input); color: var(--xp-text); margin: 4px; border-radius: var(--xp-radius);
+            transition: all var(--xp-transition); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
+        .xp-input:hover { background: var(--xp-input-hover); border-color: var(--xp-input-border); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(44, 90, 160, 0.1); }
+        .xp-input:focus { outline: none; border-color: var(--xp-border-focus); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 3px rgba(44, 90, 160, 0.2); }
+        .xp-input.large { padding: 16px 12px; font-size: 16px; }
 
-        .xp-input:hover {
-            background: var(--xp-input-bg-hover);
-            border-color: var(--xp-input-border);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(44, 90, 160, 0.1);
-        }
-
-        .xp-input:focus {
-            outline: none;
-            border-color: var(--xp-input-border-focus);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 3px rgba(44, 90, 160, 0.2);
-            background: var(--xp-input-bg);
-        }
-
-        .xp-input.large {
-            padding: var(--xp-spacing-lg) var(--xp-spacing-md);
-            font-size: var(--xp-font-size-large);
-        }
-
-        /* Windows XP Modern Panel Styles */
         .xp-panel {
-            background: var(--xp-window-bg);
-            border: 2px inset var(--xp-window-bg);
-            padding: var(--xp-spacing-lg);
-            margin: var(--xp-spacing-sm);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: var(--xp-bg); border: 2px inset var(--xp-bg); padding: 16px; margin: 8px;
+            border-radius: var(--xp-radius); transition: all var(--xp-transition); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        .xp-panel.raised { border: 2px outset var(--xp-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .xp-panel:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.15); transform: translateY(-1px); }
 
-        .xp-panel.raised {
-            border: 2px outset var(--xp-window-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .xp-panel:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            transform: translateY(-1px);
-        }
-
-        /* Windows XP Modern Window Frame */
         .xp-window {
-            background: var(--xp-window-bg);
-            border: 2px outset var(--xp-window-bg);
-            margin: var(--xp-spacing-md) 0;
-            border-radius: var(--xp-border-radius-lg);
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: var(--xp-bg); border: 2px outset var(--xp-bg); margin: 12px 0;
+            border-radius: var(--xp-radius-lg); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-
         .xp-title-bar {
-            background: linear-gradient(to bottom, var(--xp-title-active-start) 0%, var(--xp-title-active-end) 100%);
-            color: var(--xp-text-selected);
-            padding: var(--xp-spacing-sm) var(--xp-spacing-md);
-            font-weight: bold;
-            font-size: var(--xp-font-size);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: linear-gradient(to bottom, var(--xp-title-start) 0%, var(--xp-title-end) 100%);
+            color: var(--xp-text-selected); padding: 8px 12px; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
         }
+        .xp-window-content { padding: 16px; }
 
-        .xp-window-content {
-            padding: var(--xp-spacing-lg);
-        }
-
-        /* Windows XP Modern Group Box */
         .xp-group-box {
-            border: 1px solid var(--xp-button-shadow);
-            padding: var(--xp-spacing-xl) var(--xp-spacing-lg) var(--xp-spacing-lg) var(--xp-spacing-lg);
-            margin: var(--xp-spacing-md) 0;
-            position: relative;
-            background: var(--xp-window-bg);
-            border-radius: var(--xp-border-radius);
+            border: 1px solid var(--xp-btn-shadow); padding: 24px 16px 16px; margin: 12px 0;
+            position: relative; background: var(--xp-bg); border-radius: var(--xp-radius);
         }
-
         .xp-group-box legend {
-            background: var(--xp-window-bg);
-            padding: 0 var(--xp-spacing-sm);
-            font-weight: bold;
-            font-size: var(--xp-font-size);
-            position: absolute;
-            top: -8px;
-            left: var(--xp-spacing-md);
+            background: var(--xp-bg); padding: 0 8px; font-weight: bold;
+            position: absolute; top: -8px; left: 12px;
         }
 
-        /* Windows XP Modern Table */
         .xp-table {
-            border-collapse: collapse;
-            background: var(--xp-input-bg);
-            border: 1px inset var(--xp-window-bg);
-            width: 100%;
-            border-radius: var(--xp-border-radius);
-            overflow: hidden;
+            border-collapse: collapse; background: var(--xp-input); border: 1px inset var(--xp-bg);
+            width: 100%; border-radius: var(--xp-radius); overflow: hidden;
         }
-
-        .xp-table th,
-        .xp-table td {
-            border: 1px solid #c0c0c0;
-            padding: var(--xp-spacing-md) var(--xp-spacing-sm);
-            font-size: var(--xp-font-size);
-            text-align: left;
-        }
-
-        .xp-table th {
-            background: var(--xp-window-bg);
-            font-weight: bold;
-            font-size: var(--xp-font-size-large);
-        }
-
-        .xp-table tr:nth-child(even) {
-            background: #f8f8f8;
-        }
-
-        .xp-table tr:hover {
-            background: var(--xp-window-bg-light);
-            transition: background var(--xp-transition-fast);
-            transform: scale(1.01);
-        }
-
-        /* Component Examples Grid */
-        .component-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: var(--xp-spacing-lg);
-        }
+        .xp-table th, .xp-table td { border: 1px solid #c0c0c0; padding: 12px 8px; text-align: left; }
+        .xp-table th { background: var(--xp-bg); font-weight: bold; font-size: 16px; }
+        .xp-table tr:nth-child(even) { background: #f8f8f8; }
+        .xp-table tr:hover { background: var(--xp-bg-light); transition: all 0.15s; transform: scale(1.01); }
 
         .component-example {
-            padding: var(--xp-spacing-lg);
-            border: 1px inset var(--xp-window-bg);
-            background: var(--xp-input-bg);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
+            padding: 16px; border: 1px inset var(--xp-bg); background: var(--xp-input);
+            border-radius: var(--xp-radius); transition: all var(--xp-transition);
         }
+        .component-example:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
 
-        .component-example:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .component-example h4 {
-            margin: 0 0 var(--xp-spacing-md) 0;
-            font-size: var(--xp-font-size-large);
-            font-weight: bold;
-            color: var(--xp-title-active-start);
-        }
-
-        /* Typography Examples */
         .typography-example {
-            margin: var(--xp-spacing-md) 0;
-            padding: var(--xp-spacing-md);
-            border: 1px solid #e0e0e0;
-            background: var(--xp-input-bg);
-            border-radius: var(--xp-border-radius);
-            transition: all var(--xp-transition-normal);
+            margin: 12px 0; padding: 12px; border: 1px solid #e0e0e0; background: var(--xp-input);
+            border-radius: var(--xp-radius); transition: all var(--xp-transition);
         }
+        .typography-example:hover { border-color: var(--xp-selection); background: var(--xp-input-hover); transform: translateX(4px); }
 
-        .typography-example:hover {
-            border-color: var(--xp-selection-bg);
-            background: var(--xp-input-bg-hover);
-            transform: translateX(4px);
-        }
+        .font-12px { font-size: 12px; } .font-14px { font-size: 14px; } .font-16px { font-size: 16px; }
+        .font-18px { font-size: 18px; } .font-20px { font-size: 20px; }
 
-        .font-12px { font-size: 12px; }
-        .font-14px { font-size: 14px; }
-        .font-16px { font-size: 16px; }
-        .font-18px { font-size: 18px; }
-        .font-20px { font-size: 20px; }
-
-        /* Interactive Demo */
         .interactive-demo {
-            padding: var(--xp-spacing-xl);
-            background: var(--xp-window-bg-light);
-            border: 2px inset var(--xp-window-bg);
-            margin-top: var(--xp-spacing-xl);
-            border-radius: var(--xp-border-radius-lg);
+            padding: 24px; background: var(--xp-bg-light); border: 2px inset var(--xp-bg);
+            margin-top: 24px; border-radius: var(--xp-radius-lg);
         }
-
-        .demo-controls {
-            display: flex;
-            gap: var(--xp-spacing-md);
-            margin-bottom: var(--xp-spacing-lg);
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
+        .demo-controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .demo-output {
-            padding: var(--xp-spacing-lg);
-            background: var(--xp-input-bg);
-            border: 1px inset var(--xp-window-bg);
-            min-height: 120px;
-            border-radius: var(--xp-border-radius);
-            font-family: 'Courier New', monospace;
-            font-size: var(--xp-font-size-small);
+            padding: 16px; background: var(--xp-input); border: 1px inset var(--xp-bg);
+            min-height: 120px; border-radius: var(--xp-radius); font: 12px 'Courier New', monospace;
         }
 
-        /* Progress Bar */
         .xp-progress {
-            width: 100%;
-            height: 24px;
-            background: var(--xp-input-bg);
-            border: 1px inset var(--xp-window-bg);
-            border-radius: var(--xp-border-radius);
-            overflow: hidden;
-            margin: var(--xp-spacing-md) 0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%; height: 24px; background: var(--xp-input); border: 1px inset var(--xp-bg);
+            border-radius: var(--xp-radius); overflow: hidden; margin: 12px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .xp-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--xp-selection-bg), var(--xp-title-active-mid), var(--xp-title-active-end));
-            width: 0%;
-            transition: width var(--xp-transition-slow);
-            position: relative;
-            box-shadow: 0 0 10px rgba(44, 90, 160, 0.5);
+            height: 100%; background: linear-gradient(90deg, var(--xp-selection), var(--xp-title-mid), var(--xp-title-end));
+            width: 0%; transition: width 0.35s; position: relative; box-shadow: 0 0 10px rgba(44, 90, 160, 0.5);
         }
-
         .xp-progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            content: ''; position: absolute; inset: 0;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
             animation: shimmer 2s infinite;
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            top: var(--xp-spacing-xl);
-            right: var(--xp-spacing-xl);
-            z-index: 1000;
-        }
-
+        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 1000; }
         .toast {
-            background: linear-gradient(135deg, var(--xp-window-bg) 0%, var(--xp-window-bg-light) 100%);
-            border: 2px outset var(--xp-window-bg);
-            border-radius: var(--xp-border-radius);
-            padding: var(--xp-spacing-md) var(--xp-spacing-lg);
-            margin-bottom: var(--xp-spacing-sm);
-            min-width: 300px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            transform: translateX(100%);
-            transition: transform var(--xp-transition-bounce);
+            background: linear-gradient(135deg, var(--xp-bg) 0%, var(--xp-bg-light) 100%);
+            border: 2px outset var(--xp-bg); border-radius: var(--xp-radius); padding: 12px 16px;
+            margin-bottom: 8px; min-width: 300px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transform: translateX(100%); transition: transform var(--xp-bounce);
         }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid var(--xp-success); box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2); }
+        .toast.error { border-left: 4px solid var(--xp-error); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2); }
+        .toast.warning { border-left: 4px solid var(--xp-warning); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2); }
+        .toast.info { border-left: 4px solid var(--xp-info); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2); }
 
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.success {
-            border-left: 4px solid var(--xp-success);
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
-        }
-
-        .toast.error {
-            border-left: 4px solid var(--xp-error);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
-        }
-
-        .toast.warning {
-            border-left: 4px solid var(--xp-warning);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
-        }
-
-        .toast.info {
-            border-left: 4px solid var(--xp-info);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-        }
-
-        /* Loading Spinner */
         .xp-spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--xp-window-bg-dark);
-            border-top: 2px solid var(--xp-selection-bg);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: var(--xp-spacing-sm);
+            width: 20px; height: 20px; border: 2px solid var(--xp-bg-dark); border-top: 2px solid var(--xp-selection);
+            border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; margin-right: 8px;
             box-shadow: 0 0 10px rgba(44, 90, 160, 0.3);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .hover-glow:hover { box-shadow: 0 0 20px rgba(44, 90, 160, 0.4); }
+        .hover-lift:hover { transform: translateY(-4px) scale(1.02); transition: all var(--xp-bounce); }
+        .hover-pulse { animation: pulse 2s infinite; }
 
-        /* Enhanced Hover Effects */
-        .hover-glow:hover {
-            box-shadow: 0 0 20px rgba(44, 90, 160, 0.4);
-        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        @keyframes ripple { to { transform: scale(2); opacity: 0; } }
 
-        .hover-lift:hover {
-            transform: translateY(-4px) scale(1.02);
-            transition: all var(--xp-transition-bounce);
-        }
-
-        .hover-pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
-            body {
-                padding: var(--xp-spacing-md);
-            }
-            
-            .component-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .demo-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .xp-button, .xp-input {
-                width: 100%;
-                margin: var(--xp-spacing-xs) 0;
-            }
+            body { padding: 12px; }
+            .component-grid { grid-template-columns: 1fr; }
+            .demo-controls { flex-direction: column; align-items: stretch; }
+            .xp-button, .xp-input { width: 100%; margin: 4px 0; }
         }
     </style>
 </head>
@@ -671,110 +222,19 @@
             </div>
         </div>
 
-        <!-- Color Palette Section -->
         <div class="section">
             <h2>🎨 Windows XP Modern Color Palette</h2>
-            <div class="color-grid">
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #ece9d8;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Window Background</span>
-                        <span class="color-value">#ece9d8</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #f6f4f1;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Light Background</span>
-                        <span class="color-value">#f6f4f1</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #ddd6c4;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Dark Background</span>
-                        <span class="color-value">#ddd6c4</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: linear-gradient(to bottom, #0a246a 0%, #a6caf0 100%);"></div>
-                    <div class="color-info">
-                        <span class="color-name">Title Bar Gradient</span>
-                        <span class="color-value">#0a246a → #a6caf0</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #22c55e;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Success Green</span>
-                        <span class="color-value">#22c55e</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #f59e0b;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Warning Orange</span>
-                        <span class="color-value">#f59e0b</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #ef4444;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Error Red</span>
-                        <span class="color-value">#ef4444</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #3b82f6;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Info Blue</span>
-                        <span class="color-value">#3b82f6</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: #2c5aa0;"></div>
-                    <div class="color-info">
-                        <span class="color-name">Selection Blue</span>
-                        <span class="color-value">#2c5aa0</span>
-                    </div>
-                </div>
-                <div class="color-swatch">
-                    <div class="color-box" style="background: linear-gradient(135deg, #f2efeb 0%, #d8d1bf 100%);"></div>
-                    <div class="color-info">
-                        <span class="color-name">Button Gradient</span>
-                        <span class="color-value">Enhanced Hover</span>
-                    </div>
-                </div>
-            </div>
+            <div class="color-grid grid" id="colorGrid"></div>
         </div>
 
-        <!-- Typography Section -->
         <div class="section">
             <h2>📝 Modern Typography</h2>
-            <div class="typography-example">
-                <div class="font-20px"><strong>Heading Text (20px, Bold)</strong> - Used for main section headers</div>
-            </div>
-            <div class="typography-example">
-                <div class="font-18px"><strong>Large Text (18px, Bold)</strong> - Used for subsection headers</div>
-            </div>
-            <div class="typography-example">
-                <div class="font-16px"><strong>Important Text (16px, Bold)</strong> - Used for important labels</div>
-            </div>
-            <div class="typography-example">
-                <div class="font-14px">Normal Text (14px) - Default body text and UI elements</div>
-            </div>
-            <div class="typography-example">
-                <div class="font-12px">Small Text (12px) - Used for help text and details</div>
-            </div>
-            <div class="typography-example">
-                <div class="font-14px" style="color: var(--xp-text-disabled);">Disabled Text (14px, Gray) - Used for inactive elements</div>
-            </div>
+            <div id="typographyExamples"></div>
         </div>
 
-        <!-- Button Components -->
         <div class="section">
             <h2>🔘 Modern Button Components</h2>
-            <div class="component-grid">
+            <div class="component-grid grid">
                 <div class="component-example">
                     <h4>Standard Buttons</h4>
                     <button class="xp-button">Normal Button</button>
@@ -795,10 +255,9 @@
             </div>
         </div>
 
-        <!-- Enhanced Hover Effects Demo -->
         <div class="section">
             <h2>✨ Enhanced Hover Effects</h2>
-            <div class="component-grid">
+            <div class="component-grid grid">
                 <div class="component-example">
                     <h4>Lift & Scale Effects</h4>
                     <button class="xp-button hover-lift">Hover Lift Effect</button>
@@ -819,10 +278,9 @@
             </div>
         </div>
 
-        <!-- Input Components -->
         <div class="section">
             <h2>📝 Modern Input Components</h2>
-            <div class="component-grid">
+            <div class="component-grid grid">
                 <div class="component-example">
                     <h4>Text Inputs</h4>
                     <input type="text" class="xp-input" placeholder="Normal input" style="width: 200px;">
@@ -837,10 +295,9 @@
             </div>
         </div>
 
-        <!-- Progress & Loading -->
         <div class="section">
             <h2>⏳ Progress & Loading Components</h2>
-            <div class="component-grid">
+            <div class="component-grid grid">
                 <div class="component-example">
                     <h4>Progress Bar</h4>
                     <div class="xp-progress">
@@ -863,10 +320,9 @@
             </div>
         </div>
 
-        <!-- Panel Components -->
         <div class="section">
             <h2>📋 Modern Panel Components</h2>
-            <div class="component-grid">
+            <div class="component-grid grid">
                 <div class="component-example">
                     <h4>Inset Panel</h4>
                     <div class="xp-panel">
@@ -893,42 +349,20 @@
             </div>
         </div>
 
-        <!-- Table Component -->
         <div class="section">
             <h2>📊 Modern Table Component</h2>
             <table class="xp-table">
                 <thead>
-                    <tr>
-                        <th>Video Title</th>
-                        <th>Views</th>
-                        <th>Date</th>
-                        <th>Duration</th>
-                    </tr>
+                    <tr><th>Video Title</th><th>Views</th><th>Date</th><th>Duration</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Sample Video Title</td>
-                        <td>1,234,567</td>
-                        <td>2024-01-15</td>
-                        <td>10:23</td>
-                    </tr>
-                    <tr>
-                        <td>Another Video Example</td>
-                        <td>987,654</td>
-                        <td>2024-01-10</td>
-                        <td>15:45</td>
-                    </tr>
-                    <tr>
-                        <td>Third Video Sample</td>
-                        <td>456,789</td>
-                        <td>2024-01-05</td>
-                        <td>8:12</td>
-                    </tr>
+                    <tr><td>Sample Video Title</td><td>1,234,567</td><td>2024-01-15</td><td>10:23</td></tr>
+                    <tr><td>Another Video Example</td><td>987,654</td><td>2024-01-10</td><td>15:45</td></tr>
+                    <tr><td>Third Video Sample</td><td>456,789</td><td>2024-01-05</td><td>8:12</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Interactive Demo -->
         <div class="interactive-demo">
             <h2>🎮 Enhanced Interactive Demo</h2>
             <p>Test the modernized Windows XP components with animations and notifications:</p>
@@ -950,34 +384,87 @@
     </div>
 
     <script>
-        // Enhanced interactive demo functionality
-        function addMessage(message, type = 'info') {
+        // Generate color palette and typography examples
+        const colors = [
+            ['Window Background', '#ece9d8'], ['Light Background', '#f8f6f3'], ['Dark Background', '#d8d1bf'],
+            ['Title Bar Gradient', 'linear-gradient(to bottom, #0a246a 0%, #a6caf0 100%)'], ['Success Green', '#22c55e'],
+            ['Warning Orange', '#f59e0b'], ['Error Red', '#ef4444'], ['Info Blue', '#3b82f6'],
+            ['Selection Blue', '#2c5aa0'], ['Button Gradient', 'linear-gradient(135deg, #f2efeb 0%, #d8d1bf 100%)']
+        ];
+
+        const typography = [
+            ['Heading Text (20px, Bold)', '20px', 'bold', 'Used for main section headers'],
+            ['Large Text (18px, Bold)', '18px', 'bold', 'Used for subsection headers'],
+            ['Important Text (16px, Bold)', '16px', 'bold', 'Used for important labels'],
+            ['Normal Text (14px)', '14px', 'normal', 'Default body text and UI elements'],
+            ['Small Text (12px)', '12px', 'normal', 'Used for help text and details'],
+            ['Disabled Text (14px, Gray)', '14px', 'normal', 'Used for inactive elements', 'var(--xp-text-disabled)']
+        ];
+
+        // Initialize page content
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate color swatches
+            const colorGrid = document.getElementById('colorGrid');
+            colors.forEach(([name, value]) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.innerHTML = `
+                    <div class="color-box" style="background: ${value};"></div>
+                    <div class="color-info">
+                        <span class="color-name">${name}</span>
+                        <span class="color-value">${value.startsWith('linear-gradient') ? 'Enhanced Hover' : value}</span>
+                    </div>
+                `;
+                colorGrid.appendChild(swatch);
+            });
+
+            // Generate typography examples
+            const typographyContainer = document.getElementById('typographyExamples');
+            typography.forEach(([text, size, weight, desc, color]) => {
+                const example = document.createElement('div');
+                example.className = 'typography-example';
+                const style = `font-size: ${size}; font-weight: ${weight}; ${color ? `color: ${color};` : ''}`;
+                example.innerHTML = `<div style="${style}">${text}</div>`;
+                if (desc) example.innerHTML += `<small style="color: var(--xp-text-secondary); display: block; margin-top: 4px;">${desc}</small>`;
+                typographyContainer.appendChild(example);
+            });
+
+            // Add ripple effect to buttons
+            document.querySelectorAll('.xp-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (this.disabled) return;
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute; width: ${size}px; height: ${size}px;
+                        left: ${x}px; top: ${y}px; background: rgba(255,255,255,0.3);
+                        border-radius: 50%; transform: scale(0); pointer-events: none;
+                        animation: ripple 0.6s ease-out;
+                    `;
+                    
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        });
+
+        // Utility functions
+        const addMessage = (message, type = 'info') => {
             const output = document.getElementById('demo-output');
             const p = document.createElement('p');
+            const colors = { info: 'var(--xp-title-start)', success: 'var(--xp-success)', error: 'var(--xp-error)', warning: 'var(--xp-warning)' };
+            
             p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            
-            const colors = {
-                info: 'var(--xp-title-active-start)',
-                success: 'var(--xp-success)',
-                error: 'var(--xp-error)',
-                warning: 'var(--xp-warning)'
-            };
-            
-            p.style.color = colors[type] || colors.info;
-            p.style.opacity = '0';
-            p.style.transform = 'translateY(10px)';
-            p.style.transition = 'all 0.3s ease';
-            
+            p.style.cssText = `color: ${colors[type]}; opacity: 0; transform: translateY(10px); transition: all 0.3s ease;`;
             output.appendChild(p);
-            
-            // Animate in
-            setTimeout(() => {
-                p.style.opacity = '1';
-                p.style.transform = 'translateY(0)';
-            }, 10);
-        }
+            setTimeout(() => p.style.cssText += 'opacity: 1; transform: translateY(0);', 10);
+        };
 
-        function processInput() {
+        const processInput = () => {
             const input = document.getElementById('demo-text');
             const value = input.value.trim();
             if (value) {
@@ -988,10 +475,9 @@
                 addMessage('No input provided!', 'error');
                 showToast('error', 'Please enter some text first!');
             }
-        }
+        };
 
-        // Toast notification system
-        function showToast(type, message) {
+        const showToast = (type, message) => {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1003,19 +489,14 @@
             `;
             
             container.appendChild(toast);
-            
-            // Show toast
             setTimeout(() => toast.classList.add('show'), 10);
-            
-            // Hide and remove toast
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => container.removeChild(toast), 300);
             }, 3000);
-        }
+        };
 
-        // Progress bar animation
-        function animateProgress() {
+        const animateProgress = () => {
             const progressBar = document.getElementById('progressBar');
             let width = 0;
             const interval = setInterval(() => {
@@ -1023,15 +504,12 @@
                 progressBar.style.width = width + '%';
                 if (width >= 100) {
                     clearInterval(interval);
-                    setTimeout(() => {
-                        progressBar.style.width = '0%';
-                    }, 500);
+                    setTimeout(() => progressBar.style.width = '0%', 500);
                 }
             }, 50);
-        }
+        };
 
-        // Loading button toggle
-        function toggleSpinner(button) {
+        const toggleSpinner = (button) => {
             const spinner = button.querySelector('.xp-spinner');
             const text = button.querySelector('.btn-text');
             
@@ -1047,50 +525,7 @@
                     showToast('success', 'Loading completed!');
                 }, 2000);
             }
-        }
-
-        // Enhanced hover effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add ripple effect to buttons
-            const buttons = document.querySelectorAll('.xp-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        left: ${x}px;
-                        top: ${y}px;
-                        background: rgba(255,255,255,0.3);
-                        border-radius: 50%;
-                        transform: scale(0);
-                        animation: ripple 0.6s ease-out;
-                        pointer-events: none;
-                    `;
-                    
-                    this.appendChild(ripple);
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
-        });
-
-        // Add ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(2);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        };
     </script>
 </body>
-</html> 
+</html>
