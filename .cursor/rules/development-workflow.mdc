@@ -3,93 +3,38 @@ description: Development Workflow & Best Practices
 globs: 
 alwaysApply: false
 ---
-# Development Workflow & Best Practices
+# Development Workflow
 
-## Development Environment Setup
-
-### Prerequisites
-- Node.js 18.0.0+ (specified in [package.json](mdc:package.json))
-- NPM 9.0.0+
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Git for version control
-
-### Local Development
-1. **Install Dependencies**: `npm install`
-2. **Start Dev Server**: `npm run dev` (uses Vite)
-3. **Open Browser**: Navigate to `http://localhost:5173`
-4. **Hot Reload**: Changes auto-refresh in browser
-
-### Environment Configuration
-- **API Keys**: Store in `.env` file (never commit)
-- **Local Storage**: Development data persists in browser
-- **CORS**: Handled by Vite dev server proxy
-
-## Build & Testing Workflow
-
-### Development Commands
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production (outputs to `dist/`)
-- `npm run preview` - Preview production build locally
-- `npm run test:browser` - Run browser-based integration tests
-- `npm run clean` - Clean build artifacts and cache
-
-### Testing Strategy
-- **Integration Tests**: [src/js/integration-test.js](mdc:src/js/integration-test.js)
-- **Manual Testing**: Use preview mode with real API
-- **Cross-Browser**: Test in Chrome, Firefox, Safari, Edge
-- **API Testing**: Validate with different YouTube channels
-
-### Quality Assurance
-- **Security Audit**: `npm run security-audit`
-- **Code Validation**: `npm run validate` (build + preview)
-- **Performance**: Monitor bundle size and load times
-- **Accessibility**: Test with screen readers and keyboard navigation
+## Current Sprint: Phase 1 Critical Bugs
+- **YRH-1**: Video Filtering System (13 pts) 
+- **YRH-2**: Cache System Debugging (8 pts)
+- **YRH-3**: State Management Issues (8 pts)
 
 ## Git Workflow
+```bash
+# Branch naming: feature/YRH-{number}-{description}
+git checkout -b feature/YRH-1-video-filtering-system
 
-### Branch Strategy
-- **main**: Production-ready code (auto-deploys to GitHub Pages)
-- **develop**: Integration branch for features
-- **feature/***: Individual feature development
-- **hotfix/***: Critical production fixes
+# Commit format: YRH-{number}: type(scope): description
+git commit -m "YRH-1: fix(filtering): implement AND/OR logic for keywords"
 
-### Commit Conventions
-Use descriptive commit messages:
-```
-feat: add viral content detection algorithm
-fix: resolve API quota exceeded error handling
-docs: update user guide with new features
-style: improve Windows XP button hover effects
-refactor: modularize YouTube API service
-test: add integration tests for channel analysis
+# Always reference Jira issue in commits
 ```
 
-## Deployment Process
+## Development Process
+1. **Start**: Move Jira issue to "In Progress"
+2. **Code**: Create feature branch, implement, test locally
+3. **Review**: Create PR, move issue to "Code Review"
+4. **Deploy**: Merge PR, move to "Testing", verify, mark "Done"
 
-### Automated Deployment
-- **Trigger**: Push to `main` branch
-- **Platform**: GitHub Pages via GitHub Actions
-- **Build**: Vite production build
-- **URL**: https://ronbronstein.github.io/youtube-exporter/
+## Testing Checklist
+- [ ] Core functionality works in both Demo and Live modes
+- [ ] Windows XP theme consistency maintained
+- [ ] Mobile responsive design verified
+- [ ] No console errors
+- [ ] API integration functional
 
-### Manual Deployment Steps
-1. `npm run build` - Create production build
-2. Verify `dist/` folder contents
-3. Push to `main` branch
-4. GitHub Actions handles deployment
-5. Verify live site functionality
-
-## Documentation Maintenance
-
-### Documentation Updates
-Always update relevant docs when making changes:
-- **[README.md](mdc:README.md)**: User-facing changes
-- **[docs/USER_GUIDE.md](mdc:docs/USER_GUIDE.md)**: Feature additions
-- **[docs/API_REFERENCE.md](mdc:docs/API_REFERENCE.md)**: API changes
-- **[docs/TROUBLESHOOTING.md](mdc:docs/TROUBLESHOOTING.md)**: New issues/solutions
-
-### Code Documentation
-- **Inline Comments**: Explain complex logic and API interactions
-- **Function Documentation**: JSDoc comments for public functions
-- **Component Documentation**: Purpose and usage of UI components
-- **Configuration Documentation**: Explain settings in [src/js/config.js](mdc:src/js/config.js)
+## Key Files
+- [src/js/components/App.js](mdc:src/js/components/App.js) - Main application logic
+- [src/js/services/storage.js](mdc:src/js/services/storage.js) - Cache and state management
+- [src/styles/main.css](mdc:src/styles/main.css) - Windows XP styling

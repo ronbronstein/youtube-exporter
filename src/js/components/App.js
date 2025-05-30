@@ -505,13 +505,13 @@ export class App extends BaseComponent {
         
         return `
             <div class="api-section ${hasValidApiKey ? 'validated' : ''}" id="apiSection">
-                <div class="api-key-section-minimal">
+            <div class="api-key-section-minimal">
                     <h3>🔑 YouTube Data API Configuration</h3>
                     <div class="api-key-group">
                         <div class="input-with-toggle">
-                            <input 
-                                type="password" 
-                                id="apiKeyInput" 
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
                                 class="xp-input api-key-input" 
                                 placeholder="Enter your YouTube Data API v3 key for unlimited analysis..."
                                 autocomplete="new-password"
@@ -519,10 +519,10 @@ export class App extends BaseComponent {
                             />
                             <button type="button" class="xp-button toggle-visibility-btn" id="toggleApiKeyVisibility" title="Show/Hide API Key">
                                 👁️
-                            </button>
-                        </div>
+                    </button>
+                </div>
                         <button class="xp-button success" id="validateBtn" disabled>🔑 Validate Key</button>
-                    </div>
+                </div>
                     <div class="api-help">
                         <details>
                             <summary>Need an API key? Click here for instructions</summary>
@@ -540,8 +540,8 @@ export class App extends BaseComponent {
                         <div class="demo-option">
                             <button class="xp-button demo" id="demoBtn">🎬 Try with sample channel first</button>
                             <p class="demo-description">Skip API setup and try with @OutdoorBoys sample data</p>
-                        </div>
-                    ` : ''}
+                    </div>
+                ` : ''}
                 </div>
             </div>
         `;
@@ -1308,6 +1308,27 @@ export class App extends BaseComponent {
             // Fresh fetch from API
             debugLog('🌐 Fetching fresh data from YouTube API...');
             
+            // TEMPORARY TEST: Add test options for date/count filtering
+            const testOptions = {
+                // Test different scenarios by uncommenting one of these:
+                
+                // TEST 1: Count limit only
+                // maxVideos: 200,
+                
+                // TEST 2: Date range only (last 6 months)
+                // publishedAfter: '2024-07-01T00:00:00Z',
+                
+                // TEST 3: Hybrid approach (500 videos from last year)
+                maxVideos: 500,
+                publishedAfter: '2024-01-01T00:00:00Z',
+                
+                // TEST 4: Everything from 2023
+                // publishedAfter: '2023-01-01T00:00:00Z',
+                // publishedBefore: '2024-01-01T00:00:00Z'
+            };
+            
+            debugLog('🧪 TEST MODE: Using test options:', testOptions);
+            
             // Get all videos with detailed progress like legacy version
             this.setLoadingState(true, 'Fetching video library...');
             const videos = await this.services.youtube.getAllChannelVideos(
@@ -1315,7 +1336,8 @@ export class App extends BaseComponent {
                 (progressMessage) => {
                     // Use the detailed progress messages from the API service
                     this.setLoadingState(true, progressMessage);
-                }
+                },
+                testOptions // TEMPORARY: Pass test options
             );
             
             // Process video details with progress
@@ -1437,53 +1459,53 @@ export class App extends BaseComponent {
         // Create the analytics HTML
         analyticsSection.innerHTML = `
             <div class="analysis-panel" data-title="Analytics">
-                <h3>📊 Analytics for ${channelTitle}</h3>
-                
+            <h3>📊 Analytics for ${channelTitle}</h3>
+            
                 <div class="analysis-grid">
                     <div class="analysis-stat">
                         <h4>${analytics.overview.totalVideos.toLocaleString()}</h4>
                         <p>Total Videos</p>
-                    </div>
+                        </div>
                     <div class="analysis-stat">
                         <h4>${analytics.overview.totalViews.toLocaleString()}</h4>
                         <p>Total Views</p>
-                    </div>
+                        </div>
                     <div class="analysis-stat">
                         <h4>${analytics.overview.averageViews.toLocaleString()}</h4>
                         <p>Average Views</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <div class="analysis-panel" data-title="Top Performing">
                 <h3>⭐ Top Performing Videos</h3>
                 <div class="analysis-grid">
-                    ${analytics.topVideos.byViews.slice(0, 3).map(video => `
+                        ${analytics.topVideos.byViews.slice(0, 3).map(video => `
                         <div class="analysis-stat">
                             <h4>${(video.viewCount || 0).toLocaleString()}</h4>
                             <p>${video.title || 'Untitled'}</p>
-                        </div>
-                    `).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
-            </div>
 
             <div class="chart-panel">
                 <h3>📅 Upload Timeline</h3>
                 <div class="chart-container">
                     <canvas id="uploadChart" width="600" height="300"></canvas>
                 </div>
-            </div>
+                </div>
 
             <div class="analysis-panel" data-title="Advanced">
                 <h3>🏷️ Content Insights</h3>
                 <div style="display: flex; flex-direction: column; gap: var(--xp-spacing-sm);">
-                    ${analytics.insights.map(insight => `
+                        ${analytics.insights.map(insight => `
                         <div style="background: white; padding: var(--xp-spacing-md); border-radius: var(--xp-border-radius); border: 1px solid var(--xp-border-light);">
                             <span style="margin-right: var(--xp-spacing-sm);">${insight.type === 'warning' ? '⚠️' : 
                                                               insight.type === 'success' ? '✅' : 'ℹ️'}</span>
                             <span>${insight.message}</span>
-                        </div>
-                    `).join('')}
+                            </div>
+                        `).join('')}
                 </div>
             </div>
         `;

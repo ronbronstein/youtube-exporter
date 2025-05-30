@@ -172,17 +172,25 @@ export class YouTubeApiService {
      * Get ALL videos from uploads playlist (comprehensive channel analysis)
      * @param {string} uploadsPlaylistId - Channel's uploads playlist ID
      * @param {function} progressCallback - Callback for progress updates
+     * @param {object} testOptions - TEMPORARY: Test options for date/count filtering
      * @returns {Promise<Array>} Array of video objects
      */
-    async getAllChannelVideos(uploadsPlaylistId, progressCallback = null) {
+    async getAllChannelVideos(uploadsPlaylistId, progressCallback = null, testOptions = {}) {
         let allVideos = [];
         let nextPageToken = null;
         let pageCount = 0;
         
+        // TEMPORARY TEST: Add date filtering and count limits
+        const {
+            maxVideos = null,        // e.g., 500
+            publishedAfter = null,   // e.g., '2023-01-01T00:00:00Z'
+            publishedBefore = null   // e.g., '2024-01-01T00:00:00Z'
+        } = testOptions;
+        
         // Demo mode: limit to 100 recent videos (2 pages of 50)
         const maxResults = this.isDemoMode ? 50 : CONFIG.API.BATCH_SIZE;
         const maxPages = this.isDemoMode ? 2 : 100; // Demo: 2 pages = 100 videos max
-        const videoLimit = this.isDemoMode ? 100 : Infinity;
+        const videoLimit = this.isDemoMode ? 100 : (maxVideos || Infinity);
         let videosCollected = 0;
         
         debugLog(`🎬 Starting getAllChannelVideos with demo mode state:`, {
@@ -190,7 +198,8 @@ export class YouTubeApiService {
             maxResults: maxResults,
             maxPages: maxPages,
             videoLimit: videoLimit,
-            uploadsPlaylistId: uploadsPlaylistId
+            uploadsPlaylistId: uploadsPlaylistId,
+            testOptions: testOptions // TEMPORARY: Log test options
         });
         
         do {
@@ -200,10 +209,19 @@ export class YouTubeApiService {
                 playlistUrl += `&pageToken=${nextPageToken}`;
             }
             
+            // TEMPORARY TEST: Add date filtering to API call
+            if (publishedAfter) {
+                playlistUrl += `&publishedAfter=${publishedAfter}`;
+            }
+            if (publishedBefore) {
+                playlistUrl += `&publishedBefore=${publishedBefore}`;
+            }
+            
             debugLog(`Fetching uploads page ${pageCount + 1}${this.isDemoMode ? ' (demo mode)' : ''}`, { 
                 url: playlistUrl.replace(this.apiKey, 'HIDDEN'),
                 maxResults,
-                maxPages: this.isDemoMode ? maxPages : 'unlimited'
+                maxPages: this.isDemoMode ? maxPages : 'unlimited',
+                testFilters: { publishedAfter, publishedBefore, maxVideos } // TEMPORARY: Log test filters
             });
             
             const apiCall = async () => {
@@ -224,43 +242,80 @@ export class YouTubeApiService {
             
             if (data.items && data.items.length > 0) {
                 // Convert playlist items to search-like format
-                const videos = data.items.map(item => ({
+                let videos = data.items.map(item => ({
                     id: { videoId: item.snippet.resourceId.videoId },
                     snippet: item.snippet
                 }));
                 
-                // Apply demo mode video limit
-                const videosToAdd = this.isDemoMode ? 
-                    videos.slice(0, Math.max(0, videoLimit - videosCollected)) : 
-                    videos;
+                // TEMPORARY TEST: Client-side date filtering (in case API doesn't support it)
+                if (publishedAfter || publishedBefore) {
+                    videos = videos.filter(video => {
+                        const publishDate = new Date(video.snippet.publishedAt);
+                        let withinRange = true;
+                        
+                        if (publishedAfter) {
+                            withinRange = withinRange && publishDate >= new Date(publishedAfter);
+                        }
+                        if (publishedBefore) {
+                            withinRange = withinRange && publishDate <= new Date(publishedBefore);
+                        }
+                        
+                        return withinRange;
+                    });
+                    
+                    debugLog(`📅 Date filtering applied:`, {
+                        originalCount: data.items.length,
+                        filteredCount: videos.length,
+                        publishedAfter,
+                        publishedBefore
+                    });
+                    
+                    // Early termination: if all videos on this page were filtered out,
+                    // we've likely hit videos older than our date filter
+                    if (videos.length === 0 && data.items.length > 0) {
+                        debugLog('📅 All videos on this page filtered out - reached date boundary, stopping early');
+                        break;
+                    }
+                }
                 
-                debugLog(`📊 Demo mode video limiting:`, {
+                // Apply demo mode video limit OR test maxVideos limit
+                const effectiveLimit = this.isDemoMode ? 100 : (maxVideos || Infinity);
+                const videosToAdd = videos.slice(0, Math.max(0, effectiveLimit - videosCollected));
+                
+                debugLog(`📊 Video limiting (TEST MODE):`, {
                     isDemoMode: this.isDemoMode,
+                    testMaxVideos: maxVideos,
+                    effectiveLimit: effectiveLimit,
                     videosFromAPI: videos.length,
                     videosCollected: videosCollected,
-                    videoLimit: videoLimit,
-                    remainingSlots: videoLimit - videosCollected,
+                    remainingSlots: effectiveLimit - videosCollected,
                     videosToAdd: videosToAdd.length,
-                    willReachLimit: (videosCollected + videosToAdd.length) >= videoLimit
+                    willReachLimit: (videosCollected + videosToAdd.length) >= effectiveLimit
                 });
                     
                 allVideos = allVideos.concat(videosToAdd);
                 videosCollected += videosToAdd.length;
                 
-                debugLog(`Fetched ${data.items.length} videos, added ${videosToAdd.length}, total: ${allVideos.length}`);
+                debugLog(`Fetched ${data.items.length} videos, filtered to ${videos.length}, added ${videosToAdd.length}, total: ${allVideos.length}`);
                 
-                // Update progress with demo mode info
+                // Update progress with test info
                 if (progressCallback) {
-                    if (this.isDemoMode) {
+                    if (maxVideos || publishedAfter || publishedBefore) {
+                        const filters = [];
+                        if (maxVideos) filters.push(`max ${maxVideos}`);
+                        if (publishedAfter) filters.push(`after ${publishedAfter.split('T')[0]}`);
+                        if (publishedBefore) filters.push(`before ${publishedBefore.split('T')[0]}`);
+                        progressCallback(`TEST MODE: Fetching with filters (${filters.join(', ')})... Found ${allVideos.length} videos`);
+                    } else if (this.isDemoMode) {
                         progressCallback(`Demo Mode: Fetching recent videos... Found ${allVideos.length}/${videoLimit} (limited for cost control)`);
                     } else {
                         progressCallback(`Fetching complete video library... Found ${allVideos.length} so far`);
                     }
                 }
                 
-                // Stop if we've reached the demo limit
-                if (this.isDemoMode && videosCollected >= videoLimit) {
-                    debugLog(`Demo mode: Reached video limit of ${videoLimit}`);
+                // Stop if we've reached the limit
+                if (videosCollected >= effectiveLimit) {
+                    debugLog(`Reached video limit of ${effectiveLimit}`);
                     break;
                 }
             }
@@ -280,9 +335,9 @@ export class YouTubeApiService {
                 break;
             }
             
-        } while (nextPageToken && (!this.isDemoMode || (videosCollected < videoLimit && pageCount < maxPages)));
+        } while (nextPageToken && videosCollected < (this.isDemoMode ? 100 : (maxVideos || Infinity)));
         
-        debugLog(`Total videos from uploads playlist: ${allVideos.length}${this.isDemoMode ? ` (demo limited to ${videoLimit} recent videos)` : ''}`);
+        debugLog(`Total videos from uploads playlist: ${allVideos.length}${this.isDemoMode ? ` (demo limited to ${videoLimit} recent videos)` : ''} ${maxVideos ? `(test limited to ${maxVideos})` : ''}`);
         return allVideos;
     }
 

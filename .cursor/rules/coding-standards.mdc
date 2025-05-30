@@ -3,54 +3,53 @@ description: When making code changes, creating new files, editing current ones.
 globs: 
 alwaysApply: false
 ---
-# Coding Standards & Conventions
+# Coding Standards
 
-## JavaScript Standards
-- **ES6 Modules**: Use modern import/export syntax
-- **Async/Await**: Prefer over Promises for readability
-- **Const/Let**: No var declarations
-- **Arrow Functions**: Use for callbacks and short functions
-- **Template Literals**: Use backticks for string interpolation
+## JavaScript
+- **ES6+** syntax (const/let, arrow functions, async/await)
+- **Single quotes** for strings
+- **Semicolons** required
+- **2-space indentation**
+- **camelCase** for variables and functions
+- **PascalCase** for classes/constructors
 
-## Code Organization
-- **Components**: Modular ES6 classes in [src/js/components/](mdc:src/js/components)
-- **Services**: API and data services in [src/js/services/](mdc:src/js/services)
-- **Utils**: Helper functions in [src/js/utils/](mdc:src/js/utils)
-- **Config**: Centralized configuration in [src/js/config.js](mdc:src/js/config.js)
+## Functions
+```javascript
+// ✅ Good
+const processVideo = async (videoData) => {
+  try {
+    const result = await analyzeVideo(videoData);
+    return result;
+  } catch (error) {
+    console.error('Process video failed:', error);
+    throw error;
+  }
+};
 
-## Naming Conventions
-- **Files**: kebab-case (e.g., `video-analyzer.js`)
-- **Classes**: PascalCase (e.g., `VideoAnalyzer`)
-- **Functions**: camelCase (e.g., `analyzeVideoData`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`)
-- **CSS Classes**: kebab-case with BEM methodology
+// ❌ Bad
+function process_video(video_data) {
+  // no error handling
+  return analyze_video(video_data)
+}
+```
 
 ## Error Handling
-- Always use try-catch for async operations
-- Provide user-friendly error messages
-- Log errors to console for debugging
-- Graceful degradation for API failures
+- **Always** wrap API calls in try/catch
+- **Log errors** with context
+- **Show user-friendly** error messages
+- **Fail gracefully** - don't break the UI
 
-## API Integration
-- Use quota-aware request patterns
-- Implement exponential backoff for rate limits
-- Cache responses when appropriate
-- Validate API keys before requests
+## CSS Classes
+- Use **kebab-case**: `.video-list`, `.api-key-input`
+- **analysis-*** not `analytics-*`
+- **xp-*** prefix for Windows XP UI elements
 
-## Windows XP Styling
-- Use authentic XP color palette: `#ece9d8`, `#0054e3`, `#316ac5`
-- Implement proper 3D border effects with inset/outset
-- Use Tahoma font family for authenticity
-- Maintain 4px border radius for buttons and panels
+## Comments
+```javascript
+// Single line for brief explanations
+/* Multi-line for complex logic explanations */
+```
 
-## Performance Guidelines
-- Lazy load components when possible
-- Debounce user input for search/filter
-- Use efficient DOM manipulation
-- Minimize API calls with smart caching
-
-## Testing Approach
-- Browser-based integration tests in [src/js/integration-test.js](mdc:src/js/integration-test.js)
-- Manual testing via preview mode
-- Cross-browser compatibility testing
-- API key validation testing
+## Files to Follow
+- [src/js/components/App.js](mdc:src/js/components/App.js) - Main patterns
+- [src/js/services/](mdc:src/js/services) - Service layer patterns
