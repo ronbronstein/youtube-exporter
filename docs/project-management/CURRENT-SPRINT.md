@@ -230,8 +230,16 @@
 *Priority: P1 | Points: 5 | Days: 1*
 
 #### **TASK-061: Password Field for API Key**
-**Story**: 16.1 | **Status**: 📋 PLANNED | **Priority**: P1 | **Points**: 2  
+**Story**: 16.1 | **Status**: ✅ COMPLETED | **Priority**: P1 | **Points**: 2  
 **Assignee**: Development Team | **Dependencies**: Form patterns
+
+**COMPLETED**: API key security issue resolved
+- ✅ API key input field type changed from "text" to "password"
+- ✅ Show/hide toggle button added for visibility control
+- ✅ API key persistence fixed - properly saves and loads on refresh
+- ✅ Added security attributes: autocomplete="new-password", spellcheck="false"
+- ✅ Field populated with actual saved value instead of dots
+- ✅ Critical security vulnerability resolved
 
 #### **TASK-062: Section Collapse After Validation**
 **Story**: 16.2 | **Status**: 📋 PLANNED | **Priority**: P1 | **Points**: 3  
