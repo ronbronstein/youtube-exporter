@@ -25,6 +25,7 @@ export class Results extends BaseComponent {
         // Enhanced filtering properties
         this.tagInputComponent = null;
         this.filterTags = [];
+        this.filterLogic = 'OR'; // Default to OR logic
     }
     
     get defaultOptions() {
@@ -91,6 +92,19 @@ export class Results extends BaseComponent {
             <div class="search-filter">
                 <div id="tagInputContainer" class="tag-input-wrapper">
                     <!-- TagInput component will be mounted here -->
+                </div>
+                <div class="filter-options">
+                    <div class="radio-group compact">
+                        <div class="radio-group-title">Match Logic:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicOR" name="filterLogic" value="OR" checked>
+                            <label for="logicOR">Any keyword (OR)</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="logicAND" name="filterLogic" value="AND">
+                            <label for="logicAND">All keywords (AND)</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -179,7 +193,29 @@ export class Results extends BaseComponent {
             debugLog(`🏷️ Filter tags updated: ${this.filterTags.join(', ')}`);
         });
         
-        debugLog('✅ TagInput component initialized in Results');
+        // Handle logic toggle
+        const orRadio = this.findElement('#logicOR');
+        const andRadio = this.findElement('#logicAND');
+        
+        if (orRadio && andRadio) {
+            this.addListener(orRadio, 'change', (e) => {
+                if (e.target.checked) {
+                    this.filterLogic = 'OR';
+                    this.applyTagFilter();
+                    debugLog('🔀 Filter logic set to OR');
+                }
+            });
+            
+            this.addListener(andRadio, 'change', (e) => {
+                if (e.target.checked) {
+                    this.filterLogic = 'AND';
+                    this.applyTagFilter();
+                    debugLog('🔀 Filter logic set to AND');
+                }
+            });
+        }
+        
+        debugLog('✅ TagInput component and logic toggle initialized in Results');
     }
     
     // Public API
@@ -233,20 +269,28 @@ export class Results extends BaseComponent {
             // If no filter tags, show all fetched videos
             this.filteredVideos = [...this.videos];
         } else {
-            // Filter the fetched videos based on the tag keywords
+            // Filter the fetched videos based on the tag keywords and logic
             this.filteredVideos = this.videos.filter(video => {
                 const title = video.title?.toLowerCase() || '';
                 const description = video.description?.toLowerCase() || '';
                 
-                // Check if any tag matches (OR logic for now)
-                return this.filterTags.some(tag => {
-                    const keyword = tag.toLowerCase();
-                    return title.includes(keyword) || description.includes(keyword);
-                });
+                if (this.filterLogic === 'AND') {
+                    // ALL tags must match (AND logic)
+                    return this.filterTags.every(tag => {
+                        const keyword = tag.toLowerCase();
+                        return title.includes(keyword) || description.includes(keyword);
+                    });
+                } else {
+                    // ANY tag can match (OR logic - default)
+                    return this.filterTags.some(tag => {
+                        const keyword = tag.toLowerCase();
+                        return title.includes(keyword) || description.includes(keyword);
+                    });
+                }
             });
         }
 
-        console.log(`🔍 Tag filter applied: [${this.filterTags.join(', ')}] → ${this.filteredVideos.length} results`);
+        console.log(`🔍 Tag filter applied: [${this.filterTags.join(', ')}] with ${this.filterLogic} logic → ${this.filteredVideos.length} results`);
         
         // Update count display and emit event
         this.updateResultsCount();
@@ -286,11 +330,18 @@ export class Results extends BaseComponent {
         this.videos = [];
         this.filteredVideos = [];
         this.filterTags = [];
+        this.filterLogic = 'OR'; // Reset to default
         this.channelName = '';
         
         // Clear tag input
         if (this.tagInputComponent) {
             this.tagInputComponent.clearTags();
+        }
+        
+        // Reset logic toggle to OR
+        const orRadio = this.findElement('#logicOR');
+        if (orRadio) {
+            orRadio.checked = true;
         }
         
         // Update UI
@@ -477,6 +528,7 @@ export class Results extends BaseComponent {
         this.videos = [];
         this.filteredVideos = [];
         this.filterTags = [];
+        this.filterLogic = 'OR';
         
         debugLog('📊 Results component destroyed');
         
