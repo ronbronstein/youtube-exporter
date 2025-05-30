@@ -14,7 +14,7 @@
 git clone https://github.com/ronbronstein/youtube-exporter.git
 cd youtube-exporter
 npm install
-npm run dev                 # → http://localhost:5173
+npm run dev                 # → http://localhost:5177
 ```
 
 ### Deploy to Production  
@@ -66,7 +66,7 @@ export default defineConfig({
 
 ### Development Server
 ```bash
-npm run dev                 # Start dev server (port 5173)
+npm run dev                 # Start dev server (port 5177)
 # Features: Hot reload, source maps, ES6 modules
 ```
 

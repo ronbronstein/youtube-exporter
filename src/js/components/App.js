@@ -14,7 +14,7 @@ import { VideoList } from './VideoList.js';
 import { Results } from './Results.js';
 import { LoadingSpinner, GlobalLoading } from './LoadingSpinner.js';
 import { MessagePanel, GlobalMessages } from './MessagePanel.js';
-import { TagInput } from './TagInput.js';
+// import { TagInput } from './TagInput.js';  // YRH-14: Moved to Results component for client-side filtering
 import { YouTubeApiService } from '../services/youtubeApi.js';
 import { storageService } from '../services/storage.js';
 import { analyticsService } from '../services/analytics.js';
@@ -48,8 +48,8 @@ export class App extends BaseComponent {
             videoList: null,
             loadingSpinner: null,
             messagePanel: null,
-            results: null,
-            tagInput: null
+            results: null
+            // tagInput: null  // YRH-14: Moved to Results component
         };
         
         // Service instances
@@ -612,56 +612,24 @@ export class App extends BaseComponent {
                     </div>
                 </div>
 
-                <!-- Keywords and Options Row - All elements on same line with consistent heights -->
-                <div class="form-row keywords-options-row">
-                    <!-- Left Column: Keywords -->
-                    <div class="keywords-column">
-                        <div class="form-group">
-                            <label class="form-label" for="keywords">
-                                <span class="form-icon">🏷️</span>
-                                Keywords (optional)
-                            </label>
-                            <div id="keywordTagInput" class="tag-input-container full-width"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Middle Column: Keywords Logic -->
-                    <div class="radio-group compact">
-                        <div class="radio-group-title">Keywords Logic:</div>
-                        <div class="radio-option">
-                            <input type="radio" id="logicAny" name="keywordLogic" value="any" checked ${disabledAttr}>
-                            <label for="logicAny">Any (OR)</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="logicAll" name="keywordLogic" value="all" ${disabledAttr}>
-                            <label for="logicAll">All (AND)</label>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Search In -->
-                    <div class="radio-group compact">
-                        <div class="radio-group-title">Search In:</div>
-                        <div class="radio-option">
-                            <input type="radio" id="searchTitle" name="searchScope" value="title" checked ${disabledAttr}>
-                            <label for="searchTitle">Title only</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="searchTitleDesc" name="searchScope" value="titleDesc" ${disabledAttr}>
-                            <label for="searchTitleDesc">Title & Description</label>
-                        </div>
-                    </div>
-                    
-                    <!-- Far Right Column: Video Limit -->
+                <!-- YRH-14: Simplified options row - removed keywords, keeping only video limit and date range -->
+                <div class="form-row options-row">
+                    <!-- Video Limit Column -->
                     <div class="radio-group compact">
                         <div class="radio-group-title">Video Limit:</div>
                         <div class="radio-option">
                             <input type="radio" id="limit100" name="videoLimit" value="100" ${currentMode === 'demo' ? 'checked' : ''} ${disabledAttr}>
-                            <label for="limit100">100 videos</label>
+                            <label for="limit100">100 videos (Demo)</label>
                         </div>
                         <div class="radio-option">
                             <input type="radio" id="limitAll" name="videoLimit" value="all" ${currentMode !== 'demo' ? 'checked' : ''} ${disabledAttr}>
-                            <label for="limitAll">All videos</label>
+                            <label for="limitAll">All videos (Live)</label>
                         </div>
+                    </div>
+                    
+                    <!-- Future: Date Range Picker can be added here -->
+                    <div class="date-range-placeholder">
+                        <span class="form-label">📅 Date Range: All videos (configurable in future update)</span>
                     </div>
                 </div>
 
@@ -676,7 +644,7 @@ export class App extends BaseComponent {
                         </button>
                     </div>
                     <span class="demo-indicator hidden" id="demoIndicator">
-                        Demo: fetches up to 100 recent videos, then filters by keywords
+                        ${currentMode === 'demo' ? 'Demo mode: fetches up to 100 recent videos' : 'Live mode: fetches complete channel data'}
                     </span>
                 </div>
             </div>
@@ -787,23 +755,8 @@ export class App extends BaseComponent {
             debugLog('⚠️ Cache toggle button not found');
         }
         
-        // Radio button change listeners for real-time filtering
-        const searchScopeRadios = this.findElements('input[name="searchScope"]');
-        const keywordLogicRadios = this.findElements('input[name="keywordLogic"]');
-        
-        searchScopeRadios.forEach(radio => {
-            this.addListener(radio, 'change', this.handleFilterSettingsChange.bind(this));
-        });
-        
-        keywordLogicRadios.forEach(radio => {
-            this.addListener(radio, 'change', this.handleFilterSettingsChange.bind(this));
-        });
-        
-        if (searchScopeRadios.length > 0 || keywordLogicRadios.length > 0) {
-            debugLog(`✅ Radio button listeners attached: ${searchScopeRadios.length} searchScope, ${keywordLogicRadios.length} keywordLogic`);
-        } else {
-            debugLog('⚠️ No radio buttons found for real-time filtering');
-        }
+        // YRH-14: Radio button listeners removed - searchScope and keywordLogic no longer exist
+        // All filtering now happens client-side in Results component
         
         // Set up cached channels listeners
         this.setupCachedChannelsListeners();
@@ -1145,115 +1098,69 @@ export class App extends BaseComponent {
             return;
         }
         
-        // Get keywords from TagInput component
-        const keywords = this.components.tagInput ? this.components.tagInput.getTags().join(' ') : '';
+        // YRH-14: Removed keyword filtering from initial search
+        // All filtering now happens client-side in Results component
         
-        debugLog('🚀 Starting unified channel search', { 
-            channelQuery, 
-            keywords: keywords || 'none',
+        debugLog('🚀 Starting channel analysis', { 
+            channelQuery,
+            mode: this.appState.apiMode,
             hasApiKey: !!this.appState.apiKey 
         });
         
-        this.setLoadingState(true, 'Searching channel...');
+        this.setLoadingState(true, 'Analyzing channel...');
         
         try {
-            // Step 1: Analyze channel and get all videos
+            // Fetch complete video dataset (no keyword pre-filtering)
             await this.analyzeChannel(channelQuery);
             
-            // Step 2: Apply keyword filter if provided
-            if (keywords) {
-                this.setLoadingState(true, 'Applying keyword filters...');
-                this.applyKeywordFilter(keywords);
-                
-                // Update the Results component with filtered videos
-                const channelName = this.appState.channelData?.channelTitle || 
-                                   this.appState.channelData?.snippet?.title || 
-                                   'Unknown Channel';
-                
-                if (this.components.results) {
-                    this.components.results.setVideos(this.appState.filteredVideos, channelName);
-                    // Pre-populate the search filter with the initial keywords
-                    this.components.results.setSearchFilter(keywords);
-                    this.components.results.show();
-                    debugLog(`📊 Results component updated with ${this.appState.filteredVideos.length} filtered videos`);
-                }
-                
-                // Ensure results section is visible
-                const resultsSection = this.findElement('.results-section');
-                if (resultsSection) {
-                    resultsSection.classList.add('has-data');
-                    resultsSection.style.display = 'block';
-                    debugLog('📊 Results section made visible');
-                }
-                
-                // Update analytics based on filtered results
-                this.services.analytics.setVideosData(this.appState.filteredVideos);
-                this.renderAnalytics();
-                
-                // Ensure results are visible
-                const resultsEl = this.findElement('#resultsContainer');
-                const analyticsEl = this.findElement('#analyticsSection');
-                if (resultsEl) {
-                    resultsEl.style.display = 'block';
-                    resultsEl.style.visibility = 'visible';
-                }
-                if (analyticsEl) {
-                    analyticsEl.style.display = 'block';
-                    analyticsEl.style.visibility = 'visible';
-                }
-                
-                const totalVideos = this.appState.videos.length;
-                const filteredVideos = this.appState.filteredVideos.length;
-                this.showSuccess(`Found ${totalVideos} videos, ${filteredVideos} match your keyword filter`);
-                
-                // Show post-analysis overlay
-                this.showPostAnalysisOverlay();
-            } else {
-                // No keywords, show all videos
-                const channelName = this.appState.channelData?.channelTitle || 
-                                   this.appState.channelData?.snippet?.title || 
-                                   'Unknown Channel';
-                
-                if (this.components.results) {
-                    this.components.results.setVideos(this.appState.videos, channelName);
-                    // Clear the search filter since no keywords were used
-                    this.components.results.setSearchFilter('');
-                    this.components.results.show();
-                    debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
-                }
-                
-                // Ensure results section is visible
-                const resultsSection = this.findElement('.results-section');
-                if (resultsSection) {
-                    resultsSection.classList.add('has-data');
-                    resultsSection.style.display = 'block';
-                    debugLog('📊 Results section made visible');
-                }
-                
-                // Ensure results are visible
-                const resultsEl = this.findElement('#resultsContainer');
-                const analyticsEl = this.findElement('#analyticsSection');
-                if (resultsEl) {
-                    resultsEl.style.display = 'block';
-                    resultsEl.style.visibility = 'visible';
-                }
-                if (analyticsEl) {
-                    analyticsEl.style.display = 'block';
-                    analyticsEl.style.visibility = 'visible';
-                }
-                
-                this.showSuccess(`Analysis complete: ${this.appState.videos.length} videos found`);
-                
-                // Show post-analysis overlay
-                this.showPostAnalysisOverlay();
+            // Show all videos in Results component for client-side filtering
+            const channelName = this.appState.channelData?.channelTitle || 
+                               this.appState.channelData?.snippet?.title || 
+                               'Unknown Channel';
+            
+            if (this.components.results) {
+                this.components.results.setVideos(this.appState.videos, channelName);
+                this.components.results.show();
+                debugLog(`📊 Results component updated with ${this.appState.videos.length} total videos`);
             }
             
+            // Ensure results section is visible
+            const resultsSection = this.findElement('.results-section');
+            if (resultsSection) {
+                resultsSection.classList.add('has-data');
+                resultsSection.style.display = 'block';
+                debugLog('📊 Results section made visible');
+            }
+            
+            // Update analytics with complete dataset
+            this.services.analytics.setVideosData(this.appState.videos);
+            this.renderAnalytics();
+            
+            // Ensure results are visible
+            const resultsEl = this.findElement('#resultsContainer');
+            const analyticsEl = this.findElement('#analyticsSection');
+            if (resultsEl) {
+                resultsEl.style.display = 'block';
+                resultsEl.style.visibility = 'visible';
+            }
+            if (analyticsEl) {
+                analyticsEl.style.display = 'block';
+                analyticsEl.style.visibility = 'visible';
+            }
+            
+            const videoCount = this.appState.videos.length;
+            const modeText = this.appState.apiMode === 'demo' ? ' (Demo: 100 recent)' : '';
+            this.showSuccess(`Analysis complete: ${videoCount} videos loaded${modeText}. Use filters below to refine results.`);
+            
+            // Show post-analysis overlay
+            this.showPostAnalysisOverlay();
+            
         } catch (error) {
-            debugLog('❌ Unified search failed:', error);
+            debugLog('❌ Channel analysis failed:', error);
             // Error handling is done in analyzeChannel
         } finally {
             this.setLoadingState(false);
-            debugLog('🏁 Unified search completed');
+            debugLog('🏁 Channel analysis completed');
         }
     }
     
@@ -2021,106 +1928,10 @@ export class App extends BaseComponent {
         debugLog('✅ Demo UI initialization complete');
     }
     
-    applyKeywordFilter(query) {
-        if (!query || !this.appState.videos) return;
-        
-        // Get filter settings - FIX: Use correct radio button names
-        const searchScope = this.findElement('input[name="searchScope"]:checked')?.value || 'title';
-        const searchLogic = this.findElement('input[name="keywordLogic"]:checked')?.value || 'any';
-        
-        // Parse keywords - make case insensitive
-        let keywords = [];
-        if (query.includes(',')) {
-            keywords = query.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
-        } else if (query.toLowerCase().includes(' and ')) {
-            keywords = query.toLowerCase().split(' and ').map(k => k.trim()).filter(k => k.length > 0);
-        } else {
-            keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-        }
-        
-        debugLog(`Filtering with keywords: [${keywords.join(', ')}] using ${searchLogic} logic in ${searchScope}`);
-        
-        const originalCount = this.appState.videos.length;
-        
-        this.appState.filteredVideos = this.appState.videos.filter(video => {
-            let searchText = '';
-            
-            // Build search text based on scope - make case insensitive and FIX scope values
-            switch (searchScope) {
-                case 'title':
-                    searchText = (video.title || '').toLowerCase();
-                    break;
-                case 'titleDesc':
-                    searchText = `${video.title || ''} ${video.fullDescription || video.description || ''}`.toLowerCase();
-                    break;
-                default:
-                    searchText = (video.title || '').toLowerCase();
-                    break;
-            }
-            
-            // FIX: Use correct logic values ('any' vs 'all' instead of 'OR' vs 'AND')
-            if (searchLogic === 'all') {
-                const matches = keywords.every(keyword => searchText.includes(keyword));
-                if (matches) {
-                    debugLog(`✅ ALL match: "${video.title}" - all keywords found in ${searchScope}`);
-                }
-                return matches;
-            } else { // 'any' logic
-                const matchedKeywords = keywords.filter(keyword => searchText.includes(keyword));
-                if (matchedKeywords.length > 0) {
-                    debugLog(`✅ ANY match: "${video.title}" - matched: [${matchedKeywords.join(', ')}] in ${searchScope}`);
-                }
-                return matchedKeywords.length > 0;
-            }
-        });
-        
-        debugLog(`Keyword filter applied: ${originalCount} → ${this.appState.filteredVideos.length} videos`);
-    }
-    
     /**
-     * Handle radio button changes for real-time filtering
+     * YRH-14: applyKeywordFilter method removed
+     * Keyword filtering moved to Results component for client-side processing
      */
-    handleFilterSettingsChange(event) {
-        debugLog(`🔄 Filter settings changed: ${event.target.name} = ${event.target.value}`);
-        
-        // Only re-filter if we have videos and keywords
-        if (!this.appState.videos || this.appState.videos.length === 0) {
-            debugLog('⚠️ No videos to filter');
-            return;
-        }
-        
-        // Get current keywords from TagInput
-        const keywords = this.components.tagInput ? this.components.tagInput.getTags().join(' ') : '';
-        
-        if (!keywords) {
-            debugLog('⚠️ No keywords to filter with');
-            // Reset to show all videos if no keywords
-            this.appState.filteredVideos = [...this.appState.videos];
-            
-            // Update Results component
-            if (this.components.results) {
-                const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
-                this.components.results.setVideos(this.appState.filteredVideos, channelName);
-            }
-            return;
-        }
-        
-        // Re-apply keyword filter with new settings
-        this.applyKeywordFilter(keywords);
-        
-        // Update the Results component with newly filtered videos
-        if (this.components.results) {
-            const channelName = this.appState.channelData?.channelTitle || 'Unknown Channel';
-            this.components.results.setVideos(this.appState.filteredVideos, channelName);
-            debugLog(`📊 Results updated: ${this.appState.filteredVideos.length} videos after filter change`);
-        }
-        
-        // Update analytics with filtered results
-        this.services.analytics.setVideosData(this.appState.filteredVideos);
-        this.renderAnalytics();
-        
-        debugLog(`🔄 Real-time filtering complete: ${this.appState.filteredVideos.length} videos match new settings`);
-    }
     
     // Cleanup
     onDestroy() {

@@ -143,7 +143,7 @@ CONFIG.API.QUOTA_COSTS = {
 
 ### Local Development
 ```bash
-npm run dev                    # Vite dev server (port 5173)
+npm run dev                    # Vite dev server (port 5177)
 # Auto-loads API key from .env file
 # Full functionality, no demo limits
 # Hot reload, source maps, debugging

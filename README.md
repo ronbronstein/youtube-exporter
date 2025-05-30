@@ -21,7 +21,7 @@ Comprehensive YouTube channel analysis tool with authentic Windows XP design and
 git clone https://github.com/ronbronstein/youtube-exporter.git
 cd youtube-exporter
 npm install
-npm run dev                 # → http://localhost:5173
+npm run dev                 # → http://localhost:5177
 ```
 
 ## 🔑 YouTube API Key (2 minutes)

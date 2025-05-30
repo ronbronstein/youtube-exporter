@@ -14,7 +14,7 @@
 git clone https://github.com/ronbronstein/youtube-exporter.git
 cd youtube-exporter
 npm install
-npm run dev                     # → http://localhost:5173
+npm run dev                     # → http://localhost:5177
 ```
 
 ### Get YouTube API Key
@@ -144,7 +144,7 @@ npm run preview     # ✅ Production works locally
 | **Windows XP UI** | Check authentic styling |
 
 ### Integration Tests
-Access test mode: `http://localhost:5173/?test=true`
+Access test mode: `http://localhost:5177/?test=true`
 - Component rendering
 - API integration  
 - Data processing
