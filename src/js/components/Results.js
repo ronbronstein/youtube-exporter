@@ -192,12 +192,40 @@ export class Results extends BaseComponent {
     }
     
     initializeTagInput() {
+        debugLog('🔍 Results: Attempting to initialize TagInput...');
+        
         const tagContainer = this.findElement('#tagInputContainer');
         if (!tagContainer) {
             debugLog('❌ Results: TagInput container not found');
+            debugLog('🔍 Results: Available elements in container:', this.container.innerHTML.substring(0, 200) + '...');
+            
+            // Try a retry after a short delay
+            setTimeout(() => {
+                debugLog('🔄 Results: Retrying TagInput initialization...');
+                const retryContainer = this.findElement('#tagInputContainer');
+                if (retryContainer) {
+                    debugLog('✅ Results: TagInput container found on retry');
+                    this.initializeTagInputWithContainer(retryContainer);
+                } else {
+                    debugLog('❌ Results: TagInput container still not found after retry');
+                    // Try to find any tag-input-wrapper
+                    const fallbackContainer = this.findElement('.tag-input-wrapper');
+                    if (fallbackContainer) {
+                        debugLog('✅ Results: Found fallback tag-input-wrapper');
+                        this.initializeTagInputWithContainer(fallbackContainer);
+                    } else {
+                        debugLog('❌ Results: No tag input container found anywhere');
+                    }
+                }
+            }, 100);
             return;
         }
         
+        debugLog('✅ Results: TagInput container found immediately');
+        this.initializeTagInputWithContainer(tagContainer);
+    }
+    
+    initializeTagInputWithContainer(tagContainer) {
         // Initialize TagInput component
         this.tagInputComponent = new TagInput(tagContainer, {
             placeholder: 'Add keywords and press Enter...',
