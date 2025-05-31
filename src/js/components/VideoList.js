@@ -186,7 +186,8 @@ export class VideoList extends BaseComponent {
             { key: 'viewCount', label: 'Views', sortable: true },
             { key: 'likeCount', label: 'Likes', sortable: true },
             { key: 'commentCount', label: 'Comments', sortable: true },
-            { key: 'duration', label: 'Duration', sortable: false }
+            { key: 'duration', label: 'Duration', sortable: false },
+            { key: 'tags', label: 'Keywords', sortable: false }
         ];
         
         columns.forEach(col => {
@@ -273,6 +274,12 @@ export class VideoList extends BaseComponent {
         row.appendChild(this.createElement('td', {
             className: 'date-cell',
             textContent: video.duration || ''
+        }));
+        
+        // Keywords/Tags cell
+        row.appendChild(this.createElement('td', {
+            className: 'keywords-cell',
+            textContent: video.tags && video.tags.length > 0 ? video.tags.join(', ') : '-'
         }));
         
         return row;

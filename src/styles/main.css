@@ -6012,3 +6012,30 @@ button:disabled:hover {
 .tag-input-wrapper {
     margin-bottom: var(--xp-spacing-sm);
 }
+
+.engagement-cell {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--xp-text-secondary);
+    font-size: var(--xp-font-size-small);
+    padding: var(--xp-spacing-xs) var(--xp-spacing-sm) !important;
+}
+
+.keywords-cell {
+    max-width: 200px;
+    font-size: var(--xp-font-size-small);
+    color: var(--xp-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: var(--xp-spacing-xs) var(--xp-spacing-sm) !important;
+}
+
+.keywords-cell:hover {
+    overflow: visible;
+    white-space: normal;
+    word-wrap: break-word;
+    background: var(--xp-window-bg-light);
+    position: relative;
+    z-index: 1;
+}
