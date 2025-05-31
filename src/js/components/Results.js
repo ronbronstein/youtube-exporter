@@ -89,7 +89,7 @@ export class Results extends BaseComponent {
     renderSearchFilter() {
         if (!this.options.enableFilter) return '';
         
-        return `
+        const filterHTML = `
             <div class="search-filter">
                 <div class="filter-header">
                     <label class="filter-label">🔍 Enhanced Keyword Filter</label>
@@ -129,6 +129,9 @@ export class Results extends BaseComponent {
                 </div>
             </div>
         `;
+        
+        debugLog('🔍 Results: renderSearchFilter HTML generated:', filterHTML.substring(0, 200) + '...');
+        return filterHTML;
     }
     
     renderExportSection() {
