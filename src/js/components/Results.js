@@ -236,7 +236,7 @@ export class Results extends BaseComponent {
             minTagLength: 2,
             maxTagLength: 25,
             allowDuplicates: false
-        });
+        }).init();
         
         // Handle tag changes
         this.tagInputComponent.on('tagsChanged', (data) => {
