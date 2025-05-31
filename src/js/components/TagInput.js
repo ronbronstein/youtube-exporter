@@ -47,7 +47,7 @@ export class TagInput extends BaseComponent {
         const disabledClass = disabled ? 'disabled' : '';
         const disabledAttr = disabled ? 'disabled' : '';
         
-        return `
+        const templateHTML = `
             <div class="tag-input-container ${disabledClass}" id="tagContainer">
                 ${this.renderTags()}
                 <input 
@@ -59,15 +59,27 @@ export class TagInput extends BaseComponent {
                 >
             </div>
         `;
+        
+        debugLog('🏷️ TagInput template generated:', templateHTML.substring(0, 100) + '...');
+        return templateHTML;
     }
     
     onMount() {
+        debugLog('🏷️ TagInput onMount started - looking for elements...');
+        
         // Get DOM references
         this.tagContainer = this.findElement('#tagContainer');
         this.tagInput = this.findElement('#tagInput');
         
+        debugLog('🏷️ TagInput elements found:', {
+            tagContainer: !!this.tagContainer,
+            tagInput: !!this.tagInput,
+            containerHTML: this.container.innerHTML.substring(0, 200) + '...'
+        });
+        
         if (!this.tagContainer || !this.tagInput) {
             debugLog('❌ TagInput: Required elements not found');
+            debugLog('🔍 TagInput: Available container content:', this.container.innerHTML);
             return;
         }
         
