@@ -308,6 +308,8 @@ export class Results extends BaseComponent {
     
     // Public API
     setVideos(videos, channelName = '') {
+        debugLog(`📊 Results: setVideos called with ${videos?.length || 0} videos, channel: ${channelName}`);
+        
         this.videos = videos || [];
         this.filteredVideos = [...this.videos];
         this.channelName = channelName;
@@ -316,8 +318,10 @@ export class Results extends BaseComponent {
         this.updateExportButtons();
         
         if (this.videos.length > 0) {
+            debugLog('📊 Results: Showing component (has videos)');
             this.show();
         } else {
+            debugLog('📊 Results: Hiding component (no videos)');
             this.hide();
         }
         
@@ -419,6 +423,14 @@ export class Results extends BaseComponent {
         this.container.style.display = 'block';
         this.container.style.visibility = 'visible';
         debugLog('📊 Results component shown');
+        
+        // Try to initialize TagInput if it hasn't been initialized yet
+        if (!this.tagInputComponent && this.options.enableFilter) {
+            debugLog('🔄 Results: TagInput not initialized yet, attempting initialization after show...');
+            setTimeout(() => {
+                this.initializeTagInput();
+            }, 50);
+        }
     }
     
     hide() {
