@@ -5,11 +5,11 @@
 /**
  * Sanitize URLs to prevent XSS via javascript: URLs
  * @param {string} url - URL to sanitize
- * @returns {string} Safe URL or # if unsafe
+ * @returns {string} Safe URL or empty string if unsafe
  */
 export function sanitizeURL(url) {
     if (!url || typeof url !== 'string') {
-        return '#';
+        return '';
     }
     
     // Allow only safe URL schemes
@@ -27,22 +27,23 @@ export function sanitizeURL(url) {
     if (url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
-    
+
     // Block dangerous schemes like javascript:, data:, etc.
-    return '#';
+    return '';
 }
 
 /**
  * Validate YouTube API key format
  * @param {string} apiKey - API key to validate
- * @returns {object} Validation result with valid boolean and error message
+ * @returns {boolean} True if format appears valid, otherwise false
  */
 export function validateApiKey(apiKey) {
-    if (!apiKey || !apiKey.startsWith('AIza') || apiKey.length < 35) {
-        return {
-            valid: false,
-            error: 'Invalid API key format. YouTube API keys start with "AIza" and are 39+ characters.'
-        };
+    // YouTube API keys are exactly 39 characters long. The previous
+    // implementation returned an object, but callers expect a simple
+    // boolean result. Adjusted to return true/false while keeping the
+    // stricter length check.
+    if (!apiKey || !apiKey.startsWith('AIza') || apiKey.length < 39) {
+        return false;
     }
-    return { valid: true };
-} 
+    return true;
+}
