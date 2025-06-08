@@ -578,7 +578,7 @@ export class App extends BaseComponent {
     /**
      * Render the search section with large, usable input fields
      * 
-     * REDESIGNED (Dec 2024): Enhanced for better usability
+     * Redesigned (Dec 2024): Enhanced for better usability
      * - Much larger input fields (20px padding) for comfortable typing
      * - Simplified options layout
      * - Larger, more prominent search button
