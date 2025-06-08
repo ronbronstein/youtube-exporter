@@ -229,7 +229,7 @@ export class App extends BaseComponent {
         // Initialize TagInput component with longer delay and better error handling
         setTimeout(() => {
             try {
-                const tagInputContainer = document.querySelector('#keywordTagInput');
+                let tagInputContainer = document.querySelector('#keywordTagInput');
                 if (!tagInputContainer) {
                     debugLog('❌ TagInput container not found, trying fallback selectors...');
                     // Try fallback selectors
