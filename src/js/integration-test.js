@@ -87,7 +87,7 @@ export class IntegrationTest {
         
         this.test('Security utilities work', () => {
             return sanitizeURL('javascript:alert(1)') === '' &&
-                   validateApiKey('AIza1234567890123456789012345') === true;
+                   validateApiKey('AIza1234567890123456789012345').valid === true;
         });
         
         // Test 5: Service Initialization
