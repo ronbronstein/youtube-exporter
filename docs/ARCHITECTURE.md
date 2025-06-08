@@ -69,7 +69,7 @@ Business logic separated from UI:
 | Service | Responsibility | Key Methods |
 |---------|---------------|-------------|
 | **YouTubeApiService** | API calls, data fetching | `getChannelData()`, `getAllChannelVideos()` |
-| **AnalyticsService** | Content analysis, insights | `generateBasicStats()`, `identifyViralContent()` |
+| **AnalyticsService** | Content analysis, insights | `generateContentAnalysis()`, `identifyViralContent()` |
 | **StorageService** | Caching, persistence | `saveAnalysis()`, `loadAnalysis()` |
 
 ### Configuration Pattern

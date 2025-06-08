@@ -81,7 +81,7 @@ const videos = await api.getAllChannelVideos(playlistId, progressCallback);
 import { AnalyticsService } from './services/analytics.js';
 
 const analytics = new AnalyticsService();
-const stats = analytics.generateBasicStats(videos);
+const stats = analytics.generateContentAnalysis(videos);
 const viralVideos = analytics.identifyViralContent(videos);
 ```
 
