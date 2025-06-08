@@ -3,7 +3,7 @@
  * Unified: Local development identical to GitHub Pages with auto-loaded API keys
  */
 
-import { CONFIG, updateGlobalState } from '../config.js';
+import { CONFIG, updateGlobalState, getGlobalState } from '../config.js';
 import { debugLog } from './debug.js';
 
 /**
@@ -120,7 +120,7 @@ function initializeGitHubPages() {
  * @returns {string} Current mode: 'demo', 'live', or 'local-auto'
  */
 export function getCurrentMode() {
-    return CONFIG.GLOBAL_STATE?.apiMode || 'demo';
+    return getGlobalState('apiMode') || 'demo';
 }
 
 /**
